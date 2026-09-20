@@ -1,0 +1,6 @@
+node_modules
+dist
+.expo
+.venv
+pnpm-lock.yaml
+apps/api/drizzle/meta

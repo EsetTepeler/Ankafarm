@@ -1,0 +1,86 @@
+# Coolify bu dosyayı "Docker Compose" build pack ile deploy eder.
+# SERVICE_* değişkenleri Coolify tarafından üretilir; yerelde .env dosyasından gelir.
+# Yerel port eşlemeleri docker-compose.override.yml içinde (Coolify onu okumaz).
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ankafarm
+      POSTGRES_USER: ankafarm
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ankafarm -d ankafarm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVICE_FQDN_API_3000:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://ankafarm:${SERVICE_PASSWORD_DB}@db:5432/ankafarm
+      JWT_SECRET: ${SERVICE_BASE64_64_JWT}
+      WEB_ORIGIN: ${SERVICE_URL_WEB}
+      SEED_FARM_NAME: ${SEED_FARM_NAME:-Anka Farm}
+      SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL}
+      SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD}
+      SEED_OWNER_NAME: ${SEED_OWNER_NAME:-Çiftlik Sahibi}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVICE_FQDN_WEB_80:
+      API_URL: ${SERVICE_URL_API}
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/config.json"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  backup:
+    image: prodrigestivill/postgres-backup-local:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ankafarm
+      POSTGRES_USER: ankafarm
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_DB}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: "30"
+      BACKUP_KEEP_WEEKS: "8"
+      BACKUP_KEEP_MONTHS: "12"
+      HEALTHCHECK_PORT: "8080"
+    volumes:
+      - backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:
+  backups:

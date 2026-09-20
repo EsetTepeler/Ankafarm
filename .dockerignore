@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+**/.expo
+**/.expo-shared
+.venv
+.git
+docs
+**/.env
+**/.env.*
+!**/.env.example
+apps/mobile
+apps/web/.e2e
+**/*.log

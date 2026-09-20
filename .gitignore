@@ -1,0 +1,41 @@
+# Node
+node_modules/
+dist/
+build/
+*.log
+.pnpm-store/
+
+# Expo
+.expo/
+.expo-shared/
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/web-build/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Data and uploads
+uploads/
+backups/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Web
+apps/web/.e2e/
+apps/web/.vite-dev.log
+apps/web/dev-dist/

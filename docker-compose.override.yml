@@ -1,0 +1,11 @@
+# Sadece yerel geliştirme: port eşlemeleri. Coolify bu dosyayı okumaz.
+services:
+  db:
+    ports:
+      - "5433:5432"
+  api:
+    ports:
+      - "3000:3000"
+  web:
+    ports:
+      - "8080:80"

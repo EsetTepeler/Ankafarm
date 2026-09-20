@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789925010100,
+      "tag": "0000_fantastic_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789927549819,
+      "tag": "0001_omniscient_james_howlett",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789928099768,
+      "tag": "0002_grey_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789928681530,
+      "tag": "0003_open_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789929473732,
+      "tag": "0004_first_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789937216034,
+      "tag": "0005_green_thing",
+      "breakpoints": true
+    }
+  ]
+}
