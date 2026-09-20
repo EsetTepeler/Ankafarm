@@ -4,7 +4,6 @@ WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/
-COPY apps/mobile/package.json apps/mobile/
 COPY packages/shared/package.json packages/shared/
 RUN corepack pnpm install --frozen-lockfile --filter @anka/api...
 COPY packages/shared packages/shared
