@@ -23,6 +23,8 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
+    expose:
+      - "3000"
     environment:
       SERVICE_FQDN_API_3000:
       NODE_ENV: production
@@ -50,6 +52,8 @@ services:
       context: .
       dockerfile: docker/web.Dockerfile
     restart: unless-stopped
+    expose:
+      - "80"
     environment:
       SERVICE_FQDN_WEB_80:
       API_URL: ${SERVICE_URL_API}
