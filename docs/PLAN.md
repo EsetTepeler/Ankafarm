@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1.1–1.16 tamam. Frontend web (Vite + shadcn/ui), uçtan uca test 26 adım geçiyor. `apps/mobile` silindi (2026-09-21). Sırada 1.17 Bugün v1, sonra Faz 2. Sunucu: kullanıcı Hostinger KVM 2 (2 vCPU, 8 GB) alacak, Coolify şablonu ile.
+Durum: Faz 1 tamam (1.1–1.17), uçtan uca test 27 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada Faz 2 stok, finans, pano.
 
 ---
 
@@ -475,7 +475,7 @@ Her madde numaralı. Yönlendirme "2.3'ü yapalım" şeklinde olabilir. Tamamlan
 - [x] 0.4 Mobil auth akışı: giriş ekranı, SecureStore/localStorage token saklama, açılışta refresh ile oturum geri getirme, 401'de tek seferlik yenileme ve tekrar. Sunucuya ulaşılamazsa oturum korunur (çevrimdışı açılış). (2026-09-20)
 - [x] 0.5 Uygulama iskeleti: sekmeli navigasyon (Bugün, Hayvanlar, Stok, Ayarlar), tema, Splash, Ayarlar'da hesap, çiftlik, kullanıcı listesi, çıkış. (2026-09-20)
 - [x] 0.6 Docker: `docker-compose.yml` (db, api, web, backup; insights Faz 5'te eklenecek), `docker-compose.override.yml` yerel portlar, api ve web Dockerfile'ları, nginx SPA yedeği ve `config.json` üreten açılış betiği. Yerelde `docker compose up --build` ile test edildi: API konteynerde migration ve login çalıştı, web 8080'de index, config.json ve `/a/<uuid>` yedeği döndü. (2026-09-20. İmajlar: api 261 MB, web 100 MB.)
-- [ ] 0.7 Coolify: sunucu, repo bağlantısı, alan adları, TLS, ilk staging deploy. README'de adımlar var. Sahip hesabı için `SEED_OWNER_EMAIL` ve `SEED_OWNER_PASSWORD` Coolify'da ortam değişkeni olarak verilir.
+- [x] 0.7 Coolify: Hostinger KVM 2 (Ubuntu 24.04, 8 GB), repo bağlı, alan adları farmanka.com ve api.farmanka.com (Turhost DNS, dns1/dns2.turhost.com), TLS otomatik, www → ana adres. Deploy'da öğrenilenler: Dockerfile kök tsconfig.base.json'ı kopyalamalı; lockfile'da eski peer çözümleri kalabiliyor (yeniden çözümle); Coolify `expose` satırından portu okur. (2026-09-21) Sahip hesabı için `SEED_OWNER_EMAIL` ve `SEED_OWNER_PASSWORD` Coolify'da ortam değişkeni olarak verilir.
 - [ ] 0.8 Araçlar: Prettier ve .editorconfig hazır; ESLint (oxlint Vite ile geldi), CI typecheck sonra.
 - [x] 0.9 Web'e geçiş (2026-09-20 akşam): `apps/web` iskeleti, shadcn kurulumu, tema, kabuk (sol menü, üst çubuk, senkron rozeti, tema düğmesi), giriş, Bugün (gerçek KPI'lar: sürü, dişi/erkek, gebe, uyarılar; işler, doğumlar, son tartımlar), Hayvanlar tablo, Ayarlar (çiftlik, hesap, kullanıcılar, sistem), Gruplar, Senkron durumu. `scripts/e2e-web.mjs` 9 adım geçiyor (OPFS kalıcılığı dahil). Sonra profil (Olaylar / Özet / Sağlık / Kilo / Üreme / Soy ağacı sekmeleri, olay ekleme menüsü, tartım ve sağlık dialogları), hayvan formu (aranabilir seçiciler), toplu sağlık (grup seçici + tablo, geri al), üreme ve soy ağacı bölümleri taşındı; kilo grafiği VisActor. e2e 20 adım geçiyor. Tema nötr gri (kahve tonu kaldırıldı, kullanıcı isteği).
 
@@ -499,7 +499,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 1.14 Realtime: `modules/realtime` Socket.IO gateway (JWT handshake, `farm:<id>` odası), `sync.push` sonrası batch başına tek `changed` olayı, istemci `sync/realtime.ts` 500 ms biriktirip tek pull; e2e'de ikinci tarayıcıdan eklenen grup ilkinde kendiliğinden görünüyor. (2026-09-20)
 - [x] 1.15 Grup yönetimi ve hayvan taşıma: `group_movements` her katmanda, sunucu trigger'ı `anka_refresh_animal_group` (son silinmemiş hareket grubu belirler, son hareket silinirse geldiği gruba döner; migration 0011), istemci aynı kuralı yerelde uygular. Profilde "Grup değiştir", listede çoklu seçim + "Gruba taşı" (tek push), listede grup filtresi (dropdown+arama, `?group=` parametresi), Gruplar sayfasında hayvan sayısı, kapasite aşımı uyarısı, düzenleme; içinde hayvan olan grup silinemez. (2026-09-21)
 - [x] 1.16 QR tarama (web): QR içeriği profil adresi `https://app.<domain>/a/<uuid>`; `/scan` sayfası tarayıcı kamerasıyla okur (Chrome/Android'de yerleşik BarcodeDetector, diğerlerinde jsQR), adresi yerel veritabanında çözer ve profili açar, çevrimdışı çalışır; kamera yoksa küpe no veya adres elle girilir. Profilde QR dialogu (canvas, bağlantı kopyala, tek etiket yazdır). Girişsiz gelen `/a/<id>` giriş sonrası aynı profile döner. Alan adına bakılmaz, eski etiketler taşınmada geçerli kalır. Toplu PDF basımı 3.5'te. (2026-09-21)
-- [ ] 1.17 Bugün ekranı v1: senkron durumu, sürü sayıları, yaklaşan doğumlar, geciken aşılar, son 3 günün olağandışı gözlemleri, son olaylar akışı. Hepsi yerel veriden.
+- [x] 1.17 Bugün ekranı v1: senkron kartı (durum, son senkron, şimdi senkronla), KPI şeridi (sürü, dişi/erkek, gebe, bekleyen iş; 60 gündür tartılmayan sayısı), bugünkü işler (geciken doz, olağandışı gözlem, 45 günü geçen gebelik kontrolü, süren arınma), yaklaşan doğumlar kaç gün kaldı rozetiyle, çiftlik geneli son olaylar akışı (`useRecentEvents`, paylaşılan eşleyiciler, toplu sağlık tek satır). Hepsi yerel veriden. (2026-09-21)
 
 ### Faz 2: Stok, finans, pano
 

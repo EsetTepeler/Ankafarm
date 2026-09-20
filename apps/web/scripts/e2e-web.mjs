@@ -417,7 +417,19 @@ try {
       await p3.getByTestId("login-password").fill(PASSWORD);
       await p3.getByTestId("login-submit").click();
       await p3.getByRole("heading", { name: `${tag1} · Pamuk` }).waitFor({ timeout: 60_000 });
-    } finally {
+    
+  await step("Bugün v1: senkron kartı, son olaylar akışı, bekleyen işler", async () => {
+    await page.getByTestId("nav-today").click();
+    await page.getByTestId("today-sync").getByText(/güncel|bekliyor|Senkron/).first().waitFor({ timeout: 15_000 });
+    await page.getByTestId("today-feed").locator("li").first().waitFor({ timeout: 15_000 });
+    const n = await page.getByTestId("today-feed").locator("li").count();
+    if (n < 5) throw new Error(`akışta ${n} olay var, en az 5 bekleniyordu`);
+    await page.getByTestId("feed-group_move").first().waitFor({ timeout: 5_000 });
+    await page.getByTestId("feed-observation").first().waitFor({ timeout: 5_000 });
+    const kpi = await page.getByTestId("kpi-alerts").innerText();
+    if (!/\d/.test(kpi)) throw new Error("bekleyen iş sayısı yok");
+  });
+} finally {
       await ctx3.close();
     }
   });
