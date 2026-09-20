@@ -28,9 +28,18 @@ export function loadEnv(): Env {
   return parsed.data;
 }
 
+/** İzinli web origin'leri. Her adresin www'lu ve www'suz hali birlikte kabul edilir; nginx www'yi ana adrese yönlendirir ama eski sekmeler kalabilir. */
 export function webOrigins(env: Env): string[] {
-  return (env.WEB_ORIGIN ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const out = new Set<string>();
+  for (const raw of (env.WEB_ORIGIN ?? "").split(",")) {
+    const origin = raw.trim().replace(/\/+$/, "");
+    if (!origin) continue;
+    out.add(origin);
+    const m = origin.match(/^(https?:\/\/)(www\.)?(.+)$/i);
+    if (m) {
+      out.add(`${m[1]}${m[3]}`);
+      out.add(`${m[1]}www.${m[3]}`);
+    }
+  }
+  return [...out];
 }
