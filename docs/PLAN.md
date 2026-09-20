@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1.1–1.16 tamam. Frontend web (Vite + shadcn/ui), uçtan uca test 26 adım geçiyor. `apps/mobile` artık kullanılmıyor, silinmeyi bekliyor. Sırada 1.17 Bugün v1, sonra Faz 2. Sunucu: kullanıcı Hostinger KVM 2 (2 vCPU, 8 GB) alacak, Coolify şablonu ile.
+Durum: Faz 1.1–1.16 tamam. Frontend web (Vite + shadcn/ui), uçtan uca test 26 adım geçiyor. `apps/mobile` silindi (2026-09-21). Sırada 1.17 Bugün v1, sonra Faz 2. Sunucu: kullanıcı Hostinger KVM 2 (2 vCPU, 8 GB) alacak, Coolify şablonu ile.
 
 ---
 
@@ -37,7 +37,7 @@ Sürümler (0.1 ile kesinleşti, 2026-09-20): Node 24, pnpm 12 (global kurulum y
 
 Karar geçmişi:
 
-- 2026-09-20 akşam: **Expo/React Native bırakıldı, frontend web oldu.** Sebep: native uygulamaya gerek yok (PC + tablet tarayıcı, iPhone PWA), RN Web masaüstünde zayıf, visx/MUI/shadcn kullanılamıyordu, expo-sqlite web alfa ve dev sunucusu proxy istiyordu. Yeni `apps/web`: Vite + shadcn/ui + Tailwind + VisActor. API, ortak paket, senkron protokolü, yerel şema ve feature depoları olduğu gibi taşındı; sadece ekranlar ve DB adaptörü yeniden yazıldı. `apps/mobile` eşitlik sağlanınca silinecek.
+- 2026-09-20 akşam: **Expo/React Native bırakıldı, frontend web oldu.** Sebep: native uygulamaya gerek yok (PC + tablet tarayıcı, iPhone PWA), RN Web masaüstünde zayıf, visx/MUI/shadcn kullanılamıyordu, expo-sqlite web alfa ve dev sunucusu proxy istiyordu. Yeni `apps/web`: Vite + shadcn/ui + Tailwind + VisActor. API, ortak paket, senkron protokolü, yerel şema ve feature depoları olduğu gibi taşındı; sadece ekranlar ve DB adaptörü yeniden yazıldı. `apps/mobile` 2026-09-21'de silindi.
 
 - 2026-09-20: Supabase yerine kendi API ve tek docker compose. Sebep: Coolify üzerinde tek compose ile deploy istendi; self-host Supabase on küsur konteyner ve zor bakım demek.
 - 2026-09-20: Backend'in saf JavaScript'e çevrilmesi düşünüldü, vazgeçildi. TypeScript ve tRPC kalıyor.

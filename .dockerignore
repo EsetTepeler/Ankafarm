@@ -9,6 +9,5 @@ docs
 **/.env
 **/.env.*
 !**/.env.example
-apps/mobile
 apps/web/.e2e
 **/*.log

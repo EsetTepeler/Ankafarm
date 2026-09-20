@@ -6,7 +6,6 @@ Küçükbaş çiftlik yönetim paneli. Plan, mimari ve fazlar: [docs/PLAN.md](do
 
 - `apps/web` Web uygulaması: Vite + React + Tailwind + shadcn/ui, tarayıcıda SQLite (OPFS) ile çevrimdışı çalışır, PWA.
 - `apps/api` Fastify + tRPC + Drizzle API. Açılışta migration ve seed çalıştırır.
-- `apps/mobile` Eski Expo uygulaması; web eşitliğe ulaşınca silinecek. Kullanılmıyor.
 - `apps/insights` Python içgörü servisi (Faz 5, henüz yok).
 - `packages/shared` zod şemaları, olay eşleyicileri, ortak sabitler.
 - `docker/` web imajı, nginx ve açılış betiği. `docker-compose.yml` tüm sistem.

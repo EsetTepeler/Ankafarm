@@ -5,13 +5,6 @@ build/
 *.log
 .pnpm-store/
 
-# Expo
-.expo/
-.expo-shared/
-apps/mobile/ios/
-apps/mobile/android/
-apps/mobile/web-build/
-
 # Env and secrets
 .env
 .env.*
