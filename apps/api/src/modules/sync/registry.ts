@@ -1,6 +1,23 @@
 import { tableSchemas, type SyncedTable, type UserRole } from "@anka/shared";
 
-import { animals, breedingRecords, breeds, exitRecords, groupMovements, groups, healthRecords, lambingRecords, observationTags, observations, weightRecords } from "../../db/schema";
+import {
+  animals,
+  breedingRecords,
+  breeds,
+  consumptions,
+  exitRecords,
+  expenses,
+  groupMovements,
+  groups,
+  healthRecords,
+  incomes,
+  lambingRecords,
+  observationTags,
+  observations,
+  purchases,
+  stockItems,
+  weightRecords,
+} from "../../db/schema";
 
 /**
  * Senkron edilen tabloların sunucu tarafı kaydı.
@@ -18,6 +35,11 @@ export const syncRegistry = {
   exit_records: { table: exitRecords, schemas: tableSchemas.exit_records, writers: ["owner", "worker"] as UserRole[] },
   observations: { table: observations, schemas: tableSchemas.observations, writers: ["owner", "worker", "vet"] as UserRole[] },
   observation_tags: { table: observationTags, schemas: tableSchemas.observation_tags, writers: ["owner", "worker", "vet"] as UserRole[] },
+  stock_items: { table: stockItems, schemas: tableSchemas.stock_items, writers: ["owner", "worker"] as UserRole[] },
+  purchases: { table: purchases, schemas: tableSchemas.purchases, writers: ["owner"] as UserRole[] },
+  consumptions: { table: consumptions, schemas: tableSchemas.consumptions, writers: ["owner", "worker"] as UserRole[] },
+  expenses: { table: expenses, schemas: tableSchemas.expenses, writers: ["owner"] as UserRole[] },
+  incomes: { table: incomes, schemas: tableSchemas.incomes, writers: ["owner"] as UserRole[] },
 } as const satisfies Record<SyncedTable, unknown>;
 
 /** Soft delete yalnızca sahibe açık (bölüm 4.6). */

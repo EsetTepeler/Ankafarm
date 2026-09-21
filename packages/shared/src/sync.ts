@@ -24,9 +24,38 @@ import {
   weightInputSchema,
   weightPatchSchema,
 } from "./animals";
+import {
+  consumptionInputSchema,
+  consumptionPatchSchema,
+  expenseInputSchema,
+  expensePatchSchema,
+  incomeInputSchema,
+  incomePatchSchema,
+  purchaseInputSchema,
+  purchasePatchSchema,
+  stockItemInputSchema,
+  stockItemPatchSchema,
+} from "./stock";
 
 /** Senkron edilen tablolar. Yeni tablo eklenince buraya ve sunucu kayıt defterine eklenir. */
-export const syncedTables = ["breeds", "groups", "animals", "group_movements", "weight_records", "health_records", "breeding_records", "lambing_records", "exit_records", "observations", "observation_tags"] as const;
+export const syncedTables = [
+  "breeds",
+  "groups",
+  "animals",
+  "group_movements",
+  "weight_records",
+  "health_records",
+  "breeding_records",
+  "lambing_records",
+  "exit_records",
+  "observations",
+  "observation_tags",
+  "stock_items",
+  "purchases",
+  "consumptions",
+  "expenses",
+  "incomes",
+] as const;
 export type SyncedTable = (typeof syncedTables)[number];
 export const syncedTableSchema = z.enum(syncedTables);
 
@@ -46,6 +75,11 @@ export const tableSchemas = {
   exit_records: { insert: exitInputSchema, update: exitPatchSchema },
   observations: { insert: observationInputSchema, update: observationPatchSchema },
   observation_tags: { insert: observationTagInputSchema, update: observationTagPatchSchema },
+  stock_items: { insert: stockItemInputSchema, update: stockItemPatchSchema },
+  purchases: { insert: purchaseInputSchema, update: purchasePatchSchema },
+  consumptions: { insert: consumptionInputSchema, update: consumptionPatchSchema },
+  expenses: { insert: expenseInputSchema, update: expensePatchSchema },
+  incomes: { insert: incomeInputSchema, update: incomePatchSchema },
 } as const satisfies Record<SyncedTable, { insert: z.ZodTypeAny; update: z.ZodTypeAny }>;
 
 export const softDeletePayloadSchema = z.object({

@@ -43,6 +43,13 @@
       "when": 1789937216034,
       "tag": "0005_green_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789973533163,
+      "tag": "0006_glossy_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

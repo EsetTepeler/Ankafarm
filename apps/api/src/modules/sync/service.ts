@@ -10,7 +10,25 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import type { ZodError } from "zod";
 
 import type { Db } from "../../db/client";
-import { animals, appliedMutations, breedingRecords, breeds, exitRecords, groupMovements, groups, healthRecords, lambingRecords, observationTags, observations, weightRecords } from "../../db/schema";
+import {
+  animals,
+  appliedMutations,
+  breedingRecords,
+  breeds,
+  consumptions,
+  exitRecords,
+  expenses,
+  groupMovements,
+  groups,
+  healthRecords,
+  incomes,
+  lambingRecords,
+  observationTags,
+  observations,
+  purchases,
+  stockItems,
+  weightRecords,
+} from "../../db/schema";
 import { afterInsertHooks } from "./hooks";
 import { deleteRoles, syncRegistry } from "./registry";
 
@@ -137,8 +155,11 @@ function pgErrorCode(err: unknown): string | undefined {
 export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Record<string, number>, limit: number) {
   const since = (t: SyncedTable) => cursors[t] ?? 0;
   const where = (t: { farmId: any; syncSeq: any }, cursor: number) => and(eq(t.farmId, user.farmId), gt(t.syncSeq, cursor));
+  // Bakıcı ve veteriner finans satırlarını cihazına hiç almaz (bölüm 2, rol tablosu).
+  const finance = user.role === "owner";
+  const none = Promise.resolve([] as never[]);
 
-  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows] = await Promise.all([
+  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows] = await Promise.all([
     db.select().from(breeds).where(where(breeds, since("breeds"))).orderBy(asc(breeds.syncSeq)).limit(limit),
     db.select().from(groups).where(where(groups, since("groups"))).orderBy(asc(groups.syncSeq)).limit(limit),
     db.select().from(animals).where(where(animals, since("animals"))).orderBy(asc(animals.syncSeq)).limit(limit),
@@ -175,6 +196,11 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
     db.select().from(exitRecords).where(where(exitRecords, since("exit_records"))).orderBy(asc(exitRecords.syncSeq)).limit(limit),
     db.select().from(observations).where(where(observations, since("observations"))).orderBy(asc(observations.syncSeq)).limit(limit),
     db.select().from(observationTags).where(where(observationTags, since("observation_tags"))).orderBy(asc(observationTags.syncSeq)).limit(limit),
+    db.select().from(stockItems).where(where(stockItems, since("stock_items"))).orderBy(asc(stockItems.syncSeq)).limit(limit),
+    finance ? db.select().from(purchases).where(where(purchases, since("purchases"))).orderBy(asc(purchases.syncSeq)).limit(limit) : none,
+    db.select().from(consumptions).where(where(consumptions, since("consumptions"))).orderBy(asc(consumptions.syncSeq)).limit(limit),
+    finance ? db.select().from(expenses).where(where(expenses, since("expenses"))).orderBy(asc(expenses.syncSeq)).limit(limit) : none,
+    finance ? db.select().from(incomes).where(where(incomes, since("incomes"))).orderBy(asc(incomes.syncSeq)).limit(limit) : none,
   ]);
 
   const last = (rows: { syncSeq: number }[], fallback: number) => (rows.length ? rows[rows.length - 1]!.syncSeq : fallback);
@@ -192,6 +218,11 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       exit_records: exitRows,
       observations: obsRows,
       observation_tags: tagRows,
+      stock_items: itemRows,
+      purchases: purchaseRows,
+      consumptions: consumptionRows,
+      expenses: expenseRows,
+      incomes: incomeRows,
     },
     cursors: {
       breeds: last(breedRows, since("breeds")),
@@ -205,8 +236,15 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       exit_records: last(exitRows, since("exit_records")),
       observations: last(obsRows, since("observations")),
       observation_tags: last(tagRows, since("observation_tags")),
+      stock_items: last(itemRows, since("stock_items")),
+      purchases: last(purchaseRows, since("purchases")),
+      consumptions: last(consumptionRows, since("consumptions")),
+      expenses: last(expenseRows, since("expenses")),
+      incomes: last(incomeRows, since("incomes")),
     } satisfies Record<SyncedTable, number>,
-    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows].some((r) => r.length === limit),
+    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows].some(
+      (r) => r.length === limit,
+    ),
     serverTime: new Date().toISOString(),
   };
 }

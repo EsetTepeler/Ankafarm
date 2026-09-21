@@ -211,6 +211,80 @@ export const observationTags = sqliteTable(
   (t) => [index("observation_tags_category_idx").on(t.category)],
 );
 
+export const stockItems = sqliteTable(
+  "stock_items",
+  {
+    ...synced,
+    name: text().notNull(),
+    category: text().notNull(),
+    unit: text().notNull(),
+    minStock: real(),
+    trackStock: integer({ mode: "boolean" }).notNull().default(true),
+    active: integer({ mode: "boolean" }).notNull().default(true),
+    notes: text(),
+  },
+  (t) => [uniqueIndex("stock_items_name_uq").on(t.name)],
+);
+
+export const purchases = sqliteTable(
+  "purchases",
+  {
+    ...synced,
+    ...event,
+    itemId: text().notNull(),
+    purchasedAt: text().notNull(),
+    quantity: real().notNull(),
+    unitPrice: real(),
+    total: real(),
+    supplier: text(),
+    documentPath: text(),
+    notes: text(),
+  },
+  (t) => [index("purchases_item_idx").on(t.itemId, t.purchasedAt), index("purchases_date_idx").on(t.purchasedAt)],
+);
+
+export const consumptions = sqliteTable(
+  "consumptions",
+  {
+    ...synced,
+    ...event,
+    itemId: text().notNull(),
+    consumedOn: text().notNull(),
+    quantity: real().notNull(),
+    groupId: text(),
+    animalId: text(),
+    notes: text(),
+  },
+  (t) => [index("consumptions_item_idx").on(t.itemId, t.consumedOn), index("consumptions_date_idx").on(t.consumedOn)],
+);
+
+export const expenses = sqliteTable(
+  "expenses",
+  {
+    ...synced,
+    category: text().notNull(),
+    spentAt: text().notNull(),
+    amount: real().notNull(),
+    description: text(),
+    animalId: text(),
+    documentPath: text(),
+  },
+  (t) => [index("expenses_date_idx").on(t.spentAt)],
+);
+
+export const incomes = sqliteTable(
+  "incomes",
+  {
+    ...synced,
+    category: text().notNull(),
+    receivedAt: text().notNull(),
+    amount: real().notNull(),
+    description: text(),
+    animalId: text(),
+  },
+  (t) => [index("incomes_date_idx").on(t.receivedAt)],
+);
+
 /** Sunucuya gidecek yazmalar. Onaylanınca satır silinir, reddedilince failed kalır. */
 export const outbox = sqliteTable(
   "outbox",
@@ -241,7 +315,24 @@ export const meta = sqliteTable("meta", {
   value: text(),
 });
 
-export const localTables = { breeds, groups, animals, group_movements: groupMovements, weight_records: weightRecords, health_records: healthRecords, breeding_records: breedingRecords, lambing_records: lambingRecords, exit_records: exitRecords, observations, observation_tags: observationTags } as const;
+export const localTables = {
+  breeds,
+  groups,
+  animals,
+  group_movements: groupMovements,
+  weight_records: weightRecords,
+  health_records: healthRecords,
+  breeding_records: breedingRecords,
+  lambing_records: lambingRecords,
+  exit_records: exitRecords,
+  observations,
+  observation_tags: observationTags,
+  stock_items: stockItems,
+  purchases,
+  consumptions,
+  expenses,
+  incomes,
+} as const;
 export type LocalTableName = keyof typeof localTables;
 
 export type LocalBreed = typeof breeds.$inferSelect;
@@ -255,4 +346,9 @@ export type LocalLambingRecord = typeof lambingRecords.$inferSelect;
 export type LocalExitRecord = typeof exitRecords.$inferSelect;
 export type LocalObservation = typeof observations.$inferSelect;
 export type LocalObservationTag = typeof observationTags.$inferSelect;
+export type LocalStockItem = typeof stockItems.$inferSelect;
+export type LocalPurchase = typeof purchases.$inferSelect;
+export type LocalConsumption = typeof consumptions.$inferSelect;
+export type LocalExpense = typeof expenses.$inferSelect;
+export type LocalIncome = typeof incomes.$inferSelect;
 export type OutboxRow = typeof outbox.$inferSelect;

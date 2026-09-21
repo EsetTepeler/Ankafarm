@@ -85,6 +85,20 @@
       "when": 1789938442543,
       "tag": "0011_group_movement_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789973455869,
+      "tag": "0012_stock_finance",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789973508572,
+      "tag": "0013_stock_triggers",
+      "breakpoints": true
     }
   ]
 }

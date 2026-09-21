@@ -1,6 +1,8 @@
 import { z } from "zod";
 
+import { isoDateSchema as isoDate, isoDateTimeSchema as isoDateTime, moneySchema as money, uuidSchema as uuid } from "./common";
 import { speciesSchema } from "./farm";
+import { stockLabels } from "./stock";
 
 export const sexSchema = z.enum(["female", "male", "castrated"]);
 export type Sex = z.infer<typeof sexSchema>;
@@ -37,6 +39,7 @@ export type HealthType = z.infer<typeof healthTypeSchema>;
 
 /** Türkçe etiketler; arayüz ve Python metin şablonları aynı kaynağı kullanır. */
 export const labels = {
+  ...stockLabels,
   species: { sheep: "Koyun", goat: "Keçi" },
   sex: { female: "Dişi", male: "Erkek", castrated: "Kısırlaştırılmış" },
   origin: { born_here: "Burada doğdu", purchased: "Dışarıdan alındı" },
@@ -71,11 +74,6 @@ export const labels = {
     other: "Diğer",
   },
 } as const;
-
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tarih YYYY-AA-GG biçiminde olmalı");
-const isoDateTime = z.string().datetime({ offset: true });
-const uuid = z.string().uuid();
-const money = z.number().nonnegative().max(99_999_999);
 
 /** Küpe numarası: boşluklar kırpılır, büyük harf; biçim çiftliğe göre değişebildiği için serbest. */
 export const tagNoSchema = z
