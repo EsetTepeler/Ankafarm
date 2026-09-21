@@ -1,0 +1,41 @@
+name: CI
+
+# Deploy'da çıkan hataları erken yakalar: tip kontrolü ve iki uygulamanın derlenmesi.
+# Uçtan uca testler burada koşmuyor; tarayıcı ve veritabanı ister, yerelde çalıştırılıyor.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # pnpm sürümü kök package.json içinde pinli; global kurulum yok.
+      - run: corepack enable
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - run: corepack pnpm install --frozen-lockfile
+
+      - name: Tip kontrolü
+        run: corepack pnpm -r typecheck
+
+      - name: API derlemesi
+        run: corepack pnpm --filter @anka/api build
+
+      - name: Web derlemesi
+        run: corepack pnpm --filter @anka/web build
+
+      - name: Migration sırası tutarlı mı
+        run: node scripts/check-migrations.mjs
