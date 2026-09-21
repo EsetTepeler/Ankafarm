@@ -38,6 +38,8 @@ services:
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-Çiftlik Sahibi}
     volumes:
       - uploads:/app/uploads
+      # Yedeklerin gerçekten alındığı Ayarlar > Sistem durumu ekranından görünsün; sadece okuma.
+      - backups:/backups:ro
     depends_on:
       db:
         condition: service_healthy

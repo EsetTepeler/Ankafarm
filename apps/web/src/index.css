@@ -4,6 +4,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * shadcn "nova" bileşenleri yatay/dikey yerleşimi data-horizontal ve data-vertical varyantlarıyla
+ * yazıyor; bunlar Tailwind'de yerleşik değil. Tanımlanmadıkları için sekmeler yan yana diziliyor,
+ * başlık şeridi içeriğin soluna düşüyordu. group-* ile birlikte de kullanıldığı için ikisi de burada.
+ */
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
+
+/*
   Anka Farm teması: nötr gri zemin (sıfır renk doygunluğu), tek yeşil vurgu, ince çizgiler.
   Açık tema varsayılan; koyu tema .dark sınıfıyla. Tokenlar shadcn/ui sözleşmesine uyar.
 */

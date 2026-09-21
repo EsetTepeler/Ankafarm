@@ -50,6 +50,7 @@ export function ProtocolsPage() {
   }
 
   const rows = protocols.data ?? [];
+  const loaded = protocols.data !== undefined;
 
   return (
     <>
@@ -57,7 +58,7 @@ export function ProtocolsPage() {
         title="Aşı ve bakım programı"
         description="Programdaki her madde, her hayvan için hatırlatıcıya dönüşür"
         actions={
-          rows.length === 0 ? (
+          loaded && rows.length === 0 ? (
             <Button onClick={() => void sample()} disabled={busy} data-testid="protocol-sample">
               <Sparkles /> Örnek programı ekle
             </Button>
@@ -65,7 +66,9 @@ export function ProtocolsPage() {
         }
       />
 
-      {rows.length === 0 ? (
+      {!loaded ? (
+        <p className="text-sm text-muted-foreground">Yükleniyor</p>
+      ) : rows.length === 0 ? (
         <EmptyState title="Henüz program yok" description="Örnek programı ekleyip kendi takvimine göre düzenleyebilirsin: enterotoksemi, çiçek, parazit, tırnak bakımı." />
       ) : (
         <div className="grid gap-4">

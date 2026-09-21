@@ -3,6 +3,7 @@ import { auditRouter } from "./modules/audit/router";
 import { authRouter } from "./modules/auth/router";
 import { farmRouter } from "./modules/farm/router";
 import { syncRouter } from "./modules/sync/router";
+import { systemRouter } from "./modules/system/router";
 import { usersRouter } from "./modules/users/router";
 import { router } from "./trpc/init";
 
@@ -17,6 +18,7 @@ export const appRouter = router({
   health: healthRouter,
   predictions: predictionsRouter,
   audit: auditRouter,
+  system: systemRouter,
 });
 
 export type AppRouter = typeof appRouter;

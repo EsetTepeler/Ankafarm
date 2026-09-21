@@ -78,6 +78,7 @@ export const animals = sqliteTable(
       .on(t.farmId, t.tagNo)
       .where(sql`${t.deletedAt} is null`),
     index("animals_status_idx").on(t.status),
+    index("animals_tag_idx").on(t.tagNo),
     index("animals_group_idx").on(t.groupId),
     index("animals_mother_idx").on(t.motherId),
   ],
@@ -129,7 +130,7 @@ export const healthRecords = sqliteTable(
     batchId: text(),
     notes: text(),
   },
-  (t) => [index("health_records_animal_idx").on(t.animalId, t.appliedAt), index("health_records_batch_idx").on(t.batchId)],
+  (t) => [index("health_records_animal_idx").on(t.animalId, t.appliedAt), index("health_records_batch_idx").on(t.batchId), index("health_records_due_idx").on(t.nextDueAt), index("health_records_withdrawal_idx").on(t.withdrawalUntil)],
 );
 
 export const breedingRecords = sqliteTable(

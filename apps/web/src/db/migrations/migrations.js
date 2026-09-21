@@ -12,6 +12,7 @@ import m0007 from './0007_fix_pg_timestamps.sql';
 import m0008 from './0008_exotic_beyonder.sql';
 import m0009 from './0009_huge_wallop.sql';
 import m0010 from './0010_kind_pete_wisdom.sql';
+import m0011 from './0011_tricky_la_nuit.sql';
 
   export default {
     journal,
@@ -26,7 +27,8 @@ m0006,
 m0007,
 m0008,
 m0009,
-m0010
+m0010,
+m0011
     }
   }
   

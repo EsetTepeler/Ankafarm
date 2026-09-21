@@ -33,14 +33,15 @@ const tabsListVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      // Birleşik gri blok yerine alt çizgili ayrı başlıklar; kullanıcı tercihi.
+      variant: "line",
     },
   }
 )
 
 function TabsList({
   className,
-  variant = "default",
+  variant = "line",
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> &
   VariantProps<typeof tabsListVariants>) {
