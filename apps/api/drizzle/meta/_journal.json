@@ -127,6 +127,20 @@
       "when": 1789988459779,
       "tag": "0017_protocol_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789990695244,
+      "tag": "0018_attachments",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789990708212,
+      "tag": "0019_attachment_triggers",
+      "breakpoints": true
     }
   ]
 }

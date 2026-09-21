@@ -11,6 +11,8 @@ const envSchema = z.object({
   ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(15),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(90),
   MIGRATIONS_DIR: z.string().default("drizzle"),
+  /** Ek dosyaların yazıldığı dizin; Docker'da uploads birimi. */
+  UPLOADS_DIR: z.string().default("uploads"),
   SEED_FARM_NAME: z.string().default("Anka Farm"),
   SEED_OWNER_EMAIL: z.string().email().optional(),
   SEED_OWNER_PASSWORD: z.string().min(8).optional(),

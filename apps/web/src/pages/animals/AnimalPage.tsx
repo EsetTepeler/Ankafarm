@@ -22,6 +22,7 @@ import { useAnimal, type AnimalListItem } from "@/features/animals/repo";
 import { useTimeline } from "@/features/animals/timeline";
 import { BreedingDialog, BreedingSection, LambingDialog } from "@/features/breeding/BreedingSection";
 import { ExitDialog } from "@/features/exits/ExitDialog";
+import { PhotoGallery } from "@/features/attachments/PhotoGallery";
 import { MoveDialog } from "@/features/groups/MoveDialog";
 import { QrDialog } from "@/features/qr/QrDialog";
 import { undoExit, useExits } from "@/features/exits/repo";
@@ -202,6 +203,9 @@ export function AnimalPage() {
           <TabsTrigger value="observations" data-testid="tab-observations">
             Gözlemler
           </TabsTrigger>
+          <TabsTrigger value="photos" data-testid="tab-photos">
+            Fotoğraflar
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline">
@@ -289,6 +293,14 @@ export function AnimalPage() {
                 </div>
               ))}
               {weightRows.length === 0 ? <EmptyState title="Henüz tartım yok" /> : null}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="photos">
+          <Card>
+            <CardContent className="pt-6">
+              <PhotoGallery entityTable="animals" entityId={a.id} canEdit={role !== "vet"} />
             </CardContent>
           </Card>
         </TabsContent>

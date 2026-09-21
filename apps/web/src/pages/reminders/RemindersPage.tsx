@@ -20,6 +20,9 @@ import { errorMessage } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { formatDate, isoToDisplay, todayIso } from "@/utils/date";
 
+/** Uzun listede sayfa donmasın; kalanı sayıyla gösterilir. */
+const SECTION_LIMIT = 50;
+
 const kindIcon: Record<ReminderKind, typeof Bell> = { manual: Bell, health: Syringe, pregnancy: Baby, withdrawal: Syringe, protocol: CalendarClock };
 const kindLabel: Record<ReminderKind, string> = { manual: "Not", health: "Doz", pregnancy: "Üreme", withdrawal: "Arınma", protocol: "Program" };
 
@@ -47,7 +50,7 @@ export function RemindersPage() {
       dueAt: t.dueAt,
       note: t.note,
       animalId: t.animalId,
-      tagNo: t.tagNo,
+      tagNo: null,
       doneAt: null,
       completable: false,
     }));
@@ -126,7 +129,7 @@ function Section({ title, items, tone, testID }: { title: string; items: Reminde
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2">
-        {items.map((r) => {
+        {items.slice(0, SECTION_LIMIT).map((r) => {
           const Icon = kindIcon[r.kind];
           return (
             <div key={r.id} className={cn("flex items-center gap-3 rounded-lg border px-3 py-2 text-sm", tone === "danger" && "border-danger/40")} data-testid={`rem-row-${r.kind}`}>
@@ -157,6 +160,7 @@ function Section({ title, items, tone, testID }: { title: string; items: Reminde
             </div>
           );
         })}
+        {items.length > SECTION_LIMIT ? <p className="text-xs text-muted-foreground">ve {items.length - SECTION_LIMIT} iş daha</p> : null}
       </CardContent>
     </Card>
   );

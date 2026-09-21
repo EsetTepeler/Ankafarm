@@ -862,6 +862,8 @@ try {
     await page.getByTestId("protocol-task-count").waitFor({ timeout: 15_000 });
     const count = Number((await page.getByTestId("protocol-task-count").innerText()).trim());
     if (!(count > 0)) throw new Error("programdan iş çıkmadı");
+    // Aynı madde ve tarih tek satırda toplanır; madde sayısının birkaç katını geçmemeli.
+    if (count > 40) throw new Error(`program işleri gruplanmamış: ${count} satır`);
     await page.getByTestId("protocol-task").first().waitFor({ timeout: 10_000 });
 
     await page.getByTestId("nav-reminders").click();
@@ -871,6 +873,50 @@ try {
     const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
     if (pulled.tables.health_protocols.length === 0) throw new Error("program sunucuda yok");
     if (!pulled.tables.protocol_items.some((i) => i.productName === "Enterotoksemi")) throw new Error("program maddesi sunucuda yok");
+  });
+
+  await step("fotoğraf: çevrimdışı eklenir, bağlantı gelince yüklenir ve sunucudan okunur", async () => {
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`animal-row-${tag1}`).click();
+    await page.getByTestId("tab-photos").click();
+
+    // 4x4 kırmızı PNG; gerçek dosya seçimi yerine doğrudan input'a veriliyor.
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC",
+      "base64",
+    );
+
+    await withOffline(async () => {
+      await page.getByTestId("photo-file-input").setInputFiles({ name: "koyun.png", mimeType: "image/png", buffer: png });
+      await page.getByTestId("photo-pending").first().waitFor({ timeout: 15_000 });
+    });
+
+    // Bağlantı gelince künye push edilir, ardından dosya yüklenir ve "yüklenecek" rozeti kalkar.
+    const animalId = (await serverAnimals())[tag1].id;
+    let storagePath = null;
+    for (let i = 0; i < 30; i++) {
+      const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+      const mine = pulled.tables.attachments.filter((x) => x.entityId === animalId && x.storagePath);
+      if (mine.length) {
+        storagePath = mine[mine.length - 1];
+        break;
+      }
+      await page.waitForTimeout(2000);
+    }
+    if (!storagePath) throw new Error("dosya sunucuya yüklenmedi");
+
+    const res = await fetch(`${API_URL}/uploads/${storagePath.id}`, { headers: { authorization: `Bearer ${await token()}` } });
+    if (!res.ok) throw new Error(`dosya indirilemedi: ${res.status}`);
+    if (res.headers.get("cross-origin-resource-policy") !== "cross-origin") throw new Error("CORP başlığı yok, COEP altında görsel çizilmez");
+    const bytes = Buffer.from(await res.arrayBuffer());
+    if (bytes.subarray(1, 4).toString() !== "PNG" && bytes.subarray(0, 2).toString("hex") !== "ffd8") throw new Error("dosya içeriği bozuk");
+
+    const unauthorized = await fetch(`${API_URL}/uploads/${storagePath.id}`);
+    if (unauthorized.status !== 401) throw new Error(`yetkisiz erişim ${unauthorized.status} döndü`);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.getByTestId("tab-photos").click();
+    await page.getByTestId("photo-preview").count();
   });
 
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.

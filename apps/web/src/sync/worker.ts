@@ -2,8 +2,10 @@ import { syncedTables, type MutationEnvelope, type SyncedTable } from "@anka/sha
 import { asc, count, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb, withLocalTransaction } from "@/db";
-import { localTables, meta, outbox, syncCursors } from "@/db/schema";
+import { attachments, localTables, meta, outbox, syncCursors, uploadQueue } from "@/db/schema";
+import { base64ToBlob } from "@/features/attachments/image";
 import { useAuthStore } from "@/lib/auth";
+import { getApiUrl } from "@/lib/config";
 import { getApiClient } from "@/lib/trpc";
 
 import { notifyLocalChange } from "./events";
@@ -57,6 +59,7 @@ export async function syncNow(reason: string): Promise<void> {
     await ensureLocalFarm();
     await pushOutbox();
     await pullAll();
+    await processUploads();
     failures = 0;
     backoffUntil = 0;
     lastSuccessAt = Date.now();
@@ -195,6 +198,48 @@ function toLocalRow(row: Record<string, unknown>): Record<string, unknown> {
     }
   }
   return out;
+}
+
+
+/**
+ * Yükleme kuyruğu: künye push edildikten sonra baytlar sunucuya gider.
+ * 404 gelirse künye henüz sunucuda yoktur, bir sonraki turda yeniden denenir.
+ */
+async function processUploads() {
+  const db = getDb();
+  const rows = await db.select().from(uploadQueue).where(eq(uploadQueue.status, "pending")).limit(5);
+  if (rows.length === 0) return;
+  const token = useAuthStore.getState().accessToken;
+  if (!token) return;
+
+  for (const row of rows) {
+    try {
+      const blob = base64ToBlob(row.data, row.mime);
+      const res = await fetch(`${getApiUrl()}/uploads/${row.attachmentId}`, {
+        method: "PUT",
+        headers: { authorization: `Bearer ${token}`, "content-type": row.mime },
+        body: blob,
+      });
+      if (res.status === 404) {
+        // Künye henüz push edilmemiş; sıradaki turda tekrar dene.
+        await db.update(uploadQueue).set({ attempts: row.attempts + 1, lastError: "Künye sunucuda bekleniyor" }).where(eq(uploadQueue.attachmentId, row.attachmentId));
+        continue;
+      }
+      if (!res.ok) throw new Error(`Yükleme reddedildi (${res.status})`);
+      const result = (await res.json()) as { storagePath: string };
+      await withLocalTransaction(async (tx) => {
+        await tx.update(attachments).set({ storagePath: result.storagePath }).where(eq(attachments.id, row.attachmentId));
+        await tx.delete(uploadQueue).where(eq(uploadQueue.attachmentId, row.attachmentId));
+      });
+      notifyLocalChange(["attachments"]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      await db.update(uploadQueue).set({ attempts: row.attempts + 1, lastError: message }).where(eq(uploadQueue.attachmentId, row.attachmentId));
+      // Ağ hatası tüm turu durdurmasın; bir sonraki senkronda devam eder.
+      if (row.attempts >= 5) await db.update(uploadQueue).set({ status: "failed" }).where(eq(uploadQueue.attachmentId, row.attachmentId));
+      break;
+    }
+  }
 }
 
 export async function refreshCounts() {

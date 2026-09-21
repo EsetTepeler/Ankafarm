@@ -8,6 +8,7 @@ import Fastify from "fastify";
 import { createTokenService } from "./auth/tokens";
 import { createDb } from "./db/client";
 import { runMigrations } from "./db/migrate";
+import { registerUploadRoutes } from "./modules/uploads/routes";
 import { loadEnv, webOrigins } from "./env";
 import { createRealtime } from "./modules/realtime";
 import { appRouter, type AppRouter } from "./router";
@@ -29,6 +30,8 @@ async function main() {
 
   const origins = webOrigins(env);
   await app.register(cors, {
+    // Dosya uçları PUT ve DELETE kullanıyor; varsayılan liste yalnızca GET/HEAD/POST.
+    methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"],
     origin: (origin, cb) => {
       // Native uygulamalar origin göndermez; web sadece izinli listeden. Geliştirmede serbest.
       if (!origin || origins.includes(origin) || env.NODE_ENV !== "production") return cb(null, true);
@@ -43,6 +46,7 @@ async function main() {
   });
 
   const realtime = createRealtime(app, tokens, origins, env.NODE_ENV === "production");
+  registerUploadRoutes(app, db, tokens, env.UPLOADS_DIR);
 
   await app.register(fastifyTRPCPlugin, {
     prefix: "/trpc",

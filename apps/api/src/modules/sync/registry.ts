@@ -2,6 +2,7 @@ import { tableSchemas, type SyncedTable, type UserRole } from "@anka/shared";
 
 import {
   animals,
+  attachments,
   breedingRecords,
   breeds,
   consumptions,
@@ -46,6 +47,7 @@ export const syncRegistry = {
   reminders: { table: reminders, schemas: tableSchemas.reminders, writers: ["owner", "worker", "vet"] as UserRole[] },
   health_protocols: { table: healthProtocols, schemas: tableSchemas.health_protocols, writers: ["owner", "vet"] as UserRole[] },
   protocol_items: { table: protocolItems, schemas: tableSchemas.protocol_items, writers: ["owner", "vet"] as UserRole[] },
+  attachments: { table: attachments, schemas: tableSchemas.attachments, writers: ["owner", "worker", "vet"] as UserRole[] },
 } as const satisfies Record<SyncedTable, unknown>;
 
 /** Soft delete yalnızca sahibe açık (bölüm 4.6). */

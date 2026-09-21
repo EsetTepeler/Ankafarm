@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 44 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.8 fotoğraflar, 3.4 push bildirim; sonra Faz 4.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 45 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.4 push bildirim (2.11 saha testine bağlı), sonra Faz 4.
 
 ---
 
@@ -526,7 +526,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 3.5 QR etiket basımı: hayvan listesinde seçim → "Etiket yazdır"; üç boyutta A4 etiket sayfası (QR, küpe no, isim, çiftlik adı), yazdırma penceresinden PDF olarak kaydedilir. Dayanıklı malzeme önerisi dialogda. Profildeki tek etiket de aynı üreticiyi kullanır. (2026-09-21)
 - [x] 3.6 Dışa aktarma (Ayarlar > Dışa aktarma): 14 tablo için CSV (noktalı virgül + UTF-8 BOM, Türkçe Excel doğrudan açar) ve hepsi tek ZIP. Kimlikler yerine okunur değerler yazılır (küpe no, ırk, kalem adı). Cihazdaki veriden üretilir, çevrimdışı çalışır. İçe aktarma yapılmadı: mevcut kayıt yok, ihtiyaç doğarsa ayrı ele alınır.
 - [x] 3.7 Damızlık ekranı (`/breeding`): koç tablosu (eş sayısı, doğum, yavru, doğum başına, yaşama oranı, yavruların ortalama doğum kilosu ve günlük artışı), anne tablosu (doğum, yavru, yaşama, doğum aralığı, gebelik durumu), seçilen koçlar için yan yana karşılaştırma kartları. Tamamı yerel veriden. (2026-09-21)
-- [ ] 3.8 Fotoğraf galerisi ve belge ekleri.
+- [x] 3.8 Fotoğraf ve belge ekleri: `attachments` tablosu (künye senkron, migration 0018/0019), ikili veri sunucudaki uploads biriminde; `PUT/GET/DELETE /uploads/:id` uçları, yetki kontrolü ve COEP için `Cross-Origin-Resource-Policy`. İstemci görseli yüklemeden önce 1600 px jpeg'e küçültür, çevrimdışıyken cihazda `upload_queue` içinde bekletir ve bağlantı gelince yükler; profilde Fotoğraflar sekmesi, Senkron ekranında yükleme kuyruğu. sharp yerine tarayıcıda küçültme: API'ye native bağımlılık eklenmedi, ahır bağlantısından da az veri gider. (2026-09-21)
 - [x] 3.9 Değişiklik geçmişi (`/audit`, sahip yetkisi): çiftlik geneli akış, kayıt türü filtresi, hayvan profilinden o kayda filtreli giriş. Her satırda kim, ne zaman, hangi alan neyden neye değişti; teknik alanlar (updated_at, sync_seq) gizlenir, enum ve tarihler Türkçe gösterilir. Sunucu ucu `audit.list` imleçli sayfalama ile. (2026-09-21)
 
 ### Faz 4: Dayanıklılık ve yayın

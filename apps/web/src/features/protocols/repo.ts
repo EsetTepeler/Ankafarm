@@ -1,6 +1,6 @@
 import { labels, protocolInputSchema, protocolItemInputSchema, protocolItemPatchSchema, protocolPatchSchema, sampleProtocolItems, type HealthType, type ProtocolTrigger, type Species } from "@anka/shared";
 import { useQuery } from "@tanstack/react-query";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import { animals, healthProtocols, healthRecords, protocolItems, type LocalProtocolItem } from "@/db/schema";
@@ -77,8 +77,10 @@ export async function createSampleProtocol(species: Species = "sheep"): Promise<
 
 export interface ProtocolTask {
   key: string;
-  animalId: string;
-  tagNo: string;
+  /** Aynı madde ve aynı gün için tek satır; sürüye toplu yapılan aşı 80 satıra bölünmesin. */
+  animalIds: string[];
+  /** Tek hayvanlık işte profil bağlantısı için. */
+  animalId: string | null;
   title: string;
   dueAt: string;
   note: string;
@@ -123,43 +125,64 @@ export function useProtocolTasks(horizonDays = 60) {
           .select({ id: animals.id, tagNo: animals.tagNo, species: animals.species, birthDate: animals.birthDate, acquiredAt: animals.acquiredAt })
           .from(animals)
           .where(and(isNull(animals.deletedAt), eq(animals.status, "active"))),
+        // Sadece son uygulamalar: tüm sağlık kayıtlarını çekmek binlerce satırda arayüzü dondurdu.
         db
-          .select({ animalId: healthRecords.animalId, type: healthRecords.type, productName: healthRecords.productName, appliedAt: healthRecords.appliedAt })
+          .select({ animalId: healthRecords.animalId, type: healthRecords.type, productName: healthRecords.productName, appliedAt: sql<string>`max(${healthRecords.appliedAt})` })
           .from(healthRecords)
           .where(isNull(healthRecords.deletedAt))
-          .orderBy(asc(healthRecords.appliedAt)),
+          .groupBy(healthRecords.animalId, healthRecords.type, healthRecords.productName),
       ]);
+
+      // Son uygulama indeksi: kayıtlar tarih sırasında olduğu için son yazan kazanır.
+      // Tek geçiş şart; hayvan başına tüm kayıtları taramak birkaç bin kayıtta arayüzü dondurdu.
+      const byAnimalType = new Map<string, string>();
+      const byAnimalTypeProduct = new Map<string, string>();
+      for (const r of records) {
+        const typeKey = `${r.animalId}|${r.type}`;
+        const prev = byAnimalType.get(typeKey);
+        if (!prev || r.appliedAt > prev) byAnimalType.set(typeKey, r.appliedAt);
+        byAnimalTypeProduct.set(`${typeKey}|${r.productName?.toLocaleLowerCase("tr") ?? ""}`, r.appliedAt);
+      }
 
       /** Aynı tür ve ürün adına sahip son kayıt; ürün boşsa sadece tür eşleşir. */
       const lastApplied = (animalId: string, item: LocalProtocolItem): string | null => {
         const product = item.productName?.toLocaleLowerCase("tr") ?? null;
-        let found: string | null = null;
-        for (const r of records) {
-          if (r.animalId !== animalId || r.type !== item.type) continue;
-          if (product && (r.productName?.toLocaleLowerCase("tr") ?? "") !== product) continue;
-          found = r.appliedAt;
-        }
-        return found;
+        const key = product ? `${animalId}|${item.type}|${product}` : `${animalId}|${item.type}`;
+        return (product ? byAnimalTypeProduct.get(key) : byAnimalType.get(key)) ?? null;
       };
 
-      const tasks: ProtocolTask[] = [];
+      // (madde, tarih) ikilisine göre topla: "Çiçek · 23 hayvan · 01.03.2026".
+      const grouped = new Map<string, { item: LocalProtocolItem; protocolName: string; dueAt: string; animals: { id: string; tagNo: string }[] }>();
+      const herdBySpecies = new Map<string, typeof herd>();
+      for (const a of herd) herdBySpecies.set(a.species, [...(herdBySpecies.get(a.species) ?? []), a]);
+
       for (const protocol of protocols) {
         for (const item of items.filter((i) => i.protocolId === protocol.id)) {
-          for (const animal of herd.filter((a) => a.species === protocol.species)) {
+          for (const animal of herdBySpecies.get(protocol.species) ?? []) {
             const due = nextDue(item, animal, lastApplied(animal.id, item), today);
             if (!due || due > horizon) continue;
-            tasks.push({
-              key: `protocol:${item.id}:${animal.id}`,
-              animalId: animal.id,
-              tagNo: animal.tagNo,
-              title: `${animal.tagNo} · ${item.productName ?? labels.healthType[item.type as HealthType]}`,
-              dueAt: due,
-              note: `${protocol.name} · ${labels.protocolTrigger[item.trigger as ProtocolTrigger]}`,
-            });
+            const key = `${item.id}:${due}`;
+            const entry = grouped.get(key) ?? { item, protocolName: protocol.name, dueAt: due, animals: [] };
+            entry.animals.push({ id: animal.id, tagNo: animal.tagNo });
+            grouped.set(key, entry);
           }
         }
       }
-      return tasks.sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+
+      return [...grouped.entries()]
+        .map(([key, g]) => {
+          const name = g.item.productName ?? labels.healthType[g.item.type as HealthType];
+          const single = g.animals.length === 1 ? g.animals[0]! : null;
+          return {
+            key: `protocol:${key}`,
+            animalIds: g.animals.map((a) => a.id),
+            animalId: single?.id ?? null,
+            title: single ? `${single.tagNo} · ${name}` : `${name} · ${g.animals.length} hayvan`,
+            dueAt: g.dueAt,
+            note: `${g.protocolName} · ${labels.protocolTrigger[g.item.trigger as ProtocolTrigger]}`,
+          };
+        })
+        .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
     },
   });
 }

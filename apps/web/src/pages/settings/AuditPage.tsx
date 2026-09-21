@@ -29,6 +29,7 @@ const tableLabels: Partial<Record<SyncedTable | string, string>> = {
   purchases: "Alım",
   consumptions: "Tüketim",
   expenses: "Gider",
+  attachments: "Ek dosya",
   incomes: "Gelir",
   reminders: "Hatırlatıcı",
   health_protocols: "Program",

@@ -322,6 +322,36 @@ export const protocolItems = sqliteTable(
   (t) => [index("protocol_items_protocol_idx").on(t.protocolId)],
 );
 
+export const attachments = sqliteTable(
+  "attachments",
+  {
+    ...synced,
+    entityTable: text().notNull(),
+    entityId: text().notNull(),
+    kind: text().notNull().default("photo"),
+    mime: text().notNull(),
+    size: integer().notNull(),
+    caption: text(),
+    storagePath: text(),
+  },
+  (t) => [index("attachments_entity_idx").on(t.entityTable, t.entityId)],
+);
+
+/** Yalnızca cihazda: yüklenmeyi bekleyen dosyanın kendisi. Base64, çünkü sqlite-proxy ikili veriyi taşımıyor. */
+export const uploadQueue = sqliteTable(
+  "upload_queue",
+  {
+    attachmentId: text().primaryKey(),
+    mime: text().notNull(),
+    data: text().notNull(),
+    createdAt: text().notNull(),
+    status: text().notNull().default("pending"),
+    attempts: integer().notNull().default(0),
+    lastError: text(),
+  },
+  (t) => [index("upload_queue_status_idx").on(t.status)],
+);
+
 /** Sunucuya gidecek yazmalar. Onaylanınca satır silinir, reddedilince failed kalır. */
 export const outbox = sqliteTable(
   "outbox",
@@ -372,6 +402,7 @@ export const localTables = {
   reminders,
   health_protocols: healthProtocols,
   protocol_items: protocolItems,
+  attachments,
 } as const;
 export type LocalTableName = keyof typeof localTables;
 
@@ -394,4 +425,5 @@ export type LocalIncome = typeof incomes.$inferSelect;
 export type LocalReminder = typeof reminders.$inferSelect;
 export type LocalProtocol = typeof healthProtocols.$inferSelect;
 export type LocalProtocolItem = typeof protocolItems.$inferSelect;
+export type LocalAttachment = typeof attachments.$inferSelect;
 export type OutboxRow = typeof outbox.$inferSelect;

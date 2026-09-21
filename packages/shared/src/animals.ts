@@ -63,6 +63,7 @@ export const labels = {
   breedingMethod: { natural: "Doğal", ai: "Suni tohumlama" },
   pregnancyResult: { pending: "Kontrol bekliyor", positive: "Gebe", negative: "Gebe değil" },
   birthDifficulty: { easy: "Kolay", assisted: "Yardımlı", hard: "Zor", cesarean: "Sezaryen" },
+  attachmentKind: { photo: "Fotoğraf", invoice: "Fatura", document: "Belge" },
   protocolTrigger: { age_days: "Yaşa göre", interval_days: "Aralıklı", fixed_month: "Sabit ay" },
   healthType: {
     vaccine: "Aşı",
@@ -303,6 +304,30 @@ export const seedBreeds: ReadonlyArray<{ species: z.infer<typeof speciesSchema>;
   ),
   ...["Kıl", "Saanen", "Alpin", "Damascus", "Ankara", "Boer", "Melez"].map((name) => ({ species: "goat" as const, name })),
 ];
+
+export const attachmentKindSchema = z.enum(["photo", "invoice", "document"]);
+export type AttachmentKind = z.infer<typeof attachmentKindSchema>;
+
+/** Yüklenebilir dosya türleri ve sınır; istemci fotoğrafı yüklemeden önce küçültür. */
+export const allowedAttachmentMimes = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
+export const MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Ek dosya kaydı. İkili veri sunucudaki uploads biriminde durur; burada yalnızca künye senkron olur.
+ * storagePath dolana kadar dosya sadece yükleyen cihazdadır (yerel kuyrukta bekler).
+ */
+export const attachmentInputSchema = z.object({
+  id: uuid,
+  entityTable: z.enum(["animals", "health_records", "expenses", "purchases", "observations"]),
+  entityId: uuid,
+  kind: attachmentKindSchema.default("photo"),
+  mime: z.enum(allowedAttachmentMimes),
+  size: z.number().int().positive().max(MAX_ATTACHMENT_BYTES),
+  caption: z.string().trim().max(200).nullable().optional(),
+  storagePath: z.string().max(300).nullable().optional(),
+});
+export type AttachmentInput = z.infer<typeof attachmentInputSchema>;
+export const attachmentPatchSchema = attachmentInputSchema.omit({ id: true, entityTable: true, entityId: true }).partial();
 
 export const protocolTriggerSchema = z.enum(["age_days", "interval_days", "fixed_month"]);
 export type ProtocolTrigger = z.infer<typeof protocolTriggerSchema>;

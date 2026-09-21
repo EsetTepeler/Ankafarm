@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getDb } from "@/db";
 import { outbox } from "@/db/schema";
+import { usePendingUploads } from "@/features/attachments/repo";
 import { describeSync, useSyncStore } from "@/sync/store";
 import { discardFailed, retryFailed, syncNow } from "@/sync/worker";
 import { formatDateTime } from "@/utils/date";
@@ -32,6 +33,7 @@ const tableLabels: Record<SyncedTable, string> = {
   purchases: "Alım",
   consumptions: "Tüketim",
   expenses: "Gider",
+  attachments: "Ek dosya",
   incomes: "Gelir",
   reminders: "Hatırlatıcı",
   health_protocols: "Program",
@@ -62,6 +64,7 @@ function recordLink(table: string, rowId: string, payload: unknown): string | nu
 export function SyncPage() {
   const sync = useSyncStore();
   const { text } = describeSync(sync);
+  const uploads = usePendingUploads();
   const rows = useQuery({
     queryKey: ["local", "outbox", sync.pending, sync.failed, sync.status],
     queryFn: () => getDb().select().from(outbox).orderBy(desc(outbox.clientCreatedAt)).limit(100),
@@ -100,6 +103,13 @@ export function SyncPage() {
         </Card>
       </div>
       {sync.lastError ? <p className="mb-4 text-sm text-danger">{sync.lastError}</p> : null}
+
+      {uploads.data?.length ? (
+        <div className="mb-4 rounded-xl border bg-card p-4 text-sm" data-testid="upload-queue">
+          <p className="font-medium">{uploads.data.length} dosya yüklenmeyi bekliyor</p>
+          <p className="text-xs text-muted-foreground">Fotoğraflar cihazda duruyor; bağlantı gelince kendiliğinden yüklenir.</p>
+        </div>
+      ) : null}
 
       {(rows.data ?? []).length === 0 ? (
         <EmptyState title="Kuyruk boş" description="Her şey sunucuda." />

@@ -71,6 +71,13 @@
       "when": 1789988460430,
       "tag": "0009_huge_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1789990708883,
+      "tag": "0010_kind_pete_wisdom",
+      "breakpoints": true
     }
   ]
 }

@@ -300,6 +300,22 @@ export const protocolItems = pgTable(
   (t) => [index("protocol_items_protocol_idx").on(t.protocolId), index("protocol_items_farm_sync_idx").on(t.farmId, t.syncSeq)],
 );
 
+/** Ek dosya künyesi; ikili veri sunucudaki uploads biriminde, yol storage_path alanında. */
+export const attachments = pgTable(
+  "attachments",
+  {
+    ...syncedColumns,
+    entityTable: text().notNull(),
+    entityId: uuid().notNull(),
+    kind: text().notNull().default("photo"),
+    mime: text().notNull(),
+    size: integer().notNull(),
+    caption: text(),
+    storagePath: text(),
+  },
+  (t) => [index("attachments_entity_idx").on(t.entityTable, t.entityId), index("attachments_farm_sync_idx").on(t.farmId, t.syncSeq)],
+);
+
 export type Breed = typeof breeds.$inferSelect;
 export type Group = typeof groups.$inferSelect;
 export type Animal = typeof animals.$inferSelect;
@@ -312,5 +328,6 @@ export type ExitRecord = typeof exitRecords.$inferSelect;
 export type Reminder = typeof reminders.$inferSelect;
 export type HealthProtocol = typeof healthProtocols.$inferSelect;
 export type ProtocolItem = typeof protocolItems.$inferSelect;
+export type Attachment = typeof attachments.$inferSelect;
 export type Observation = typeof observations.$inferSelect;
 export type ObservationTag = typeof observationTags.$inferSelect;
