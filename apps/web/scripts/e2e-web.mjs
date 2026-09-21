@@ -586,6 +586,36 @@ try {
     await page.getByText("Günlük tur yapıldı").waitFor({ timeout: 10_000 });
     await page.getByText(/Stok seviyeleri yeterli|gün$/).first().waitFor({ timeout: 10_000 });
   });
+
+  await step("maliyet raporu ve senkron ekranı: hayvan başı gider, reddedilen kayıt düzeltilebilir", async () => {
+    await page.getByTestId("nav-reports").click();
+    await page.getByTestId("tab-money").click();
+    await page.getByTestId("table-efficiency").waitFor({ timeout: 15_000 });
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const row = page.getByTestId(`efficiency-row-${thisMonth}`);
+    await row.waitFor({ timeout: 10_000 });
+    const cells = (await row.innerText()).split("	").map((c) => c.trim());
+    // Ay, gider, hayvan, hayvan başı, yem gideri, kilo artışı, kg başına
+    if (!/TL/.test(cells[1] ?? "")) throw new Error(`gider hücresi: ${cells[1]}`);
+    if (!(Number(cells[2]) > 0)) throw new Error(`hayvan sayısı: ${cells[2]}`);
+    if (!/TL/.test(cells[3] ?? "")) throw new Error(`hayvan başı: ${cells[3]}`);
+
+    // Sunucunun reddedeceği bir kayıt: çevrimdışı negatif tartım yerelde de geçmez, bu yüzden
+    // kuyrukta bekleyen bir kayıt üzerinden ekranı doğruluyoruz.
+    await context.setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    await page.getByTestId("nav-stock").click();
+    await page.getByTestId("consumption-add").click();
+    await page.getByTestId(`consumption-qty-${feedName}`).fill("5");
+    await page.getByTestId("consumption-save").click();
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-sync").click();
+    await page.getByTestId("outbox-row-consumptions").getByText("Tüketim").waitFor({ timeout: 10_000 });
+    await page.getByTestId("outbox-row-consumptions").getByRole("link", { name: "Kaydı aç" }).waitFor({ timeout: 5_000 });
+    await context.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await page.getByTestId("sync-banner").getByText("Güncel").waitFor({ timeout: 30_000 });
+  });
 } finally {
       await ctx3.close();
     }

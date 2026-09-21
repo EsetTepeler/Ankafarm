@@ -6,7 +6,7 @@ import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useHerdStructure, useMonthlyConsumption, useMonthlyMoney, useProductionReport } from "@/features/reports/repo";
+import { useCostEfficiency, useHerdStructure, useMonthlyConsumption, useMonthlyMoney, useProductionReport } from "@/features/reports/repo";
 import { useAuthStore } from "@/lib/auth";
 
 /** Raporlar: sürü, üretim ve para. Hepsi cihazdaki veriden hesaplanır, çevrimdışı çalışır. */
@@ -16,6 +16,7 @@ export function ReportsPage() {
   const money = useMonthlyMoney(12);
   const consumption = useMonthlyConsumption(6);
   const production = useProductionReport();
+  const efficiency = useCostEfficiency(6);
 
   const moneySeries = useMemo(
     () => (money.data ?? []).flatMap((m) => [{ label: m.label, series: "Gider", value: Math.round(m.expense) }, { label: m.label, series: "Gelir", value: Math.round(m.income) }]),
@@ -177,6 +178,44 @@ export function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                   <TrendChart data={consumptionSeries} testID="chart-consumption" height={280} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Hayvan başı maliyet ve yem verimliliği</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table data-testid="table-efficiency">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ay</TableHead>
+                          <TableHead className="text-right">Gider</TableHead>
+                          <TableHead className="text-right">Hayvan</TableHead>
+                          <TableHead className="text-right">Hayvan başı</TableHead>
+                          <TableHead className="text-right">Yem gideri</TableHead>
+                          <TableHead className="text-right">Kilo artışı</TableHead>
+                          <TableHead className="text-right">kg başına yem</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(efficiency.data ?? []).map((m) => (
+                          <TableRow key={m.month} data-testid={`efficiency-row-${m.month}`}>
+                            <TableCell className="font-medium">{m.label}</TableCell>
+                            <TableCell className="text-right tabular-nums">{m.cost ? formatMoney(m.cost) : "–"}</TableCell>
+                            <TableCell className="text-right tabular-nums">{m.animals}</TableCell>
+                            <TableCell className="text-right tabular-nums">{m.costPerAnimal ? formatMoney(Math.round(m.costPerAnimal)) : "–"}</TableCell>
+                            <TableCell className="text-right tabular-nums">{m.feedCost ? formatMoney(Math.round(m.feedCost)) : "–"}</TableCell>
+                            <TableCell className="text-right tabular-nums">{m.weightGain ? formatKg(Math.round(m.weightGain * 10) / 10) : "–"}</TableCell>
+                            <TableCell className="text-right tabular-nums font-medium">{m.costPerKg ? formatMoney(Math.round(m.costPerKg * 10) / 10) : "–"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Yem gideri tüketimden hesaplanır: kalem başına ortalama birim fiyat çarpı o ay tüketilen miktar. Toplu alım maliyeti tek aya yığılmaz, yedikçe dağılır.
+                  </p>
                 </CardContent>
               </Card>
             </div>

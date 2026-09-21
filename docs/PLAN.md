@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 tamam, Faz 2'de 2.1–2.8 tamam; uçtan uca test 34 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 2.9 hayvan başı maliyet, 2.10 senkron ekranı, 2.11 iOS saha testi.
+Durum: Faz 1 tamam, Faz 2'de 2.1–2.10 tamam (2.11 saha testi sahipte); uçtan uca test 35 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada Faz 3: toplu işlem genişletme, hatırlatıcılar, QR etiket basımı, damızlık analitiği, değişiklik geçmişi.
 
 ---
 
@@ -511,8 +511,8 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 2.6 Günlük tur ekranı (`/animals/round`): sürü listesi, varsayılan "hepsi normal", hayvana dokununca kategori, şiddet, hazır etiket ve not açılır. Kaydet hem işaretli hayvanların gözlemlerini hem de sürü düzeyinde tur kaydını (hayvansız satır, `DAILY_ROUND_TAG`) tek işlemde yazar; Bugün ekranı turun yapılıp yapılmadığını gösterir. (2026-09-21)
 - [x] 2.7 Raporlar ekranı: Sürü sekmesi (yaş grubu halkası, ırk dağılımı, ortalama kilo), Üretim sekmesi (aylık doğan yavru, doğum zorluğu, sağlık kayıtları ve maliyeti, çıkışlar), Para sekmesi (12 aylık gider/gelir çubukları, kalem bazında aylık tüketim). Ortak VisActor sarmalayıcıları `charts/Charts.tsx`; tümü yerel veriden. (2026-09-21)
 - [x] 2.8 Bugün ekranı v2: ikinci KPI şeridi (aşı uyumu, kilo eğilimi, yem trendi, bu ay gider; bakıcıda gider yerine stok uyarısı), "Stok ve günlük tur" kartı (kalan günü azalan kalemler, turun durumu). Hesaplar `useHerdPulse` içinde yerel veriden; Faz 5'te içgörü servisi bunların üzerine kurulacak. (2026-09-21)
-- [ ] 2.9 Hayvan başı maliyet ve yem verimliliği hesapları.
-- [ ] 2.10 Senkron durumu ekranı: bekleyen kayıtlar, son senkron zamanı, reddedilenler sebebiyle listelenir ("hayvan bu tarihte çıkış yapmış" gibi) ve düzelt veya sil seçeneği, ağ hatasında yeniden dene, fotoğraf yükleme kuyruğu, "şimdi senkronla" düğmesi. Stok ve finans kayıtları da outbox'tan geçer.
+- [x] 2.9 Hayvan başı maliyet ve yem verimliliği: Raporlar > Para sekmesinde aylık tablo (gider, o ay çiftlikteki hayvan sayısı, hayvan başı maliyet, yem gideri, kilo artışı, kg başına yem maliyeti). Yem gideri tüketimden hesaplanır (kalem ortalama birim fiyatı × o ay tüketilen miktar), böylece toplu alım tek aya yığılmaz. Hayvan sayısı geçmişe dönük: giriş tarihi ay sonundan önce, çıkışı ay başından sonra olanlar. (2026-09-21)
+- [x] 2.10 Senkron durumu ekranı: bekleyen ve reddedilen kayıtlar Türkçe adlarıyla (tablo, işlem, red sebebi), "Kaydı aç" ile düzeltilecek ekrana gider, yeniden dene ve sil, son senkron zamanı, "Şimdi senkronla". Stok ve finans kayıtları da outbox'tan geçiyor. Fotoğraf kuyruğu 3.8'de eklenecek. (2026-09-21)
 - [ ] 2.11 iOS yolu testi (PWA mı native mi): Expo web çıktısını PWA olarak kur (manifest, service worker, ana ekrana ekle), babanın iPhone'unda bir hafta gerçek kullanım. Ölçülenler: yerel veritabanı Safari'de çalışıyor mu, bir hafta sonra veri duruyor mu, uygulama açılınca senkron güvenilir mi, kamera ile QR okuma, web push izni. Sonuç bölüm 10'daki karara girer.
   - Depolama: expo-sqlite'ın web'de hangi katmanı kullandığı (IndexedDB mi OPFS mi) ilk gün doğrulanır. IndexedDB ise B planı hazır: wa-sqlite + OPFS, Drizzle'a `sqlite-proxy` sürücüsüyle bağlanır. OPFS Web Worker ister; nginx'te gerekirse COOP ve COEP başlıkları. `navigator.storage.persist()` çağrılır.
   - Test ana ekrana eklenmiş uygulamada yapılır, Safari sekmesinde değil; ikisinin depolaması ayrıdır.

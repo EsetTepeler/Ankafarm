@@ -1,6 +1,8 @@
+import type { SyncedTable } from "@anka/shared";
 import { useQuery } from "@tanstack/react-query";
 import { desc } from "drizzle-orm";
 import { RefreshCw } from "lucide-react";
+import { Link } from "react-router";
 
 import { EmptyState, PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +14,47 @@ import { outbox } from "@/db/schema";
 import { describeSync, useSyncStore } from "@/sync/store";
 import { discardFailed, retryFailed, syncNow } from "@/sync/worker";
 import { formatDateTime } from "@/utils/date";
+
+/** Kuyruk satırını insan diline çevirmek için; teknik tablo adı sahibe bir şey anlatmıyor. */
+const tableLabels: Record<SyncedTable, string> = {
+  breeds: "Irk",
+  groups: "Grup",
+  animals: "Hayvan",
+  group_movements: "Grup değişimi",
+  weight_records: "Tartım",
+  health_records: "Sağlık kaydı",
+  breeding_records: "Çiftleşme",
+  lambing_records: "Doğum",
+  exit_records: "Sürüden çıkış",
+  observations: "Gözlem",
+  observation_tags: "Gözlem etiketi",
+  stock_items: "Stok kalemi",
+  purchases: "Alım",
+  consumptions: "Tüketim",
+  expenses: "Gider",
+  incomes: "Gelir",
+};
+
+const opLabels: Record<string, string> = { insert: "ekleme", update: "düzeltme", soft_delete: "silme" };
+
+const rejectionLabels: Record<string, string> = {
+  VALIDATION: "Geçersiz değer",
+  CONFLICT: "Çakışma",
+  NOT_FOUND: "Kayıt bulunamadı",
+  FORBIDDEN: "Yetki yok",
+  RULE: "İş kuralına takıldı",
+};
+
+/** Reddedilen kaydı düzeltebilmek için gideceği ekran; hayvana bağlı kayıtlar profile gider. */
+function recordLink(table: string, rowId: string, payload: unknown): string | null {
+  if (table === "animals") return `/animals/${rowId}`;
+  const animalId = (payload as { animalId?: string; femaleId?: string; motherId?: string } | null)?.animalId ?? (payload as { femaleId?: string } | null)?.femaleId ?? (payload as { motherId?: string } | null)?.motherId;
+  if (animalId) return `/animals/${animalId}`;
+  if (table === "stock_items" || table === "purchases" || table === "consumptions") return "/stock";
+  if (table === "expenses" || table === "incomes") return "/finance";
+  if (table === "groups") return "/settings/groups";
+  return null;
+}
 
 export function SyncPage() {
   const sync = useSyncStore();
@@ -72,12 +115,20 @@ export function SyncPage() {
             </TableHeader>
             <TableBody>
               {(rows.data ?? []).map((r) => (
-                <TableRow key={r.mutationId}>
-                  <TableCell>{r.table}</TableCell>
-                  <TableCell>{r.op}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.rowId.slice(0, 8)}</TableCell>
+                <TableRow key={r.mutationId} data-testid={`outbox-row-${r.table}`}>
+                  <TableCell className="font-medium">{tableLabels[r.table as SyncedTable] ?? r.table}</TableCell>
+                  <TableCell className="text-muted-foreground">{opLabels[r.op] ?? r.op}</TableCell>
                   <TableCell>
-                    {r.status === "failed" ? <Badge variant="destructive">{r.rejectionCode ?? "reddedildi"}</Badge> : <Badge variant="secondary">bekliyor</Badge>}
+                    {recordLink(r.table, r.rowId, r.payload) ? (
+                      <Button asChild variant="link" size="sm" className="h-auto p-0">
+                        <Link to={recordLink(r.table, r.rowId, r.payload)!}>Kaydı aç</Link>
+                      </Button>
+                    ) : (
+                      <span className="font-mono text-xs text-muted-foreground">{r.rowId.slice(0, 8)}</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {r.status === "failed" ? <Badge variant="destructive">{rejectionLabels[r.rejectionCode ?? ""] ?? r.rejectionCode ?? "Reddedildi"}</Badge> : <Badge variant="secondary">Bekliyor</Badge>}
                     {r.lastError ? <span className="ml-2 text-xs text-muted-foreground">{r.lastError}</span> : null}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{formatDateTime(r.clientCreatedAt)}</TableCell>

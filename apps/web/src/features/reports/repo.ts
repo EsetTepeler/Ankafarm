@@ -1,9 +1,9 @@
 import { labels, type BirthDifficulty, type ExitType, type HealthType, type Sex, type Species } from "@anka/shared";
 import { useQuery } from "@tanstack/react-query";
-import { and, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, gte, isNull, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { animals, breeds, consumptions, exitRecords, expenses, healthRecords, incomes, lambingRecords, purchases, stockItems } from "@/db/schema";
+import { animals, breeds, consumptions, exitRecords, expenses, healthRecords, incomes, lambingRecords, purchases, stockItems, weightRecords } from "@/db/schema";
 import { localKey } from "@/sync/events";
 import { todayIso } from "@/utils/date";
 
@@ -184,6 +184,110 @@ export function useProductionReport() {
         exits: exits.map((e) => ({ name: labels.exitType[e.type as ExitType] ?? e.type, count: e.n, income: e.income ?? 0 })),
         exitIncome: exits.reduce((s, e) => s + (e.income ?? 0), 0),
       };
+    },
+  });
+}
+
+export interface MonthEfficiency {
+  month: string;
+  label: string;
+  /** Aydaki toplam gider: alımlar + stok dışı giderler. */
+  cost: number;
+  /** O ay çiftlikte bulunan hayvan sayısı (giriş tarihi ay sonundan önce, çıkışı ay başından sonra). */
+  animals: number;
+  costPerAnimal: number | null;
+  /** Tüketilen yemin ortalama birim fiyatla parasal karşılığı. */
+  feedCost: number;
+  /** Aydaki toplam kilo artışı: hayvan başına ilk ve son tartım farkının toplamı. */
+  weightGain: number;
+  costPerKg: number | null;
+}
+
+/**
+ * Hayvan başı maliyet ve yem verimliliği (madde 2.9).
+ * Yem maliyeti tüketimden hesaplanır: kalem başına ortalama birim fiyat × o ay tüketilen miktar.
+ * Böylece bir ay toplu alım yapılınca maliyet o aya yığılmaz, yedikçe dağılır.
+ */
+export function useCostEfficiency(months = 6) {
+  return useQuery({
+    queryKey: localKey("consumptions", "report", "efficiency", months),
+    queryFn: async (): Promise<MonthEfficiency[]> => {
+      const db = getDb();
+      const range = lastMonths(months);
+      const from = `${range[0]}-01`;
+
+      const [buys, exp, feedUse, prices, animalRows, exits, weights] = await Promise.all([
+        db
+          .select({ month: sql<string>`substr(${purchases.purchasedAt}, 1, 7)`, amount: sql<number>`sum(coalesce(${purchases.total}, 0))` })
+          .from(purchases)
+          .where(and(isNull(purchases.deletedAt), gte(purchases.purchasedAt, from)))
+          .groupBy(sql`substr(${purchases.purchasedAt}, 1, 7)`),
+        db
+          .select({ month: sql<string>`substr(${expenses.spentAt}, 1, 7)`, amount: sql<number>`sum(${expenses.amount})` })
+          .from(expenses)
+          .where(and(isNull(expenses.deletedAt), gte(expenses.spentAt, from)))
+          .groupBy(sql`substr(${expenses.spentAt}, 1, 7)`),
+        db
+          .select({ month: sql<string>`substr(${consumptions.consumedOn}, 1, 7)`, itemId: consumptions.itemId, qty: sql<number>`sum(${consumptions.quantity})` })
+          .from(consumptions)
+          .innerJoin(stockItems, eq(stockItems.id, consumptions.itemId))
+          .where(and(isNull(consumptions.deletedAt), eq(stockItems.category, "feed"), gte(consumptions.consumedOn, from)))
+          .groupBy(sql`substr(${consumptions.consumedOn}, 1, 7)`, consumptions.itemId),
+        db
+          .select({ itemId: purchases.itemId, qty: sql<number>`sum(${purchases.quantity})`, spent: sql<number>`sum(coalesce(${purchases.total}, 0))` })
+          .from(purchases)
+          .where(isNull(purchases.deletedAt))
+          .groupBy(purchases.itemId),
+        db
+          .select({ id: animals.id, birthDate: animals.birthDate, acquiredAt: animals.acquiredAt, createdAt: animals.createdAt })
+          .from(animals)
+          .where(isNull(animals.deletedAt)),
+        db.select({ animalId: exitRecords.animalId, exitedAt: exitRecords.exitedAt }).from(exitRecords).where(isNull(exitRecords.deletedAt)),
+        db
+          .select({ animalId: weightRecords.animalId, weighedAt: weightRecords.weighedAt, weightKg: weightRecords.weightKg })
+          .from(weightRecords)
+          .where(and(isNull(weightRecords.deletedAt), gte(weightRecords.weighedAt, from)))
+          .orderBy(asc(weightRecords.weighedAt)),
+      ]);
+
+      const unitPrice = new Map(prices.filter((p) => (p.qty ?? 0) > 0 && (p.spent ?? 0) > 0).map((p) => [p.itemId, p.spent / p.qty]));
+      const exitedAt = new Map(exits.map((e) => [e.animalId, e.exitedAt]));
+      const startOf = (a: { birthDate: string | null; acquiredAt: string | null; createdAt: string }) => a.birthDate ?? a.acquiredAt ?? a.createdAt.slice(0, 10);
+      const pick = (rows: { month: string; amount: number }[], month: string) => rows.find((r) => r.month === month)?.amount ?? 0;
+
+      return range.map((month) => {
+        const monthStart = `${month}-01`;
+        const monthEnd = `${month}-31`;
+        const animalCount = animalRows.filter((a) => {
+          const exit = exitedAt.get(a.id);
+          return startOf(a) <= monthEnd && (!exit || exit >= monthStart);
+        }).length;
+
+        const feedCost = feedUse
+          .filter((f) => f.month === month)
+          .reduce((sum, f) => sum + (f.qty ?? 0) * (unitPrice.get(f.itemId) ?? 0), 0);
+
+        const inMonth = weights.filter((w) => w.weighedAt.slice(0, 7) === month);
+        const byAnimal = new Map<string, { first: number; last: number }>();
+        for (const w of inMonth) {
+          const prev = byAnimal.get(w.animalId);
+          if (prev) prev.last = w.weightKg;
+          else byAnimal.set(w.animalId, { first: w.weightKg, last: w.weightKg });
+        }
+        const weightGain = [...byAnimal.values()].reduce((sum, v) => sum + Math.max(0, v.last - v.first), 0);
+        const cost = pick(buys, month) + pick(exp, month);
+
+        return {
+          month,
+          label: monthLabel(month),
+          cost,
+          animals: animalCount,
+          costPerAnimal: animalCount ? cost / animalCount : null,
+          feedCost,
+          weightGain,
+          costPerKg: weightGain > 0 && feedCost > 0 ? feedCost / weightGain : null,
+        };
+      });
     },
   });
 }
