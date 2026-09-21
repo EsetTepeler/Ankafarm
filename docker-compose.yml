@@ -84,6 +84,25 @@ services:
       db:
         condition: service_healthy
 
+  # Fotoğraf ve belgeler veritabanında değil; pg_dump onları kapsamaz.
+  # Günde bir kez uploads birimini arşivler, 30 günden eskiyi siler.
+  uploads-backup:
+    image: alpine:3
+    restart: unless-stopped
+    volumes:
+      - uploads:/data:ro
+      - backups:/backups
+    command:
+      - sh
+      - -c
+      - |
+        while true; do
+          mkdir -p /backups/uploads
+          tar -czf "/backups/uploads/uploads-$$(date +%Y%m%d-%H%M).tar.gz" -C /data . 2>/dev/null || true
+          find /backups/uploads -name 'uploads-*.tar.gz' -mtime +30 -delete 2>/dev/null || true
+          sleep 86400
+        done
+
 volumes:
   pgdata:
   uploads:

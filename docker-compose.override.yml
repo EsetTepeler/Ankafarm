@@ -18,3 +18,5 @@ services:
       - "8080:80"
   backup:
     restart: "no"
+  uploads-backup:
+    restart: "no"

@@ -532,7 +532,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 ### Faz 4: Dayanıklılık ve yayın
 
 - [x] 4.1 Senkron sağlamlaştırma: `apps/web/scripts/sync-stress.mjs` (7 adım, `corepack pnpm sync-stress`): iki cihazın aynı hayvanı çevrimdışı düzenlemesi (son yazan kazanır, kaybeden denetim kaydında kalır), çıkış tarihi kuralı (çıkıştan sonrasına kayıt RULE ile reddedilir, öncesine kabul edilir), kısmi batch (bir ret diğerlerini durdurmaz), saat kayması (ileri tarihli cihaz saati kabul edilir), 250 kayıtlık outbox'ın parça parça gönderimi, imleç sıfırlanınca tam yeniden senkron. Kural sunucuda `ruleViolation` olarak eklendi. (2026-09-21)
-- [ ] 4.2 Yedekleme: compose içindeki backup servisi, haftalık sunucu dışına kopya (Hetzner Storage Box veya S3), geri yükleme provası, sahibin tek tıkla tam dışa aktarımı.
+- [x] 4.2 Yedekleme: `backup` servisi günlük pg_dump (30 gün, 8 hafta, 12 ay), yeni `uploads-backup` servisi günlük fotoğraf/belge arşivi (fotoğraflar veritabanında değil, pg_dump kapsamıyordu), sunucu dışı haftalık kopya için rclone tarifi ve `scripts/restore-test.sh` geri yükleme provası (geçici konteynere yükler, tablo sayımlarını yazdırır). Sahibin tek tıkla dışa aktarımı 3.6'da. README'de "Yedekleme" bölümü. (2026-09-21)
 - [ ] 4.3 Performans: liste sanallaştırma, görsel sıkıştırma, sorgu indeksleri.
 - [ ] 4.4 Prod: Coolify'da prod compose kaynağı. iOS yolu 2.11 sonucuna göre: PWA ise web yayını yeterli; native ise Apple Developer hesabı, EAS Build, TestFlight veya App Store, EAS Update kanalı. Android build veterinerin tabletine göre.
 - [ ] 4.5 İzleme: Coolify uptime, API log'ları, disk doluluk ve backup başarısızlık uyarısı.
