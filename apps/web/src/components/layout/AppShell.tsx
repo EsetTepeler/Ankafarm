@@ -29,7 +29,7 @@ const nav = [
   { to: "/", label: "Bugün", icon: LayoutDashboard, end: true },
   { to: "/animals", label: "Hayvanlar", icon: Users },
   { to: "/animals/round", label: "Günlük tur", icon: ClipboardCheck },
-  { to: "/animals/bulk", label: "Toplu sağlık", icon: Syringe },
+  { to: "/animals/bulk", label: "Toplu işlem", icon: Syringe },
   { to: "/scan", label: "QR tara", icon: ScanLine },
   { to: "/stock", label: "Stok", icon: Package },
   { to: "/finance", label: "Finans", icon: Wallet, ownerOnly: true },

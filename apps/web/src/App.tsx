@@ -14,7 +14,7 @@ import { getApiClient, TRPCProvider, type ApiClient } from "@/lib/trpc";
 import { AnimalFormPage } from "@/pages/animals/AnimalFormPage";
 import { AnimalPage } from "@/pages/animals/AnimalPage";
 import { AnimalsPage } from "@/pages/animals/AnimalsPage";
-import { BulkHealthPage } from "@/pages/animals/BulkHealthPage";
+import { BulkPage } from "@/pages/animals/BulkPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { GroupsPage } from "@/pages/settings/GroupsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
@@ -88,7 +88,7 @@ export function App() {
                   <Route index element={<TodayPage />} />
                   <Route path="animals" element={<AnimalsPage />} />
                   <Route path="animals/new" element={<AnimalFormPage />} />
-                  <Route path="animals/bulk" element={<BulkHealthPage />} />
+                  <Route path="animals/bulk" element={<BulkPage />} />
                   <Route path="animals/round" element={<DailyRoundPage />} />
                   <Route path="animals/:id" element={<AnimalPage />} />
                   <Route path="animals/:id/edit" element={<AnimalFormPage />} />

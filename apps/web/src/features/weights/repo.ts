@@ -6,7 +6,7 @@ import { getDb } from "@/db";
 import { animals, weightRecords } from "@/db/schema";
 import { newId } from "@/lib/ids";
 import { localKey, notifyLocalChange } from "@/sync/events";
-import { insertLocal, softDeleteLocal } from "@/sync/local";
+import { insertLocal, insertManyLocal, softDeleteLocal } from "@/sync/local";
 
 export function useWeights(animalId: string | undefined) {
   return useQuery({
@@ -42,6 +42,15 @@ export async function addWeight(input: { animalId: string; weightKg: number; wei
   const id = await insertLocal("weight_records", parsed);
   await refreshLocalCurrentWeight(input.animalId);
   return id;
+}
+
+/** Tartım günü: birçok hayvan tek işlemde, tek push. Döner: yazılan kayıt sayısı. */
+export async function addWeights(rows: { animalId: string; weightKg: number }[], weighedAt: string): Promise<number> {
+  const parsed = rows.map((r) => weightInputSchema.parse({ id: newId(), animalId: r.animalId, weightKg: r.weightKg, weighedAt, note: null }));
+  if (parsed.length === 0) return 0;
+  await insertManyLocal("weight_records", parsed);
+  for (const r of parsed) await refreshLocalCurrentWeight(r.animalId);
+  return parsed.length;
 }
 
 export async function deleteWeight(id: string, animalId: string, reason?: string) {

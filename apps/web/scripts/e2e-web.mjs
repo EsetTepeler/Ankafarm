@@ -11,6 +11,8 @@ const EMAIL = process.env.E2E_EMAIL ?? "sahip@ankafarm.local";
 const PASSWORD = process.env.E2E_PASSWORD ?? "degistir123";
 const CHANNEL = process.env.BROWSER_CHANNEL ?? "chrome";
 
+/** Koşu kimliği: sunucu verisi kalıcı olduğu için her koşu kendi adlarını kullanmalı. */
+const RUN = Math.random().toString(36).slice(2, 7).toUpperCase();
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const consoleLines = [];
 
@@ -87,7 +89,7 @@ try {
     await page.getByRole("cell", { name: "Ana sürü", exact: true }).waitFor({ timeout: 30_000 });
   });
 
-  const name1 = `Test ${Date.now() % 10000}`;
+  const name1 = `Test ${RUN}`;
   await step("çevrimiçi grup eklenir ve sunucuya gider", async () => {
     await page.getByTestId("group-add").click();
     await page.getByTestId("group-name").fill(name1);
@@ -97,7 +99,7 @@ try {
     if (!(await serverGroups()).includes(name1)) throw new Error("sunucuda yok");
   });
 
-  const name2 = `Offline ${Date.now() % 10000}`;
+  const name2 = `Offline ${RUN}`;
   await step("çevrimdışı grup eklenir, kuyrukta bekler", async () => {
     await context.setOffline(true);
     await page.evaluate(() => window.dispatchEvent(new Event("offline")));
@@ -130,7 +132,7 @@ try {
     await page.getByRole("columnheader", { name: "Küpe" }).waitFor({ timeout: 15_000 });
   });
 
-  const tag1 = `TR-${Date.now() % 100000}`;
+  const tag1 = `TR-${RUN}1`;
   await step("dışarıdan alınan hayvan eklenir ve sunucuya gider", async () => {
     await page.getByTestId("animal-add").click();
     await page.getByTestId("origin-purchased").click();
@@ -157,7 +159,7 @@ try {
     await page.getByText(/zaten kayıtlı/).first().waitFor({ timeout: 10_000 });
   });
 
-  const tag2 = `TR-${(Date.now() + 7) % 100000}`;
+  const tag2 = `TR-${RUN}2`;
   await step("burada doğan hayvan anne ile eklenir", async () => {
     await page.getByTestId("origin-born").click();
     await page.getByTestId("animal-tag").fill(tag2);
@@ -243,7 +245,7 @@ try {
     if ((await serverHealth(animals[tag2].id)).some((r) => r.productName === "Ivermektin")) throw new Error("geri alma yansımadı");
   });
 
-  const tag3 = `TR-${(Date.now() + 13) % 100000}`;
+  const tag3 = `TR-${RUN}3`;
   await step("koç eklenir", async () => {
     await page.getByTestId("nav-animals").click();
     await page.getByTestId("animal-add").click();
@@ -275,7 +277,7 @@ try {
     if (!p || !p.targetDate?.startsWith(animals[tag1].expectedBirthAt)) throw new Error("doğum tahmini yok veya yanlış");
   });
 
-  const tag4 = `TR-${(Date.now() + 29) % 100000}`;
+  const tag4 = `TR-${RUN}4`;
   await step("doğum: yavru otomatik açılır, tahmin değerlendirilir, gebelik biter", async () => {
     await page.getByTestId("event-add").click();
     await page.getByTestId("event-lambing").click();
@@ -440,7 +442,7 @@ try {
     if (!/\d/.test(kpi)) throw new Error("bekleyen iş sayısı yok");
   });
 
-  const feedName = `Yem ${(Date.now() + 41) % 100000}`;
+  const feedName = `Yem ${RUN}`;
   await step("stok: kalem açılır, alım bakiyeyi artırır, tüketim düşürür, kalan gün hesaplanır", async () => {
     await page.getByTestId("nav-stock").click();
     await page.getByTestId("stock-row-Yonca").waitFor({ timeout: 15_000 });
@@ -615,6 +617,42 @@ try {
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await page.getByTestId("sync-banner").getByText("Güncel").waitFor({ timeout: 30_000 });
+  });
+
+  await step("toplu tartım: sırayla kilo girilir, fark görünür, tek push ile gider", async () => {
+    await page.getByTestId("nav-animalsbulk").click();
+    await page.getByTestId("tab-bulk-weight").click();
+    await page.getByTestId(`weigh-row-${tag1}`).waitFor({ timeout: 15_000 });
+    await page.getByTestId(`weigh-input-${tag1}`).fill("58");
+    await page.getByTestId(`weigh-input-${tag2}`).fill("44,5");
+    await page.getByTestId("weigh-count").getByText("2 /").waitFor({ timeout: 5_000 });
+    // tag1'in son kilosu 55 kg idi; fark sütunu +3 göstermeli.
+    await page.getByTestId(`weigh-row-${tag1}`).getByText("+3").waitFor({ timeout: 5_000 });
+    await page.getByTestId("weigh-save").click();
+    await page.getByRole("columnheader", { name: "Küpe" }).waitFor({ timeout: 15_000 });
+    await page.getByTestId(`animal-row-${tag2}`).getByText("44,5 kg").waitFor({ timeout: 10_000 });
+    await page.waitForTimeout(4000);
+    const animals = await serverAnimals();
+    // tag1'in 2026-10-01 tarihli ileri tarihli tartımı var; "son kilo" o kalır, bugünkü 58 kg onu geçmez.
+    if (Number(animals[tag2].currentWeight) !== 44.5) throw new Error(`sunucuda kilo ${animals[tag2].currentWeight}`);
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const today = new Date().toISOString().slice(0, 10);
+    const mine = pulled.tables.weight_records.filter((w) => w.animalId === animals[tag1].id && String(w.weighedAt).slice(0, 10) === today);
+    if (!mine.some((w) => Number(w.weightKg) === 58)) throw new Error("toplu tartım sunucuya ulaşmadı");
+  });
+
+  await step("toplu grup taşıma sekmesi seçilenleri taşır", async () => {
+    await page.getByTestId("nav-animalsbulk").click();
+    await page.getByTestId("tab-bulk-move").click();
+    await page.getByTestId(`move-row-${tag1}`).click();
+    await page.getByTestId("move-count").getByText("1 seçili").waitFor({ timeout: 5_000 });
+    await page.getByTestId("move-open").click();
+    await page.getByTestId("move-group").click();
+    await page.getByTestId("move-group-list").getByText(name1, { exact: true }).click();
+    await page.getByTestId("move-save").click();
+    await page.getByTestId("move-count").getByText("0 seçili").waitFor({ timeout: 10_000 });
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`group-cell-${tag1}`).getByText(name1, { exact: true }).waitFor({ timeout: 10_000 });
   });
 } finally {
       await ctx3.close();

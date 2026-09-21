@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 tamam, Faz 2'de 2.1–2.10 tamam (2.11 saha testi sahipte); uçtan uca test 35 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada Faz 3: toplu işlem genişletme, hatırlatıcılar, QR etiket basımı, damızlık analitiği, değişiklik geçmişi.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 37 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.9 değişiklik geçmişi, 3.5 QR etiket basımı, 3.7 damızlık analitiği.
 
 ---
 
@@ -519,7 +519,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 
 ### Faz 3: Verimlilik
 
-- [ ] 3.1 Toplu işlem genişletme: tartım, grup taşıma, kırkım (aşı ve ilaç 1.8'de yapıldı).
+- [x] 3.1 Toplu işlem ekranı üç sekme oldu (`/animals/bulk`): Sağlık (kırkım dahil, 1.8), Tartım (sırayla kilo, Enter bir alt satıra geçer, son kiloya göre fark, tek push) ve Grup taşıma (seçilenler tek harekette). (2026-09-21)
 - [ ] 3.2 Aşı protokolleri ve otomatik hatırlatıcı üretimi (isteğe bağlı; sağlık kaydındaki `next_due_at` çoğu ihtiyacı karşılar).
 - [ ] 3.3 Hatırlatıcılar ekranı.
 - [ ] 3.4 Push bildirim. Native yolda Expo Notifications ve Expo Push API. PWA yolunda web push: VAPID anahtarı, service worker, iOS 16.4 ve sonrası ana ekrana eklenmiş olma şartı. Sunucuda tek bildirim servisi, iki taşıyıcı. node-cron ile zamanlama.

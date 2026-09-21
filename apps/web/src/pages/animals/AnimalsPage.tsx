@@ -64,7 +64,7 @@ export function AnimalsPage() {
           <>
             <Button asChild variant="outline">
               <Link to="/animals/bulk" data-testid="bulk-health">
-                <Syringe /> Toplu sağlık
+                <Syringe /> Toplu işlem
               </Link>
             </Button>
             <Button asChild>

@@ -33,7 +33,7 @@ function daysUntil(iso: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
-/** Toplu sağlık girişi tek satır olsun: aynı batch_id'li ardışık olaylar birleşir. */
+/** Toplu işlem tek satır olsun: aynı batch_id'li ardışık olaylar birleşir. */
 function collapseBatches(items: FeedItem[]): (FeedItem & { count: number })[] {
   const out: (FeedItem & { count: number })[] = [];
   for (const it of items) {
@@ -75,7 +75,7 @@ export function TodayPage() {
         actions={
           <>
             <Button asChild variant="outline">
-              <Link to="/animals/bulk">Toplu sağlık girişi</Link>
+              <Link to="/animals/bulk">Toplu işlem</Link>
             </Button>
             <Button asChild>
               <Link to="/animals/new">Hayvan ekle</Link>
