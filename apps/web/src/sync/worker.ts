@@ -150,7 +150,8 @@ async function pullAll() {
     const changed: SyncedTable[] = [];
     await withLocalTransaction(async (tx) => {
       for (const table of syncedTables) {
-        const rows = res.tables[table] as Record<string, unknown>[];
+        // Sunucu bu tabloyu tanımıyorsa (deploy sırasında eski API) veya rol görmüyorsa alan boş gelir.
+        const rows = (res.tables[table] ?? []) as Record<string, unknown>[];
         if (rows.length === 0) continue;
         changed.push(table);
         const local = localTables[table] as any;
@@ -160,10 +161,12 @@ async function pullAll() {
         }
       }
       for (const table of syncedTables) {
+        const cursor = res.cursors[table];
+        if (cursor == null) continue;
         await tx
           .insert(syncCursors)
-          .values({ table, cursor: res.cursors[table] })
-          .onConflictDoUpdate({ target: syncCursors.table, set: { cursor: res.cursors[table] } });
+          .values({ table, cursor })
+          .onConflictDoUpdate({ target: syncCursors.table, set: { cursor } });
       }
     });
     if (changed.length) notifyLocalChange(changed);

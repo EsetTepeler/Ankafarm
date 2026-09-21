@@ -429,6 +429,99 @@ try {
     const kpi = await page.getByTestId("kpi-alerts").innerText();
     if (!/\d/.test(kpi)) throw new Error("bekleyen iş sayısı yok");
   });
+
+  const feedName = `Yem ${(Date.now() + 41) % 100000}`;
+  await step("stok: kalem açılır, alım bakiyeyi artırır, tüketim düşürür, kalan gün hesaplanır", async () => {
+    await page.getByTestId("nav-stock").click();
+    await page.getByTestId("stock-row-Yonca").waitFor({ timeout: 15_000 });
+    await page.getByTestId("item-add").click();
+    await page.getByTestId("item-name").fill(feedName);
+    await page.getByTestId("item-min").fill("100");
+    await page.getByTestId("item-save").click();
+    await page.getByTestId(`stock-row-${feedName}`).waitFor({ timeout: 10_000 });
+
+    await page.getByTestId("purchase-add").click();
+    await page.getByTestId("purchase-item").click();
+    await page.getByTestId("purchase-item-list").getByText(feedName, { exact: true }).click();
+    await page.getByTestId("purchase-qty").fill("500");
+    await page.getByTestId("purchase-price").fill("12,5");
+    await page.getByTestId("purchase-preview").getByText(/6\.250/).waitFor({ timeout: 5_000 });
+    await page.getByTestId("purchase-supplier").fill("Yem bayii");
+    await page.getByTestId("purchase-save").click();
+    await page.getByTestId(`stock-balance-${feedName}`).getByText("500 kg").waitFor({ timeout: 10_000 });
+
+    await page.getByTestId("consumption-add").click();
+    await page.getByTestId(`consumption-qty-${feedName}`).fill("25");
+    await page.getByTestId("consumption-save").click();
+    await page.getByTestId(`stock-balance-${feedName}`).getByText("475 kg").waitFor({ timeout: 10_000 });
+    // 475 kg bakiye, 14 günlük pencerede 25 kg → floor(475 * 14 / 25) = 266 gün.
+    await page.getByTestId(`stock-days-${feedName}`).getByText("266 gün").waitFor({ timeout: 10_000 });
+    await page.getByTestId("stock-balance-Su").getByText("takip yok").waitFor({ timeout: 5_000 });
+
+    await page.waitForTimeout(4000);
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const item = pulled.tables.stock_items.find((i) => i.name === feedName);
+    if (!item || item.minStock == null) throw new Error("sunucuda kalem eksik");
+    const buy = pulled.tables.purchases.find((p) => p.itemId === item.id);
+    if (!buy || Number(buy.total) !== 6250 || Number(buy.unitPrice) !== 12.5) throw new Error(`sunucuda alım tutarı ${buy && buy.total}`);
+    const used = pulled.tables.consumptions.filter((c) => c.itemId === item.id);
+    if (used.length !== 1 || Number(used[0].quantity) !== 25) throw new Error("sunucuda tüketim eksik");
+  });
+
+  await step("stok: 'dünkü gibi' son günü doldurur", async () => {
+    await page.getByTestId("consumption-add").click();
+    await page.getByTestId("consumption-repeat").click();
+    const value = await page.getByTestId(`consumption-qty-${feedName}`).inputValue();
+    if (Number(value.replace(",", ".")) !== 25) throw new Error(`dünkü gibi ${value} doldurdu`);
+    await page.getByRole("button", { name: "Vazgeç" }).click();
+  });
+
+  await step("stok: çevrimdışı tüketim kuyrukta bekler, bağlantı gelince gider", async () => {
+    await context.setOffline(true);
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    await page.getByTestId("consumption-add").click();
+    await page.getByTestId(`consumption-qty-${feedName}`).fill("30");
+    await page.getByTestId("consumption-save").click();
+    await page.getByTestId(`stock-balance-${feedName}`).getByText("445 kg").waitFor({ timeout: 10_000 });
+    await context.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    for (let i = 0; i < 20; i++) {
+      const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+      const item = pulled.tables.stock_items.find((x) => x.name === feedName);
+      const total = pulled.tables.consumptions.filter((c) => c.itemId === item.id).reduce((sum, c) => sum + Number(c.quantity), 0);
+      if (total === 55) return;
+      await page.waitForTimeout(1500);
+    }
+    throw new Error("çevrimdışı tüketim sunucuya ulaşmadı");
+  });
+
+  await step("finans: gider ve gelir, aylık özette alım da sayılır", async () => {
+    const money = async (id) => Number((await page.getByTestId(id).innerText()).replace(/[^\d,]/g, "").replace(/\./g, "").replace(",", "."));
+    await page.getByTestId("nav-finance").click();
+    await page.getByTestId(`cost-row-${feedName}`).getByText(/6\.250/).waitFor({ timeout: 15_000 });
+    const before = await money("kpi-expense");
+    await page.getByTestId("expense-add").click();
+    await page.getByTestId("expense-cat-vet").click();
+    await page.getByTestId("expense-amount").fill("750");
+    await page.getByTestId("expense-desc").fill("Sürü muayenesi");
+    await page.getByTestId("expense-save").click();
+    await page.getByTestId("expense-row-Veteriner").first().waitFor({ timeout: 10_000 });
+    for (let i = 0; i < 20 && (await money("kpi-expense")) !== before + 750; i++) await page.waitForTimeout(500);
+    if ((await money("kpi-expense")) !== before + 750) throw new Error("gider toplamı güncellenmedi");
+
+    const incomeBefore = await money("kpi-income");
+    await page.getByTestId("income-add").click();
+    await page.getByTestId("income-cat-animal_sale").click();
+    await page.getByTestId("income-amount").fill("9000");
+    await page.getByTestId("income-save").click();
+    for (let i = 0; i < 20 && (await money("kpi-income")) !== incomeBefore + 9000; i++) await page.waitForTimeout(500);
+    if ((await money("kpi-income")) !== incomeBefore + 9000) throw new Error("gelir toplamı güncellenmedi");
+
+    await page.waitForTimeout(4000);
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    if (!pulled.tables.expenses.some((e) => e.category === "vet" && Number(e.amount) === 750)) throw new Error("sunucuda gider yok");
+    if (!pulled.tables.incomes.some((i) => Number(i.amount) === 9000)) throw new Error("sunucuda gelir yok");
+  });
 } finally {
       await ctx3.close();
     }

@@ -1,4 +1,4 @@
-import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,8 @@ const nav = [
   { to: "/animals", label: "Hayvanlar", icon: Users },
   { to: "/animals/bulk", label: "Toplu sağlık", icon: Syringe },
   { to: "/scan", label: "QR tara", icon: ScanLine },
-  { to: "/stock", label: "Stok", icon: Package, disabled: true },
+  { to: "/stock", label: "Stok", icon: Package },
+  { to: "/finance", label: "Finans", icon: Wallet, ownerOnly: true },
   { to: "/reports", label: "Raporlar", icon: BarChart3, disabled: true },
 ];
 
@@ -64,7 +65,9 @@ export function AppShell() {
             <SidebarGroupLabel>Menü</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {nav.map((item) => (
+                {nav
+                  .filter((item) => !item.ownerOnly || user?.role === "owner")
+                  .map((item) => (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton asChild isActive={isActive(item.to, item.end)} tooltip={item.label} disabled={item.disabled}>
                       {item.disabled ? (

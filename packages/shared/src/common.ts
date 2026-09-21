@@ -8,3 +8,13 @@ export const uuidSchema = z.string().uuid();
 export const moneySchema = z.number().nonnegative().max(99_999_999);
 /** Miktar: kg, balya, kova, litre. */
 export const quantitySchema = z.number().positive("Miktar sıfırdan büyük olmalı").max(1_000_000);
+
+/** Para gösterimi: 12.345,67 TL */
+export function formatMoney(amount: number): string {
+  return `${amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} TL`;
+}
+
+/** Sayı gösterimi: binlik ayraçlı, gereksiz sıfır yok. */
+export function formatNumber(n: number): string {
+  return n.toLocaleString("tr-TR", { maximumFractionDigits: 2 });
+}

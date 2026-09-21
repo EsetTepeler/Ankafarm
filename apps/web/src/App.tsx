@@ -19,7 +19,9 @@ import { LoginPage } from "@/pages/LoginPage";
 import { GroupsPage } from "@/pages/settings/GroupsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { SyncPage } from "@/pages/settings/SyncPage";
+import { FinancePage } from "@/pages/finance/FinancePage";
 import { ScanPage } from "@/pages/ScanPage";
+import { StockPage } from "@/pages/stock/StockPage";
 import { TodayPage } from "@/pages/TodayPage";
 import { bindQueryClient } from "@/sync/events";
 
@@ -89,6 +91,8 @@ export function App() {
                   <Route path="animals/:id/edit" element={<AnimalFormPage />} />
                   <Route path="a/:id" element={<AnimalPage />} />
                   <Route path="scan" element={<ScanPage />} />
+                  <Route path="stock" element={<StockPage />} />
+                  <Route path="finance" element={<FinancePage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="settings/groups" element={<GroupsPage />} />
                   <Route path="settings/sync" element={<SyncPage />} />

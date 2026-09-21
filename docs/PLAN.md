@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 tamam (1.1–1.17), uçtan uca test 27 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada Faz 2 stok, finans, pano.
+Durum: Faz 1 tamam, Faz 2'de 2.1–2.5 tamam; uçtan uca test 31 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 2.6 toplu gözlem, 2.7 aylık raporlar, 2.8 Bugün v2.
 
 ---
 
@@ -503,11 +503,11 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 
 ### Faz 2: Stok, finans, pano
 
-- [ ] 2.1 Migration: `stock_items`, `purchases`, `consumptions`, `expenses`, `incomes`, view'lar.
-- [ ] 2.2 Stok kalemleri ve alım girişi.
-- [ ] 2.3 Günlük tüketim girişi: varsayılan tüm sürü, kg / balya / kova, "dünkü gibi" tekrar. Su kova bazlı, stok bakiyesi tutulmaz.
-- [ ] 2.4 Stok seviyeleri, kalan gün, minimum uyarısı.
-- [ ] 2.5 Gider ve gelir girişi.
+- [x] 2.1 Migration 0012 (tablolar) ve 0013 (trigger'lar, view'lar): `stock_items`, `purchases`, `consumptions`, `expenses`, `incomes`; senkron ve denetim trigger'ları, alım tutarı türevi (`anka_purchase_amounts`), `v_stock_levels`, `v_monthly_costs`, `v_monthly_income`. Kalem tohumu (yonca, saman, arpa, su) yeni ve mevcut çiftliklere. Finans satırları yalnızca sahibin cihazına pull edilir. (2026-09-21)
+- [x] 2.2 Stok kalemleri ve alım girişi: Stok ekranı, kalem dialogu (ad, kategori, birim, alt sınır, bakiye tut anahtarı), alım dialogu (birim fiyat ↔ toplam otomatik), alım listesi. (2026-09-21)
+- [x] 2.3 Günlük tüketim girişi: tek dialogda tüm yem, su ve malzeme kalemleri, varsayılan tüm sürü, "dünkü gibi" son günü doldurur, hepsi tek yerel işlem ve tek push. Su kova bazlı, bakiyesi tutulmaz. (2026-09-21)
+- [x] 2.4 Stok seviyeleri: kalem başına bakiye, son 14 gün tüketimi, kalan gün rozeti (7 günden az kırmızı, 14 günden az sarı), alt sınır uyarısı; hesap `shared/stock.ts` içinde, sunucu view'ı ile birebir aynı. (2026-09-21)
+- [x] 2.5 Gider ve gelir girişi: Finans ekranı (sahip rolüne açık), ay seçici, gider/gelir/fark kutuları, kategori dağılımı çubukları, gider ve gelir defterleri. Stok alımları aylık gidere kalem adıyla girer, iki kez sayılmaz. (2026-09-21)
 - [ ] 2.6 Toplu gözlem ekranı: sürü listesi, varsayılan "hepsi normal", dikkat çeken hayvana dokunup kategori ve şiddet seç (yem, hareket, solunum, sindirim, davranış). Günlük tur için tasarlanır, bir dakikada biter.
 - [ ] 2.7 Aylık raporlar ve grafikler (bölüm 6).
 - [ ] 2.8 Bugün ekranı v2: KPI şeridi (aşı uyumu, kilo eğilimi, yem trendi, gebe sayısı, sağlık uyarısı), stok kalan gün, bu ay gider (`fn_dashboard`).

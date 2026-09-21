@@ -13,10 +13,25 @@ export function localKey(table: LocalTableName, ...rest: unknown[]) {
   return ["local", table, ...rest] as const;
 }
 
+/**
+ * Türev sorguların bağımlılıkları: stok seviyesi alım ve tüketimden, aylık özet alımdan da hesaplanır.
+ * Böylece hem yerel yazmada hem pull sonrasında doğru ekranlar tazelenir.
+ */
+const derivedFrom: Partial<Record<LocalTableName, LocalTableName[]>> = {
+  purchases: ["stock_items", "expenses"],
+  consumptions: ["stock_items"],
+  stock_items: ["expenses"],
+};
+
 /** Yerel yazma veya pull sonrası ilgili sorguları tazeler. */
 export function notifyLocalChange(tables: Iterable<LocalTableName>) {
   if (!queryClient) return;
-  for (const table of new Set(tables)) {
+  const all = new Set<LocalTableName>();
+  for (const table of tables) {
+    all.add(table);
+    for (const dep of derivedFrom[table] ?? []) all.add(dep);
+  }
+  for (const table of all) {
     void queryClient.invalidateQueries({ queryKey: ["local", table] });
   }
   // Zaman çizelgesi birden çok tabloyu birleştirir; her değişiklikte tazelenir.

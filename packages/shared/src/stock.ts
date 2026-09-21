@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isoDateSchema, moneySchema, quantitySchema, uuidSchema } from "./common";
+import { formatNumber, isoDateSchema, moneySchema, quantitySchema, uuidSchema } from "./common";
 
 export const stockCategorySchema = z.enum(["feed", "water", "medicine", "supply", "other"]);
 export type StockCategory = z.infer<typeof stockCategorySchema>;
@@ -33,6 +33,12 @@ export const stockLabels = {
   },
   incomeCategory: { animal_sale: "Hayvan satışı", milk: "Süt", wool: "Yapağı", manure: "Gübre", subsidy: "Destekleme", other: "Diğer" },
 } as const;
+
+/** Miktar ve birim: "500 kg", "12,5 balya". */
+export function formatQuantity(quantity: number, unit: StockUnit | string): string {
+  const label = stockLabels.stockUnit[unit as StockUnit] ?? unit;
+  return `${formatNumber(quantity)} ${label}`;
+}
 
 export const stockItemInputSchema = z.object({
   id: uuidSchema,
