@@ -1,5 +1,5 @@
 import { formatKg, labels, type AnimalEvent, type AnimalStatus, type BirthType, type Origin, type Sex, type Species } from "@anka/shared";
-import { ArrowLeftRight, Baby, Eye, HeartHandshake, LogOut, Pencil, Plus, QrCode, Scale, Star, Syringe, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeftRight, Baby, Eye, HeartHandshake, History, LogOut, Pencil, Plus, QrCode, Scale, Star, Syringe, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
@@ -90,6 +90,13 @@ export function AnimalPage() {
             <Button variant="outline" size="icon" aria-label="QR etiketi" onClick={() => setQrOpen(true)} data-testid="animal-qr">
               <QrCode />
             </Button>
+            {role === "owner" ? (
+              <Button asChild variant="outline" size="icon" aria-label="Değişiklik geçmişi">
+                <Link to={`/audit?record=${a.id}`} data-testid="animal-audit">
+                  <History />
+                </Link>
+              </Button>
+            ) : null}
             <Button asChild variant="outline">
               <Link to={`/animals/${a.id}/edit`} data-testid="animal-edit">
                 <Pencil /> Düzenle

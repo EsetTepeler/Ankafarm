@@ -37,6 +37,7 @@ export function SettingsPage() {
               sub={`${sync.pending} bekliyor · ${sync.failed} reddedildi${sync.lastSyncAt ? ` · son ${formatDateTime(sync.lastSyncAt)}` : ""}`}
               testID="settings-sync"
             />
+            {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
           </CardContent>
         </Card>
 

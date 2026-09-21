@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 37 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.9 değişiklik geçmişi, 3.5 QR etiket basımı, 3.7 damızlık analitiği.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 38 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.5 QR etiket basımı, 3.7 damızlık analitiği, 3.6 Excel dışa aktarma.
 
 ---
 
@@ -527,7 +527,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [ ] 3.6 Excel dışa aktarma (tüm tablolar) ve isteğe bağlı içe aktarma (aşı kayıtları). Mevcut veri yok, ilk yükleme gerekmiyor.
 - [ ] 3.7 Damızlık analitiği: koç ve koyun bazında doğum, yavru, yaşama oranı, yavru büyüme; koç adaylarını yan yana karşılaştırma ekranı (temel akrabalık ve özet kartı 1.9'da).
 - [ ] 3.8 Fotoğraf galerisi ve belge ekleri.
-- [ ] 3.9 Değişiklik geçmişi ekranı: çiftlik geneli akış ve hayvan bazlı "kim, ne zaman, neyi" listesi, eski ve yeni değer yan yana. Trigger 1.1'den itibaren yazıyor, burada sadece ekran.
+- [x] 3.9 Değişiklik geçmişi (`/audit`, sahip yetkisi): çiftlik geneli akış, kayıt türü filtresi, hayvan profilinden o kayda filtreli giriş. Her satırda kim, ne zaman, hangi alan neyden neye değişti; teknik alanlar (updated_at, sync_seq) gizlenir, enum ve tarihler Türkçe gösterilir. Sunucu ucu `audit.list` imleçli sayfalama ile. (2026-09-21)
 
 ### Faz 4: Dayanıklılık ve yayın
 

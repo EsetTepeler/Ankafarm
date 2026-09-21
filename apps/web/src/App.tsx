@@ -22,6 +22,7 @@ import { SyncPage } from "@/pages/settings/SyncPage";
 import { DailyRoundPage } from "@/pages/animals/DailyRoundPage";
 import { FinancePage } from "@/pages/finance/FinancePage";
 import { ReportsPage } from "@/pages/reports/ReportsPage";
+import { AuditPage } from "@/pages/settings/AuditPage";
 import { ScanPage } from "@/pages/ScanPage";
 import { StockPage } from "@/pages/stock/StockPage";
 import { TodayPage } from "@/pages/TodayPage";
@@ -100,6 +101,7 @@ export function App() {
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="settings/groups" element={<GroupsPage />} />
                   <Route path="settings/sync" element={<SyncPage />} />
+                  <Route path="audit" element={<AuditPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

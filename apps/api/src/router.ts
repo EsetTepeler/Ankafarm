@@ -1,4 +1,5 @@
 import { animalsRouter, breedsRouter, groupsRouter, healthRouter, predictionsRouter } from "./modules/animals/router";
+import { auditRouter } from "./modules/audit/router";
 import { authRouter } from "./modules/auth/router";
 import { farmRouter } from "./modules/farm/router";
 import { syncRouter } from "./modules/sync/router";
@@ -15,6 +16,7 @@ export const appRouter = router({
   groups: groupsRouter,
   health: healthRouter,
   predictions: predictionsRouter,
+  audit: auditRouter,
 });
 
 export type AppRouter = typeof appRouter;

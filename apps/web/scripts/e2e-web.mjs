@@ -654,6 +654,25 @@ try {
     await page.getByTestId("nav-animals").click();
     await page.getByTestId(`group-cell-${tag1}`).getByText(name1, { exact: true }).waitFor({ timeout: 10_000 });
   });
+
+  await step("değişiklik geçmişi: kim neyi değiştirmiş, kayıt ve tür filtresiyle", async () => {
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`animal-row-${tag1}`).click();
+    await page.getByTestId("animal-audit").click();
+    await page.getByTestId("audit-list").waitFor({ timeout: 20_000 });
+    const list = page.getByTestId("audit-list");
+    await list.getByText("Hayvan").first().waitFor({ timeout: 15_000 });
+    await list.getByText("eklendi").first().waitFor({ timeout: 10_000 });
+    // Grup taşıma hayvanın grup alanını değiştirdi; fark satırında görünmeli.
+    await list.getByText(/^Grup:/).first().waitFor({ timeout: 10_000 });
+    await list.getByText("Çiftlik Sahibi").first().waitFor({ timeout: 5_000 });
+
+    await page.getByRole("button", { name: "Tüm kayıtlar" }).click();
+    await page.getByTestId("audit-table-filter").click();
+    await page.getByRole("option", { name: /^Tartım/ }).click();
+    await list.getByText("Tartım").first().waitFor({ timeout: 15_000 });
+    if (await list.getByText("Sürüden çıkış").count()) throw new Error("filtre dışı kayıt listede");
+  });
 } finally {
       await ctx3.close();
     }
