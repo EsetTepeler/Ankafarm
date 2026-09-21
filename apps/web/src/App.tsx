@@ -23,6 +23,7 @@ import { DailyRoundPage } from "@/pages/animals/DailyRoundPage";
 import { FinancePage } from "@/pages/finance/FinancePage";
 import { ReportsPage } from "@/pages/reports/ReportsPage";
 import { AuditPage } from "@/pages/settings/AuditPage";
+import { ExportPage } from "@/pages/settings/ExportPage";
 import { BreedingPage } from "@/pages/breeding/BreedingPage";
 import { ScanPage } from "@/pages/ScanPage";
 import { StockPage } from "@/pages/stock/StockPage";
@@ -104,6 +105,7 @@ export function App() {
                   <Route path="settings/groups" element={<GroupsPage />} />
                   <Route path="settings/sync" element={<SyncPage />} />
                   <Route path="audit" element={<AuditPage />} />
+                  <Route path="settings/export" element={<ExportPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

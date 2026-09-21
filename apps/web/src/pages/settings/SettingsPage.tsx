@@ -38,6 +38,7 @@ export function SettingsPage() {
               testID="settings-sync"
             />
             {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
+            <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
           </CardContent>
         </Card>
 

@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 40 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.6 Excel dışa aktarma, 3.3 hatırlatıcılar, 3.8 fotoğraflar.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 40 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.3 hatırlatıcılar, 3.8 fotoğraflar, 3.2 aşı protokolleri.
 
 ---
 
@@ -524,7 +524,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [ ] 3.3 Hatırlatıcılar ekranı.
 - [ ] 3.4 Push bildirim. Native yolda Expo Notifications ve Expo Push API. PWA yolunda web push: VAPID anahtarı, service worker, iOS 16.4 ve sonrası ana ekrana eklenmiş olma şartı. Sunucuda tek bildirim servisi, iki taşıyıcı. node-cron ile zamanlama.
 - [x] 3.5 QR etiket basımı: hayvan listesinde seçim → "Etiket yazdır"; üç boyutta A4 etiket sayfası (QR, küpe no, isim, çiftlik adı), yazdırma penceresinden PDF olarak kaydedilir. Dayanıklı malzeme önerisi dialogda. Profildeki tek etiket de aynı üreticiyi kullanır. (2026-09-21)
-- [ ] 3.6 Excel dışa aktarma (tüm tablolar) ve isteğe bağlı içe aktarma (aşı kayıtları). Mevcut veri yok, ilk yükleme gerekmiyor.
+- [x] 3.6 Dışa aktarma (Ayarlar > Dışa aktarma): 14 tablo için CSV (noktalı virgül + UTF-8 BOM, Türkçe Excel doğrudan açar) ve hepsi tek ZIP. Kimlikler yerine okunur değerler yazılır (küpe no, ırk, kalem adı). Cihazdaki veriden üretilir, çevrimdışı çalışır. İçe aktarma yapılmadı: mevcut kayıt yok, ihtiyaç doğarsa ayrı ele alınır.
 - [x] 3.7 Damızlık ekranı (`/breeding`): koç tablosu (eş sayısı, doğum, yavru, doğum başına, yaşama oranı, yavruların ortalama doğum kilosu ve günlük artışı), anne tablosu (doğum, yavru, yaşama, doğum aralığı, gebelik durumu), seçilen koçlar için yan yana karşılaştırma kartları. Tamamı yerel veriden. (2026-09-21)
 - [ ] 3.8 Fotoğraf galerisi ve belge ekleri.
 - [x] 3.9 Değişiklik geçmişi (`/audit`, sahip yetkisi): çiftlik geneli akış, kayıt türü filtresi, hayvan profilinden o kayda filtreli giriş. Her satırda kim, ne zaman, hangi alan neyden neye değişti; teknik alanlar (updated_at, sync_seq) gizlenir, enum ve tarihler Türkçe gösterilir. Sunucu ucu `audit.list` imleçli sayfalama ile. (2026-09-21)

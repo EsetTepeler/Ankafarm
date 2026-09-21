@@ -3,6 +3,8 @@
  * Web uçtan uca duman testi (apps/web). Sistemdeki Chrome/Edge ile çalışır.
  * Ortam: WEB_URL (http://localhost:8092), API_URL (http://localhost:3000), E2E_EMAIL, E2E_PASSWORD, BROWSER_CHANNEL (chrome|msedge), HEADED=1
  */
+import { readFile } from "node:fs/promises";
+
 import { chromium } from "playwright";
 
 const WEB_URL = process.env.WEB_URL ?? "http://localhost:8092";
@@ -59,7 +61,7 @@ const serverPredictions = (animalId) => api("predictions.list", { animalId });
 }
 
 const browser = await chromium.launch({ channel: CHANNEL, headless: process.env.HEADED !== "1" });
-const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 1400, height: 900 }, acceptDownloads: true });
 const page = await context.newPage();
 page.on("console", (msg) => {
   const line = `[console.${msg.type()}] ${msg.text()}`;
@@ -85,6 +87,30 @@ const withOffline = async (fn) => {
     ]);
     if (res.results[0].status !== "applied") throw new Error(`temizlik reddedildi: ${JSON.stringify(res.results[0])}`);
   });
+
+  await step("dışa aktarma: tek tablo CSV ve tüm tablolar ZIP", async () => {
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-export").click();
+    await page.getByTestId("export-row-hayvanlar").waitFor({ timeout: 15_000 });
+
+    const [csv] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-hayvanlar").click()]);
+    const csvPath = await csv.path();
+    const text = await readFile(csvPath, "utf8");
+    if (!text.startsWith("\ufeff")) throw new Error("CSV'de UTF-8 BOM yok, Excel Türkçe karakterleri bozar");
+    const [header, ...lines] = text.trim().split("\r\n");
+    if (!header.startsWith("Küpe no;İsim;Tür")) throw new Error(`başlık: ${header.slice(0, 40)}`);
+    if (!lines.some((l) => l.startsWith(`${tag1};Pamuk;Koyun`))) throw new Error("hayvan satırı bulunamadı");
+    if (!/download="?anka|hayvanlar-/.test(csv.suggestedFilename())) throw new Error(`dosya adı: ${csv.suggestedFilename()}`);
+
+    const [zip] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-all").click()]);
+    const zipPath = await zip.path();
+    const buf = await readFile(zipPath);
+    if (buf.subarray(0, 2).toString() !== "PK") throw new Error("ZIP imzası yok");
+    const names = [...buf.toString("latin1").matchAll(/([a-z-]+\.csv)/g)].map((m) => m[1]);
+    for (const expected of ["hayvanlar.csv", "saglik.csv", "giderler.csv"]) {
+      if (!names.includes(expected)) throw new Error(`${expected} ZIP içinde yok`);
+    }
+  });
 } finally {
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online"))).catch(() => {});
@@ -105,6 +131,8 @@ const step = async (name, fn) => {
 try {
   await step("sayfa açılır ve crossOriginIsolated", async () => {
     await page.goto(WEB_URL, { waitUntil: "domcontentloaded" });
+    // Uygulama açılışta /login'e yönlendiriyor; önce oturum kararlı hale gelsin, sonra ölç.
+    await page.getByTestId("login-email").waitFor({ timeout: 60_000 });
     if (!(await page.evaluate(() => self.crossOriginIsolated))) throw new Error("crossOriginIsolated değil");
   });
 
