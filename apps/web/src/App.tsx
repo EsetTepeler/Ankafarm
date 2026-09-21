@@ -19,7 +19,9 @@ import { LoginPage } from "@/pages/LoginPage";
 import { GroupsPage } from "@/pages/settings/GroupsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { SyncPage } from "@/pages/settings/SyncPage";
+import { DailyRoundPage } from "@/pages/animals/DailyRoundPage";
 import { FinancePage } from "@/pages/finance/FinancePage";
+import { ReportsPage } from "@/pages/reports/ReportsPage";
 import { ScanPage } from "@/pages/ScanPage";
 import { StockPage } from "@/pages/stock/StockPage";
 import { TodayPage } from "@/pages/TodayPage";
@@ -87,12 +89,14 @@ export function App() {
                   <Route path="animals" element={<AnimalsPage />} />
                   <Route path="animals/new" element={<AnimalFormPage />} />
                   <Route path="animals/bulk" element={<BulkHealthPage />} />
+                  <Route path="animals/round" element={<DailyRoundPage />} />
                   <Route path="animals/:id" element={<AnimalPage />} />
                   <Route path="animals/:id/edit" element={<AnimalFormPage />} />
                   <Route path="a/:id" element={<AnimalPage />} />
                   <Route path="scan" element={<ScanPage />} />
                   <Route path="stock" element={<StockPage />} />
                   <Route path="finance" element={<FinancePage />} />
+                  <Route path="reports" element={<ReportsPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="settings/groups" element={<GroupsPage />} />
                   <Route path="settings/sync" element={<SyncPage />} />

@@ -1,4 +1,4 @@
-import { observationInputSchema, observationTagInputSchema, type ObservationCategory, type Severity } from "@anka/shared";
+import { DAILY_ROUND_TAG, observationInputSchema, observationTagInputSchema, type ObservationCategory, type Severity } from "@anka/shared";
 import { useQuery } from "@tanstack/react-query";
 import { and, asc, desc, eq, gte, isNull, ne } from "drizzle-orm";
 
@@ -7,6 +7,7 @@ import { observationTags, observations, type LocalObservation } from "@/db/schem
 import { newId } from "@/lib/ids";
 import { localKey } from "@/sync/events";
 import { insertManyLocal, softDeleteManyLocal } from "@/sync/local";
+import { todayIso } from "@/utils/date";
 
 export function useObservations(animalId: string | undefined) {
   return useQuery({
@@ -58,6 +59,44 @@ export async function addObservation(draft: ObservationDraft): Promise<string> {
 export async function addObservations(drafts: ObservationDraft[]): Promise<string[]> {
   const rows = drafts.map((d) => observationInputSchema.parse({ id: newId(), ...d, note: d.note ?? null, groupId: null }));
   return insertManyLocal("observations", rows);
+}
+
+/**
+ * Günlük tur: işaretlenen hayvanların gözlemleri, bir de sürü düzeyinde tur kaydı (hayvansız satır).
+ * Hepsi tek yerel işlemde yazılır ve tek push ile gider; "hepsi normal" günde yalnızca tur kaydı kalır.
+ */
+export async function saveDailyRound(input: { observedAt: string; groupId: string | null; checked: number; drafts: ObservationDraft[] }): Promise<number> {
+  const rows = [
+    ...input.drafts.map((d) => observationInputSchema.parse({ id: newId(), ...d, note: d.note ?? null, groupId: null })),
+    observationInputSchema.parse({
+      id: newId(),
+      animalId: null,
+      groupId: input.groupId,
+      observedAt: input.observedAt,
+      category: "note",
+      severity: "normal",
+      tags: [DAILY_ROUND_TAG],
+      note: `${input.checked} hayvan kontrol edildi, ${input.drafts.length} işaretli`,
+    }),
+  ];
+  await insertManyLocal("observations", rows);
+  return input.drafts.length;
+}
+
+/** Bugün tur yapıldı mı? Bugün ekranı ve tur sayfası için. */
+export function useTodayRound() {
+  return useQuery({
+    queryKey: localKey("observations", "round", todayIso()),
+    queryFn: async (): Promise<LocalObservation | null> => {
+      const [row] = await getDb()
+        .select()
+        .from(observations)
+        .where(and(isNull(observations.deletedAt), isNull(observations.animalId), gte(observations.observedAt, `${todayIso()}T00:00:00`)))
+        .orderBy(desc(observations.observedAt))
+        .limit(1);
+      return row ?? null;
+    },
+  });
 }
 
 export async function deleteObservation(id: string) {

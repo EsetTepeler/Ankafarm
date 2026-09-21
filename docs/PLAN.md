@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 tamam, Faz 2'de 2.1–2.5 tamam; uçtan uca test 31 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 2.6 toplu gözlem, 2.7 aylık raporlar, 2.8 Bugün v2.
+Durum: Faz 1 tamam, Faz 2'de 2.1–2.8 tamam; uçtan uca test 34 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 2.9 hayvan başı maliyet, 2.10 senkron ekranı, 2.11 iOS saha testi.
 
 ---
 
@@ -508,9 +508,9 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 2.3 Günlük tüketim girişi: tek dialogda tüm yem, su ve malzeme kalemleri, varsayılan tüm sürü, "dünkü gibi" son günü doldurur, hepsi tek yerel işlem ve tek push. Su kova bazlı, bakiyesi tutulmaz. (2026-09-21)
 - [x] 2.4 Stok seviyeleri: kalem başına bakiye, son 14 gün tüketimi, kalan gün rozeti (7 günden az kırmızı, 14 günden az sarı), alt sınır uyarısı; hesap `shared/stock.ts` içinde, sunucu view'ı ile birebir aynı. (2026-09-21)
 - [x] 2.5 Gider ve gelir girişi: Finans ekranı (sahip rolüne açık), ay seçici, gider/gelir/fark kutuları, kategori dağılımı çubukları, gider ve gelir defterleri. Stok alımları aylık gidere kalem adıyla girer, iki kez sayılmaz. (2026-09-21)
-- [ ] 2.6 Toplu gözlem ekranı: sürü listesi, varsayılan "hepsi normal", dikkat çeken hayvana dokunup kategori ve şiddet seç (yem, hareket, solunum, sindirim, davranış). Günlük tur için tasarlanır, bir dakikada biter.
-- [ ] 2.7 Aylık raporlar ve grafikler (bölüm 6).
-- [ ] 2.8 Bugün ekranı v2: KPI şeridi (aşı uyumu, kilo eğilimi, yem trendi, gebe sayısı, sağlık uyarısı), stok kalan gün, bu ay gider (`fn_dashboard`).
+- [x] 2.6 Günlük tur ekranı (`/animals/round`): sürü listesi, varsayılan "hepsi normal", hayvana dokununca kategori, şiddet, hazır etiket ve not açılır. Kaydet hem işaretli hayvanların gözlemlerini hem de sürü düzeyinde tur kaydını (hayvansız satır, `DAILY_ROUND_TAG`) tek işlemde yazar; Bugün ekranı turun yapılıp yapılmadığını gösterir. (2026-09-21)
+- [x] 2.7 Raporlar ekranı: Sürü sekmesi (yaş grubu halkası, ırk dağılımı, ortalama kilo), Üretim sekmesi (aylık doğan yavru, doğum zorluğu, sağlık kayıtları ve maliyeti, çıkışlar), Para sekmesi (12 aylık gider/gelir çubukları, kalem bazında aylık tüketim). Ortak VisActor sarmalayıcıları `charts/Charts.tsx`; tümü yerel veriden. (2026-09-21)
+- [x] 2.8 Bugün ekranı v2: ikinci KPI şeridi (aşı uyumu, kilo eğilimi, yem trendi, bu ay gider; bakıcıda gider yerine stok uyarısı), "Stok ve günlük tur" kartı (kalan günü azalan kalemler, turun durumu). Hesaplar `useHerdPulse` içinde yerel veriden; Faz 5'te içgörü servisi bunların üzerine kurulacak. (2026-09-21)
 - [ ] 2.9 Hayvan başı maliyet ve yem verimliliği hesapları.
 - [ ] 2.10 Senkron durumu ekranı: bekleyen kayıtlar, son senkron zamanı, reddedilenler sebebiyle listelenir ("hayvan bu tarihte çıkış yapmış" gibi) ve düzelt veya sil seçeneği, ağ hatasında yeniden dene, fotoğraf yükleme kuyruğu, "şimdi senkronla" düğmesi. Stok ve finans kayıtları da outbox'tan geçer.
 - [ ] 2.11 iOS yolu testi (PWA mı native mi): Expo web çıktısını PWA olarak kur (manifest, service worker, ana ekrana ekle), babanın iPhone'unda bir hafta gerçek kullanım. Ölçülenler: yerel veritabanı Safari'de çalışıyor mu, bir hafta sonra veri duruyor mu, uygulama açılınca senkron güvenilir mi, kamera ile QR okuma, web push izni. Sonuç bölüm 10'daki karara girer.
@@ -653,6 +653,7 @@ Anka_Farm/
 - Python tarafı: her kural saf fonksiyon ve testli, eşikler koddan değil ayarlardan gelir, ruff temiz geçer.
 - Uygulama Python servisine doğrudan bağlanmaz; içgörüler de dahil her veri Node API üzerinden gelir.
 - Olay tablolarında fiziksel silme yok. "Sil" soft delete yapar ve sebep ister. Düzeltme, denetim kaydında eski ve yeni değerle görünür. Tam olay kaynaklama (event sourcing) yapılmaz; bu kadarı yeter.
+- Sunucudan gelen zaman damgaları ISO'ya çevrilir (`sync/worker.ts`, `toLocalRow`). Postgres timestamptz metni "2026-09-21 09:00:00+00" biçiminde gelir; yerel yazmalar ISO olduğu için aynı sütunda iki biçim bulunursa metin karşılaştırması şaşar ve tarih filtreleri sessizce satır kaçırır.
 - Yeni olay tablosu eklenince aynı değişiklikte: paylaşılan zod şeması ve `syncedTables`, sunucu `syncRegistry` ve `pullChanges`, sunucu migration + trigger SQL (before_write ve audit), yerel şema + migration + `localTables`, `events.ts` eşleyicisi ve zaman çizelgesi kartı. Hepsi birlikte gider. `v_animal_timeline` SQL view'ı Python ihtiyaç duyunca (Faz 5) aynı eşleyici mantığıyla yazılır.
 - Beklenen değer üreten her özellik (gebelik, büyüme, stok) `predictions` tablosuna yazar; gerçekleşen gelince eşleştirilir.
 - Her faz sonunda gerçek cihazda test, sonra sonraki faz.

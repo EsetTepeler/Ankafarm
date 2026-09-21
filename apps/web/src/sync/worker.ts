@@ -174,11 +174,25 @@ async function pullAll() {
   }
 }
 
-/** Sunucu satırı → yerel satır: Date alanları ISO metne, gerisi olduğu gibi. */
+/** Postgres timestamptz metni: "2026-09-21 09:00:00+00". Saat dilimi eki iki haneli olabilir. */
+const PG_TIMESTAMP = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}(:\d{2})?|Z)?$/;
+
+/**
+ * Sunucu satırı → yerel satır: Date alanları ve Postgres timestamptz metinleri ISO'ya çevrilir.
+ * Aynı sütunda iki biçim bulunursa metin karşılaştırması şaşar (' ' < 'T'), tarih filtreleri sessizce
+ * satır kaçırırdı; 0007_fix_pg_timestamps eski satırları onarır.
+ */
 function toLocalRow(row: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row)) {
-    out[k] = v instanceof Date ? v.toISOString() : v;
+    if (v instanceof Date) {
+      out[k] = v.toISOString();
+    } else if (typeof v === "string" && PG_TIMESTAMP.test(v)) {
+      const iso = new Date(v.replace(" ", "T").replace(/([+-]\d{2})$/, "$1:00"));
+      out[k] = Number.isNaN(iso.getTime()) ? v : iso.toISOString();
+    } else {
+      out[k] = v;
+    }
   }
   return out;
 }

@@ -1,13 +1,15 @@
-import { labels, type AnimalEvent } from "@anka/shared";
-import { ArrowLeftRight, Baby, Check, CloudOff, Eye, HeartHandshake, LogOut, RefreshCw, Scale, Star, Syringe, TriangleAlert } from "lucide-react";
+import { formatMoney, formatQuantity, labels, type AnimalEvent } from "@anka/shared";
+import { ArrowLeftRight, Baby, Check, ClipboardCheck, CloudOff, Eye, HeartHandshake, LogOut, Package, RefreshCw, Scale, Star, Syringe, TriangleAlert } from "lucide-react";
 import { Link } from "react-router";
 
 import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDashboard, useRecentEvents, type FeedItem } from "@/features/dashboard/repo";
-import { useRecentAbnormalObservations } from "@/features/observations/repo";
+import { useDashboard, useHerdPulse, useRecentEvents, type FeedItem } from "@/features/dashboard/repo";
+import { currentMonth, useMonthlySummary } from "@/features/finance/repo";
+import { useStockLevels } from "@/features/stock/repo";
+import { useRecentAbnormalObservations, useTodayRound } from "@/features/observations/repo";
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { describeSync, useSyncStore } from "@/sync/store";
@@ -51,11 +53,18 @@ export function TodayPage() {
   const dash = useDashboard();
   const abnormal = useRecentAbnormalObservations();
   const feed = useRecentEvents();
+  const pulse = useHerdPulse();
+  const stock = useStockLevels();
+  const round = useTodayRound();
+  const isOwner = useAuthStore((st) => st.user?.role) === "owner";
+  const month = useMonthlySummary(currentMonth());
   const sync = useSyncStore();
   const syncInfo = describeSync(sync);
   const d = dash.data;
   const c = d?.counts;
   const critical = (d?.overdue.length ?? 0) + (d?.withdrawal.length ?? 0) + (abnormal.data?.length ?? 0) + (d?.pregnancyChecks.length ?? 0);
+  const p = pulse.data;
+  const stockAlerts = (stock.data ?? []).filter((r) => r.belowMin || (r.daysLeft != null && r.daysLeft <= 14)).sort((a, b) => (a.daysLeft ?? 0) - (b.daysLeft ?? 0));
   const SyncIcon = sync.status === "syncing" ? RefreshCw : syncInfo.tone === "error" ? TriangleAlert : syncInfo.tone === "warn" ? CloudOff : Check;
 
   return (
@@ -80,6 +89,32 @@ export function TodayPage() {
         <StatTile label="Dişi / Erkek" value={c ? `${c.female} / ${c.male}` : "–"} hint={c ? `${c.lambs} yavru (6 ay altı)` : undefined} />
         <StatTile label="Gebe" value={c?.pregnant ?? "–"} hint={d?.upcomingBirths.length ? `${d.upcomingBirths.length} doğum 30 gün içinde` : "Yaklaşan doğum yok"} testID="kpi-pregnant" />
         <StatTile label="Bekleyen iş" value={critical} hint={c ? (c.staleWeights ? `${c.staleWeights} hayvan 60 gündür tartılmadı` : "Tartımlar güncel") : undefined} testID="kpi-alerts" />
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Aşı uyumu"
+          value={p?.compliance != null ? `%${Math.round(p.compliance * 100)}` : "–"}
+          hint={p ? (p.overdueAnimals ? `${p.overdueAnimals} hayvanda geciken doz` : "Geciken doz yok") : undefined}
+          testID="kpi-compliance"
+        />
+        <StatTile
+          label="Kilo eğilimi"
+          value={p?.weightTrend != null ? `${p.weightTrend > 0 ? "+" : ""}${(Math.round(p.weightTrend * 10) / 10).toString().replace(".", ",")} kg` : "–"}
+          hint={p?.weightTrendCount ? `${p.weightTrendCount} hayvanda son 30 gün` : "30 günde iki tartım gerek"}
+          testID="kpi-weight-trend"
+        />
+        <StatTile
+          label="Yem trendi"
+          value={p?.feedTrend != null ? `${p.feedTrend > 0 ? "+" : ""}%${Math.round(p.feedTrend * 100)}` : "–"}
+          hint={p?.feedLast7 ? `Son 7 günde ${Math.round(p.feedLast7)} birim` : "Tüketim girilince hesaplanır"}
+          testID="kpi-feed-trend"
+        />
+        {isOwner ? (
+          <StatTile label="Bu ay gider" value={formatMoney(month.data?.expense ?? 0)} hint={month.data?.income ? `${formatMoney(month.data.income)} gelir` : "Bu ay gelir yok"} testID="kpi-month-expense" />
+        ) : (
+          <StatTile label="Stok uyarısı" value={stockAlerts.length} hint={stockAlerts.length ? stockAlerts.map((r) => r.name).join(", ") : "Stok yeterli"} testID="kpi-stock" />
+        )}
       </div>
 
       <div
@@ -129,6 +164,42 @@ export function TodayPage() {
             {d?.withdrawal.map((h) => (
               <Row key={h.id} to={`/animals/${h.animalId}`} title={`${h.tagNo} · ${h.productName ?? "ilaç"}`} badge={<Badge variant="secondary">Arınma · {isoToDisplay(h.withdrawalUntil)}'e kadar</Badge>} />
             ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Stok ve günlük tur</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2">
+            <Row
+              to="/animals/round"
+              title={round.data ? "Günlük tur yapıldı" : "Günlük tur yapılmadı"}
+              badge={
+                <Badge variant={round.data ? "outline" : "secondary"} className="gap-1">
+                  <ClipboardCheck className="size-3.5" />
+                  {round.data ? "Bugün" : "Başla"}
+                </Badge>
+              }
+              sub={round.data?.note ?? "Sürüyü gözden geçir, dikkat çekeni işaretle"}
+            />
+            {stockAlerts.length === 0 ? (
+              <Row to="/stock" title="Stok seviyeleri yeterli" badge={<Badge variant="outline">Stok</Badge>} />
+            ) : (
+              stockAlerts.map((r) => (
+                <Row
+                  key={r.id}
+                  to="/stock"
+                  title={`${r.name} · ${r.balance != null ? formatQuantity(r.balance, r.unit) : "takip yok"}`}
+                  badge={
+                    <Badge variant={r.daysLeft != null && r.daysLeft <= 7 ? "destructive" : "secondary"} className="gap-1">
+                      <Package className="size-3.5" />
+                      {r.daysLeft != null ? `${r.daysLeft} gün` : "alt sınır"}
+                    </Badge>
+                  }
+                />
+              ))
+            )}
           </CardContent>
         </Card>
 

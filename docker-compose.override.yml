@@ -1,11 +1,20 @@
 # Sadece yerel geliştirme: port eşlemeleri. Coolify bu dosyayı okumaz.
+#
+# Yerelde API ve web kaynaktan çalışır (`corepack pnpm api`, `corepack pnpm web`);
+# konteyner sürümleri eski bundle taşır ve 3000 portunu kapar. Bu yüzden ikisi de
+# "restart: no" ile işaretli: Docker Desktop yeniden başlayınca kendiliğinden ayağa kalkmazlar.
+# Sadece veritabanı lazım: `docker compose up -d db`.
 services:
   db:
     ports:
       - "5433:5432"
   api:
+    restart: "no"
     ports:
       - "3000:3000"
   web:
+    restart: "no"
     ports:
       - "8080:80"
+  backup:
+    restart: "no"

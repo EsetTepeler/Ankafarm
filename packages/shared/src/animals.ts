@@ -304,3 +304,6 @@ export const seedBreeds: ReadonlyArray<{ species: z.infer<typeof speciesSchema>;
 ];
 
 export const DEFAULT_GROUP_NAME = "Ana sürü";
+
+/** Günlük tur kaydının etiketi: hayvansız, sürü düzeyinde bir gözlem satırı taşır. */
+export const DAILY_ROUND_TAG = "Günlük tur";

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { animals, breedingRecords, exitRecords, groupMovements, groups, healthRecords, lambingRecords, observations, weightRecords } from "@/db/schema";
+import { animals, breedingRecords, consumptions, exitRecords, groupMovements, groups, healthRecords, lambingRecords, observations, stockItems, weightRecords } from "@/db/schema";
 import { todayIso } from "@/utils/date";
 
 function addDays(iso: string, days: number): string {
@@ -102,6 +102,78 @@ export function useDashboard() {
         overdue,
         withdrawal,
         pregnancyChecks,
+      };
+    },
+  });
+}
+
+export interface HerdPulse {
+  /** Geciken dozu olmayan aktif hayvan oranı, 0-1. */
+  compliance: number | null;
+  overdueAnimals: number;
+  /** Son 30 günde tartılan hayvanların ortalama kilo değişimi, kg. */
+  weightTrend: number | null;
+  weightTrendCount: number;
+  /** Son 7 günün yem tüketimi, önceki 7 güne göre oran. */
+  feedTrend: number | null;
+  feedLast7: number;
+}
+
+/**
+ * Sürü nabzı: aşı uyumu, kilo eğilimi, yem trendi. Faz 5'te içgörü servisi bunların üzerine kurulacak;
+ * şimdilik hepsi yerel veriden basit kurallarla (bölüm 5, "Bugün" KPI şeridi).
+ */
+export function useHerdPulse() {
+  return useQuery({
+    queryKey: ["local", "animals", "pulse"],
+    queryFn: async (): Promise<HerdPulse> => {
+      const db = getDb();
+      const today = todayIso();
+      const active = and(isNull(animals.deletedAt), eq(animals.status, "active"));
+
+      const [[count], overdue] = await Promise.all([
+        db.select({ n: sql<number>`count(*)` }).from(animals).where(active),
+        db
+          .selectDistinct({ animalId: healthRecords.animalId })
+          .from(healthRecords)
+          .innerJoin(animals, eq(animals.id, healthRecords.animalId))
+          .where(and(isNull(healthRecords.deletedAt), eq(animals.status, "active"), lt(healthRecords.nextDueAt, today))),
+      ]);
+      const total = count?.n ?? 0;
+
+      // Kilo eğilimi: son 30 günde tartılan hayvanlarda, o aralıktaki ilk ve son tartımın farkı.
+      const since = `${addDays(today, -30)}T00:00:00`;
+      const recent = await db
+        .select({ animalId: weightRecords.animalId, weighedAt: weightRecords.weighedAt, weightKg: weightRecords.weightKg })
+        .from(weightRecords)
+        .innerJoin(animals, eq(animals.id, weightRecords.animalId))
+        .where(and(isNull(weightRecords.deletedAt), eq(animals.status, "active"), gte(weightRecords.weighedAt, since)))
+        .orderBy(asc(weightRecords.weighedAt));
+      const byAnimal = new Map<string, { first: number; last: number }>();
+      for (const w of recent) {
+        const prev = byAnimal.get(w.animalId);
+        if (prev) prev.last = w.weightKg;
+        else byAnimal.set(w.animalId, { first: w.weightKg, last: w.weightKg });
+      }
+      const deltas = [...byAnimal.values()].filter((v) => v.first !== v.last).map((v) => v.last - v.first);
+
+      // Yem trendi: son 7 gün, önceki 7 güne göre.
+      const feedRows = await db
+        .select({ consumedOn: consumptions.consumedOn, quantity: consumptions.quantity })
+        .from(consumptions)
+        .innerJoin(stockItems, eq(stockItems.id, consumptions.itemId))
+        .where(and(isNull(consumptions.deletedAt), eq(stockItems.category, "feed"), gte(consumptions.consumedOn, addDays(today, -14))));
+      const cut = addDays(today, -7);
+      const last7 = feedRows.filter((r) => r.consumedOn >= cut).reduce((s, r) => s + r.quantity, 0);
+      const prev7 = feedRows.filter((r) => r.consumedOn < cut).reduce((s, r) => s + r.quantity, 0);
+
+      return {
+        compliance: total ? 1 - overdue.length / total : null,
+        overdueAnimals: overdue.length,
+        weightTrend: deltas.length ? deltas.reduce((s, d) => s + d, 0) / deltas.length : null,
+        weightTrendCount: deltas.length,
+        feedTrend: prev7 > 0 ? last7 / prev7 - 1 : null,
+        feedLast7: last7,
       };
     },
   });

@@ -50,6 +50,13 @@
       "when": 1789973533163,
       "tag": "0006_glossy_daimon_hellstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789977957367,
+      "tag": "0007_fix_pg_timestamps",
+      "breakpoints": true
     }
   ]
 }

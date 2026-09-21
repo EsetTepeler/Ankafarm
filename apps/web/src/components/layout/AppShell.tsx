@@ -1,4 +1,4 @@
-import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,12 @@ import { SyncStatus } from "./SyncStatus";
 const nav = [
   { to: "/", label: "Bugün", icon: LayoutDashboard, end: true },
   { to: "/animals", label: "Hayvanlar", icon: Users },
+  { to: "/animals/round", label: "Günlük tur", icon: ClipboardCheck },
   { to: "/animals/bulk", label: "Toplu sağlık", icon: Syringe },
   { to: "/scan", label: "QR tara", icon: ScanLine },
   { to: "/stock", label: "Stok", icon: Package },
   { to: "/finance", label: "Finans", icon: Wallet, ownerOnly: true },
-  { to: "/reports", label: "Raporlar", icon: BarChart3, disabled: true },
+  { to: "/reports", label: "Raporlar", icon: BarChart3 },
 ];
 
 const roleLabels = { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" } as const;
@@ -68,22 +69,15 @@ export function AppShell() {
                 {nav
                   .filter((item) => !item.ownerOnly || user?.role === "owner")
                   .map((item) => (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton asChild isActive={isActive(item.to, item.end)} tooltip={item.label} disabled={item.disabled}>
-                      {item.disabled ? (
-                        <span className="opacity-50" title="Faz 2 ile gelecek">
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </span>
-                      ) : (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton asChild isActive={isActive(item.to, item.end)} tooltip={item.label}>
                         <Link to={item.to} data-testid={`nav-${item.to.replace(/\W+/g, "") || "today"}`}>
                           <item.icon />
                           <span>{item.label}</span>
                         </Link>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

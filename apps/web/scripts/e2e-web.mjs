@@ -30,6 +30,16 @@ const serverAnimals = async () => Object.fromEntries((await api("animals.list", 
 const serverHealth = (animalId) => api("health.list", { animalId });
 const serverPredictions = (animalId) => api("predictions.list", { animalId });
 
+// 3000 portunu eski docker konteyneri kapmış olabilir; o bundle'da socket.io ve yeni tablolar yok.
+// Testler tuhaf yerlerde patlamadan önce burada anlaşılsın.
+{
+  const res = await fetch(`${API_URL}/socket.io/?EIO=4&transport=polling`).catch(() => null);
+  if (!res || !res.ok) {
+    console.error(`API ${API_URL} beklenen sürüm değil (socket.io yanıt vermiyor). Docker api konteynerini durdur, 'corepack pnpm api' ile çalıştır.`);
+    process.exit(1);
+  }
+}
+
 const browser = await chromium.launch({ channel: CHANNEL, headless: process.env.HEADED !== "1" });
 const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
 const page = await context.newPage();
@@ -521,6 +531,60 @@ try {
     const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
     if (!pulled.tables.expenses.some((e) => e.category === "vet" && Number(e.amount) === 750)) throw new Error("sunucuda gider yok");
     if (!pulled.tables.incomes.some((i) => Number(i.amount) === 9000)) throw new Error("sunucuda gelir yok");
+  });
+
+  await step("günlük tur: hepsi normal varsayılanı, işaretli hayvan gözleme dönüşür, tur kaydı düşer", async () => {
+    await page.getByTestId("nav-animalsround").click();
+    await page.getByTestId("round-total").waitFor({ timeout: 15_000 });
+    await page.getByTestId("round-marked").getByText("0", { exact: true }).waitFor({ timeout: 5_000 });
+    await page.getByTestId(`round-row-${tag1}`).click();
+    await page.getByTestId(`round-panel-${tag1}`).waitFor({ timeout: 5_000 });
+    await page.getByTestId(`round-cat-${tag1}-digestive`).click();
+    await page.getByTestId(`round-sev-${tag1}-moderate`).click();
+    await page.getByTestId(`round-tag-${tag1}-İshal`).click();
+    await page.getByTestId(`round-note-${tag1}`).fill("Sabah turunda");
+    await page.getByTestId("round-marked").getByText("1", { exact: true }).waitFor({ timeout: 5_000 });
+    await page.getByTestId("round-save").click();
+    await page.getByTestId("kpi-total").waitFor({ timeout: 15_000 });
+
+    await page.getByTestId("nav-animalsround").click();
+    await page.getByTestId("round-status").getByText("Yapıldı").waitFor({ timeout: 15_000 });
+
+    await page.waitForTimeout(4000);
+    const animals = await serverAnimals();
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const marked = pulled.tables.observations.find((o) => o.animalId === animals[tag1].id && o.category === "digestive");
+    if (!marked || marked.severity !== "moderate" || !marked.tags.includes("İshal")) throw new Error("işaretli hayvanın gözlemi sunucuda yok");
+    const rounds = pulled.tables.observations.filter((o) => o.animalId === null && o.tags.includes("Günlük tur"));
+    if (rounds.length === 0) throw new Error("tur kaydı sunucuda yok");
+    if (!rounds.some((r) => /1 işaretli/.test(r.note ?? ""))) throw new Error(`tur özeti hatalı: ${rounds.map((r) => r.note).join("|")}`);
+  });
+
+  await step("raporlar: sürü, üretim ve para sekmeleri, grafikler çizilir", async () => {
+    await page.getByTestId("nav-reports").click();
+    await page.getByTestId("report-total").waitFor({ timeout: 15_000 });
+    await page.getByTestId("chart-age").locator("canvas").first().waitFor({ timeout: 15_000 });
+    await page.getByTestId("chart-breed").locator("canvas").first().waitFor({ timeout: 10_000 });
+    await page.getByTestId("tab-production").click();
+    await page.getByTestId("report-births").waitFor({ timeout: 10_000 });
+    await page.getByTestId("chart-births").locator("canvas").first().waitFor({ timeout: 10_000 });
+    await page.getByTestId("tab-money").click();
+    await page.getByTestId("chart-money").locator("canvas").first().waitFor({ timeout: 10_000 });
+    await page.getByTestId("chart-consumption").locator("canvas").first().waitFor({ timeout: 10_000 });
+    // Para sekmesindeki 12 aylık gider, bu ayki alım ve gideri kapsamalı.
+    const expense = Number((await page.getByTestId("report-expense").innerText()).replace(/[^\d,]/g, "").replace(/\./g, "").replace(",", "."));
+    if (!(expense >= 7000)) throw new Error(`12 ay gider ${expense}`);
+  });
+
+  await step("Bugün v2: sürü nabzı, stok uyarısı ve günlük tur kartı", async () => {
+    await page.getByTestId("nav-today").click();
+    await page.getByTestId("kpi-compliance").waitFor({ timeout: 15_000 });
+    const compliance = await page.getByTestId("kpi-compliance").innerText();
+    if (!/%\d+/.test(compliance)) throw new Error(`aşı uyumu okunamadı: ${compliance}`);
+    await page.getByTestId("kpi-weight-trend").getByText(/kg/).waitFor({ timeout: 10_000 });
+    await page.getByTestId("kpi-month-expense").getByText(/TL/).first().waitFor({ timeout: 10_000 });
+    await page.getByText("Günlük tur yapıldı").waitFor({ timeout: 10_000 });
+    await page.getByText(/Stok seviyeleri yeterli|gün$/).first().waitFor({ timeout: 10_000 });
   });
 } finally {
       await ctx3.close();
