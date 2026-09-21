@@ -937,6 +937,47 @@ try {
     await page.getByTestId("backup-uploads").waitFor({ timeout: 10_000 });
   });
 
+  await step("kullanıcı yönetimi: bakıcı açılır, rolü değişir, devre dışı bırakılır", async () => {
+    const email = `bakici.${RUN.toLowerCase()}@ankafarm.local`;
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-users").click();
+    await page.getByTestId("user-add").click();
+    await page.getByTestId("user-name").fill(`Bakici ${RUN}`);
+    await page.getByTestId("user-email").fill(email);
+    await page.getByTestId("user-phone").fill("05551112233");
+    const password = await page.getByTestId("user-password").inputValue();
+    if (password.length < 8) throw new Error(`önerilen şifre kısa: ${password.length}`);
+    await page.getByTestId("user-save").click();
+    await page.getByTestId(`user-row-${email}`).waitFor({ timeout: 15_000 });
+
+    // Açılan hesapla giriş yapılabilmeli: şifre gerçekten kaydedilmiş mi?
+    const login = await fetch(`${API_URL}/trpc/auth.login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ json: { email, password } }),
+    }).then((r) => r.json());
+    if (!login.result?.data?.json?.accessToken) throw new Error("yeni kullanıcı giriş yapamadı");
+
+    // Rol değişimi
+    await page.getByTestId(`user-edit-${email}`).click();
+    await page.getByTestId("user-role-vet").click();
+    await page.getByTestId("user-save").click();
+    await page.getByTestId(`user-row-${email}`).getByText("Veteriner", { exact: true }).waitFor({ timeout: 10_000 });
+
+    // Devre dışı bırakınca "kapalı" rozeti düşer ve oturumları kapanır
+    await page.getByTestId(`user-toggle-${email}`).click();
+    await page.getByTestId(`user-row-${email}`).getByText("kapalı", { exact: true }).waitFor({ timeout: 10_000 });
+    const blocked = await fetch(`${API_URL}/trpc/auth.login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ json: { email, password } }),
+    }).then((r) => r.json());
+    if (blocked.result?.data?.json?.accessToken) throw new Error("devre dışı kullanıcı hâlâ giriş yapabiliyor");
+
+    // Son sahip korunur: kendi hesabını kapatma düğmesi hiç çıkmaz
+    if (await page.getByTestId(`user-toggle-${EMAIL}`).count()) throw new Error("kendi hesabını kapatma düğmesi görünüyor");
+  });
+
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
 
 } finally {

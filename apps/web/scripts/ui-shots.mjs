@@ -16,6 +16,7 @@ const pages = [
   ["raporlar", "/reports"],
   ["qr", "/scan"],
   ["ayarlar", "/settings"],
+  ["kullanicilar", "/settings/users"],
 ];
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });

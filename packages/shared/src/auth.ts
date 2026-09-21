@@ -21,6 +21,22 @@ export const createUserInputSchema = z.object({
 });
 export type CreateUserInput = z.infer<typeof createUserInputSchema>;
 
+/** Sahip başka bir kullanıcının adını, rolünü ve telefonunu düzenler. E-posta değişmez: giriş kimliği. */
+export const updateUserInputSchema = z.object({
+  userId: z.string().uuid(),
+  fullName: z.string().trim().min(2, "Ad soyad girin").max(120).optional(),
+  role: userRoleSchema.optional(),
+  phone: z.string().trim().max(30).nullable().optional(),
+});
+export type UpdateUserInput = z.infer<typeof updateUserInputSchema>;
+
+/** Şifre sıfırlama: e-posta gönderimi yok, sahip yeni şifreyi elden verir. */
+export const setUserPasswordInputSchema = z.object({
+  userId: z.string().uuid(),
+  password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
+});
+export type SetUserPasswordInput = z.infer<typeof setUserPasswordInputSchema>;
+
 export const updateFarmInputSchema = z.object({
   insights: insightThresholdSchema.optional(),
   name: z.string().trim().min(2).max(120).optional(),

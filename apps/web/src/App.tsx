@@ -29,6 +29,7 @@ import { ExportPage } from "@/pages/settings/ExportPage";
 import { ProtocolsPage } from "@/pages/settings/ProtocolsPage";
 import { SystemPage } from "@/pages/settings/SystemPage";
 import { ThresholdsPage } from "@/pages/settings/ThresholdsPage";
+import { UsersPage } from "@/pages/settings/UsersPage";
 import { BreedingPage } from "@/pages/breeding/BreedingPage";
 import { ScanPage } from "@/pages/ScanPage";
 import { StockPage } from "@/pages/stock/StockPage";
@@ -116,6 +117,7 @@ export function App() {
                   <Route path="settings/protocols" element={<ProtocolsPage />} />
                   <Route path="settings/system" element={<SystemPage />} />
                   <Route path="settings/thresholds" element={<ThresholdsPage />} />
+                  <Route path="settings/users" element={<UsersPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

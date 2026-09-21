@@ -1,3 +1,4 @@
+import { labels } from "@anka/shared";
 import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
@@ -58,8 +59,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
 ];
 
 const nav: NavItem[] = navGroups.flatMap((group) => group.items);
-
-const roleLabels = { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" } as const;
 
 /** "Ahmet Yılmaz" -> "AY"; kullanıcı rozetinde gösterilir. */
 function initials(fullName: string | undefined) {
@@ -141,7 +140,7 @@ export function AppShell() {
             <span className="label-micro flex size-7 shrink-0 items-center justify-center border text-[10px] text-sidebar-foreground/70">{initials(user?.fullName)}</span>
             <div className="grid flex-1 leading-tight">
               <span className="truncate text-sm font-medium">{user?.fullName}</span>
-              <span className="label-micro truncate text-[10px] text-sidebar-foreground/40">{user ? roleLabels[user.role] : ""}</span>
+              <span className="label-micro truncate text-[10px] text-sidebar-foreground/40">{user ? labels.userRole[user.role] : ""}</span>
             </div>
             <Button
               variant="ghost"

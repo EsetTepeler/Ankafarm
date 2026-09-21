@@ -40,6 +40,7 @@ export type HealthType = z.infer<typeof healthTypeSchema>;
 /** Türkçe etiketler; arayüz ve Python metin şablonları aynı kaynağı kullanır. */
 export const labels = {
   ...stockLabels,
+  userRole: { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" },
   species: { sheep: "Koyun", goat: "Keçi" },
   sex: { female: "Dişi", male: "Erkek", castrated: "Kısırlaştırılmış" },
   origin: { born_here: "Burada doğdu", purchased: "Dışarıdan alındı" },

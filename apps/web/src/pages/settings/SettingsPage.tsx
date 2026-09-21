@@ -1,9 +1,11 @@
+import { labels } from "@anka/shared";
 import { useQuery } from "@tanstack/react-query";
 import { Boxes, CalendarCheck, ChevronRight, Download, History, RefreshCw, Server, Settings, ShieldCheck, SlidersHorizontal, User, Users } from "lucide-react";
 import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/auth";
 import { appVersion, getApiUrl } from "@/lib/config";
@@ -11,8 +13,6 @@ import { useTRPC } from "@/lib/trpc";
 import { useSyncStore } from "@/sync/store";
 import { formatDateTime } from "@/utils/date";
 import { isStoragePersistent } from "@/db";
-
-const roleLabels = { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" } as const;
 
 export function SettingsPage() {
   const trpc = useTRPC();
@@ -64,7 +64,7 @@ export function SettingsPage() {
             </div>
             <div className="flex justify-between gap-3 border-b border-dashed border-border/60 py-1.5 last:border-0">
               <span className="text-muted-foreground">Rol</span>
-              <span>{user ? roleLabels[user.role] : ""}</span>
+              <span>{user ? labels.userRole[user.role] : ""}</span>
             </div>
           </CardContent>
         </Card>
@@ -72,24 +72,26 @@ export function SettingsPage() {
         {user?.role === "owner" ? (
           <Card>
             <CardHeader>
-              <CardTitle>
-            Kullanıcılar
-              </CardTitle>
+              <CardTitle>Kullanıcılar</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2 text-sm">
               {(users.data ?? []).map((u) => (
-                <div key={u.id} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2">
-                  <div className="grid">
-                    <span>{u.fullName}</span>
-                    <span className="text-xs text-muted-foreground">{u.email}</span>
+                <div key={u.id} className="flex items-center justify-between gap-2 border-b px-1 py-2 last:border-0">
+                  <div className="grid min-w-0">
+                    <span className="truncate">{u.fullName}</span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">{u.email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{roleLabels[u.role]}</Badge>
-                    {!u.active ? <Badge variant="destructive">devre dışı</Badge> : null}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Badge variant="outline">{labels.userRole[u.role]}</Badge>
+                    {u.active ? null : <Badge variant="destructive">kapalı</Badge>}
                   </div>
                 </div>
               ))}
-              <p className="text-xs text-muted-foreground">Kullanıcı ekleme arayüzü sonra; şimdilik API üzerinden.</p>
+              <Button asChild variant="outline" size="sm" className="mt-2 justify-self-start">
+                <Link to="/settings/users" data-testid="settings-users">
+                  <Users /> Kullanıcıları yönet
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ) : null}
