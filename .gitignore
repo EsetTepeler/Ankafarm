@@ -17,9 +17,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Data and uploads
-uploads/
-backups/
+# Data and uploads (sadece kök dizindeki veri klasörleri; kaynak koddaki uploads modülü değil)
+/uploads/
+/backups/
+apps/api/uploads/
 
 # OS / IDE
 .DS_Store
