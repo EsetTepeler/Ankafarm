@@ -113,6 +113,20 @@
       "when": 1789985588293,
       "tag": "0015_reminders_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789988459658,
+      "tag": "0016_protocols",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789988459779,
+      "tag": "0017_protocol_triggers",
+      "breakpoints": true
     }
   ]
 }

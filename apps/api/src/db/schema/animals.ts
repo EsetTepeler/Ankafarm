@@ -268,6 +268,38 @@ export const reminders = pgTable(
   (t) => [index("reminders_farm_due_idx").on(t.farmId, t.dueAt), index("reminders_farm_sync_idx").on(t.farmId, t.syncSeq)],
 );
 
+export const protocolTriggerEnum = pgEnum("protocol_trigger", ["age_days", "interval_days", "fixed_month"]);
+
+/** Çiftliğin yıllık aşı ve bakım programı; hatırlatıcılar buradan türetilir, kayıt üretmez. */
+export const healthProtocols = pgTable(
+  "health_protocols",
+  {
+    ...syncedColumns,
+    name: text().notNull(),
+    species: speciesEnum().notNull(),
+    active: boolean().notNull().default(true),
+    notes: text(),
+  },
+  (t) => [index("health_protocols_farm_sync_idx").on(t.farmId, t.syncSeq)],
+);
+
+export const protocolItems = pgTable(
+  "protocol_items",
+  {
+    ...syncedColumns,
+    protocolId: uuid()
+      .notNull()
+      .references(() => healthProtocols.id),
+    type: healthTypeEnum().notNull(),
+    productName: text(),
+    trigger: protocolTriggerEnum().notNull(),
+    value: integer().notNull(),
+    repeat: boolean().notNull().default(true),
+    notes: text(),
+  },
+  (t) => [index("protocol_items_protocol_idx").on(t.protocolId), index("protocol_items_farm_sync_idx").on(t.farmId, t.syncSeq)],
+);
+
 export type Breed = typeof breeds.$inferSelect;
 export type Group = typeof groups.$inferSelect;
 export type Animal = typeof animals.$inferSelect;
@@ -278,5 +310,7 @@ export type BreedingRecord = typeof breedingRecords.$inferSelect;
 export type LambingRecord = typeof lambingRecords.$inferSelect;
 export type ExitRecord = typeof exitRecords.$inferSelect;
 export type Reminder = typeof reminders.$inferSelect;
+export type HealthProtocol = typeof healthProtocols.$inferSelect;
+export type ProtocolItem = typeof protocolItems.$inferSelect;
 export type Observation = typeof observations.$inferSelect;
 export type ObservationTag = typeof observationTags.$inferSelect;

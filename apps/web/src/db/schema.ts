@@ -299,6 +299,29 @@ export const reminders = sqliteTable(
   (t) => [index("reminders_due_idx").on(t.dueAt)],
 );
 
+export const healthProtocols = sqliteTable("health_protocols", {
+  ...synced,
+  name: text().notNull(),
+  species: text().notNull(),
+  active: integer({ mode: "boolean" }).notNull().default(true),
+  notes: text(),
+});
+
+export const protocolItems = sqliteTable(
+  "protocol_items",
+  {
+    ...synced,
+    protocolId: text().notNull(),
+    type: text().notNull(),
+    productName: text(),
+    trigger: text().notNull(),
+    value: integer().notNull(),
+    repeat: integer({ mode: "boolean" }).notNull().default(true),
+    notes: text(),
+  },
+  (t) => [index("protocol_items_protocol_idx").on(t.protocolId)],
+);
+
 /** Sunucuya gidecek yazmalar. Onaylanınca satır silinir, reddedilince failed kalır. */
 export const outbox = sqliteTable(
   "outbox",
@@ -347,6 +370,8 @@ export const localTables = {
   expenses,
   incomes,
   reminders,
+  health_protocols: healthProtocols,
+  protocol_items: protocolItems,
 } as const;
 export type LocalTableName = keyof typeof localTables;
 
@@ -367,4 +392,6 @@ export type LocalConsumption = typeof consumptions.$inferSelect;
 export type LocalExpense = typeof expenses.$inferSelect;
 export type LocalIncome = typeof incomes.$inferSelect;
 export type LocalReminder = typeof reminders.$inferSelect;
+export type LocalProtocol = typeof healthProtocols.$inferSelect;
+export type LocalProtocolItem = typeof protocolItems.$inferSelect;
 export type OutboxRow = typeof outbox.$inferSelect;

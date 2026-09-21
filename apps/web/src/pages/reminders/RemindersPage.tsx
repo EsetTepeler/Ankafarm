@@ -1,4 +1,4 @@
-import { Baby, Bell, Check, Plus, Syringe, Trash2, Undo2 } from "lucide-react";
+import { Baby, Bell, CalendarClock, Check, Plus, Syringe, Trash2, Undo2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -14,13 +14,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAnimals } from "@/features/animals/repo";
+import { useProtocolTasks } from "@/features/protocols/repo";
 import { addReminder, completeReminder, deleteReminder, useDoneReminders, useReminders, type ReminderItem, type ReminderKind } from "@/features/reminders/repo";
 import { errorMessage } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { formatDate, isoToDisplay, todayIso } from "@/utils/date";
 
-const kindIcon: Record<ReminderKind, typeof Bell> = { manual: Bell, health: Syringe, pregnancy: Baby, withdrawal: Syringe };
-const kindLabel: Record<ReminderKind, string> = { manual: "Not", health: "Doz", pregnancy: "Üreme", withdrawal: "Arınma" };
+const kindIcon: Record<ReminderKind, typeof Bell> = { manual: Bell, health: Syringe, pregnancy: Baby, withdrawal: Syringe, protocol: CalendarClock };
+const kindLabel: Record<ReminderKind, string> = { manual: "Not", health: "Doz", pregnancy: "Üreme", withdrawal: "Arınma", protocol: "Program" };
 
 function addDays(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -31,20 +32,33 @@ function addDays(iso: string, days: number): string {
 /** Hatırlatıcılar (madde 3.3): geciken, bugün, bu hafta, sonra. Türev işler kayıtlardan gelir. */
 export function RemindersPage() {
   const all = useReminders();
+  const protocolTasks = useProtocolTasks(60);
   const done = useDoneReminders();
   const [open, setOpen] = useState(false);
 
   const today = todayIso();
   const week = addDays(today, 7);
   const groups = useMemo(() => {
-    const open = (all.data ?? []).filter((r) => !r.doneAt);
+    // Programdan gelen işler de aynı listede; kayıt tutmazlar, sağlık kaydı girilince kendiliğinden kayarlar.
+    const fromProtocol: ReminderItem[] = (protocolTasks.data ?? []).map((t) => ({
+      id: t.key,
+      kind: "protocol" as const,
+      title: t.title,
+      dueAt: t.dueAt,
+      note: t.note,
+      animalId: t.animalId,
+      tagNo: t.tagNo,
+      doneAt: null,
+      completable: false,
+    }));
+    const open = [...(all.data ?? []), ...fromProtocol].filter((r) => !r.doneAt).sort((a, b) => a.dueAt.localeCompare(b.dueAt));
     return {
       overdue: open.filter((r) => r.dueAt < today),
       today: open.filter((r) => r.dueAt === today),
       week: open.filter((r) => r.dueAt > today && r.dueAt <= week),
       later: open.filter((r) => r.dueAt > week),
     };
-  }, [all.data, today, week]);
+  }, [all.data, protocolTasks.data, today, week]);
 
   return (
     <>

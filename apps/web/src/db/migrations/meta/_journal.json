@@ -64,6 +64,13 @@
       "when": 1789985588947,
       "tag": "0008_exotic_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1789988460430,
+      "tag": "0009_huge_wallop",
+      "breakpoints": true
     }
   ]
 }

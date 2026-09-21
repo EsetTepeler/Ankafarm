@@ -9,11 +9,13 @@ import {
   expenses,
   groupMovements,
   groups,
+  healthProtocols,
   healthRecords,
   incomes,
   lambingRecords,
   observationTags,
   observations,
+  protocolItems,
   purchases,
   reminders,
   stockItems,
@@ -42,6 +44,8 @@ export const syncRegistry = {
   expenses: { table: expenses, schemas: tableSchemas.expenses, writers: ["owner"] as UserRole[] },
   incomes: { table: incomes, schemas: tableSchemas.incomes, writers: ["owner"] as UserRole[] },
   reminders: { table: reminders, schemas: tableSchemas.reminders, writers: ["owner", "worker", "vet"] as UserRole[] },
+  health_protocols: { table: healthProtocols, schemas: tableSchemas.health_protocols, writers: ["owner", "vet"] as UserRole[] },
+  protocol_items: { table: protocolItems, schemas: tableSchemas.protocol_items, writers: ["owner", "vet"] as UserRole[] },
 } as const satisfies Record<SyncedTable, unknown>;
 
 /** Soft delete yalnızca sahibe açık (bölüm 4.6). */

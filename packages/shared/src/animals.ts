@@ -63,6 +63,7 @@ export const labels = {
   breedingMethod: { natural: "Doğal", ai: "Suni tohumlama" },
   pregnancyResult: { pending: "Kontrol bekliyor", positive: "Gebe", negative: "Gebe değil" },
   birthDifficulty: { easy: "Kolay", assisted: "Yardımlı", hard: "Zor", cesarean: "Sezaryen" },
+  protocolTrigger: { age_days: "Yaşa göre", interval_days: "Aralıklı", fixed_month: "Sabit ay" },
   healthType: {
     vaccine: "Aşı",
     medication: "İlaç",
@@ -301,6 +302,40 @@ export const seedBreeds: ReadonlyArray<{ species: z.infer<typeof speciesSchema>;
     (name) => ({ species: "sheep" as const, name }),
   ),
   ...["Kıl", "Saanen", "Alpin", "Damascus", "Ankara", "Boer", "Melez"].map((name) => ({ species: "goat" as const, name })),
+];
+
+export const protocolTriggerSchema = z.enum(["age_days", "interval_days", "fixed_month"]);
+export type ProtocolTrigger = z.infer<typeof protocolTriggerSchema>;
+
+export const protocolInputSchema = z.object({
+  id: uuid,
+  name: z.string().trim().min(1, "Program adı gerekli").max(80),
+  species: speciesSchema,
+  active: z.boolean().default(true),
+  notes: z.string().trim().max(300).nullable().optional(),
+});
+export const protocolPatchSchema = protocolInputSchema.omit({ id: true }).partial();
+
+export const protocolItemInputSchema = z.object({
+  id: uuid,
+  protocolId: uuid,
+  type: healthTypeSchema,
+  productName: z.string().trim().max(120).nullable().optional(),
+  trigger: protocolTriggerSchema,
+  /** age_days ve interval_days icin gun, fixed_month icin ay (1-12). */
+  value: z.number().int().positive().max(3650),
+  repeat: z.boolean().default(true),
+  notes: z.string().trim().max(300).nullable().optional(),
+});
+export const protocolItemPatchSchema = protocolItemInputSchema.omit({ id: true, protocolId: true }).partial();
+
+/** Hazır program önerisi; kullanıcı "örnek programı ekle" derse yazılır. */
+export const sampleProtocolItems: ReadonlyArray<{ type: HealthType; productName: string; trigger: ProtocolTrigger; value: number; notes: string }> = [
+  { type: "vaccine", productName: "Enterotoksemi", trigger: "interval_days", value: 180, notes: "Yılda iki kez" },
+  { type: "vaccine", productName: "Çiçek", trigger: "fixed_month", value: 3, notes: "İlkbaharda" },
+  { type: "deworming", productName: "İç parazit", trigger: "interval_days", value: 90, notes: "Üç ayda bir" },
+  { type: "hoof", productName: "Tırnak bakımı", trigger: "interval_days", value: 180, notes: "Altı ayda bir" },
+  { type: "vaccine", productName: "Kuzu enterotoksemi", trigger: "age_days", value: 45, notes: "Kuzulara 45 günlükken" },
 ];
 
 /** Elle girilen hatırlatıcı. Sağlık dozu, gebelik kontrolü gibi türev işler tablo tutmaz, kayıttan hesaplanır. */

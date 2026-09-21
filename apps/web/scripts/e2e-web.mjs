@@ -851,6 +851,28 @@ try {
     if (res.results[0].status !== "applied") throw new Error(`temizlik reddedildi: ${JSON.stringify(res.results[0])}`);
   });
 
+  await step("aşı programı: örnek program, madde ekleme, hatırlatıcıya düşmesi", async () => {
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-protocols").click();
+    // Program bir kez kurulur; sonraki koşularda zaten duruyor olur.
+    if (await page.getByTestId("protocol-sample").count()) {
+      await page.getByTestId("protocol-sample").click();
+      await page.getByTestId("protocol-item-Enterotoksemi").waitFor({ timeout: 15_000 });
+    }
+    await page.getByTestId("protocol-task-count").waitFor({ timeout: 15_000 });
+    const count = Number((await page.getByTestId("protocol-task-count").innerText()).trim());
+    if (!(count > 0)) throw new Error("programdan iş çıkmadı");
+    await page.getByTestId("protocol-task").first().waitFor({ timeout: 10_000 });
+
+    await page.getByTestId("nav-reminders").click();
+    await page.getByTestId("rem-row-protocol").first().waitFor({ timeout: 15_000 });
+
+    await page.waitForTimeout(4000);
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    if (pulled.tables.health_protocols.length === 0) throw new Error("program sunucuda yok");
+    if (!pulled.tables.protocol_items.some((i) => i.productName === "Enterotoksemi")) throw new Error("program maddesi sunucuda yok");
+  });
+
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
 
 } finally {

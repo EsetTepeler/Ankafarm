@@ -12,6 +12,10 @@ import {
   observationPatchSchema,
   observationTagInputSchema,
   observationTagPatchSchema,
+  protocolInputSchema,
+  protocolItemInputSchema,
+  protocolItemPatchSchema,
+  protocolPatchSchema,
   reminderInputSchema,
   reminderPatchSchema,
   lambingInputSchema,
@@ -58,6 +62,8 @@ export const syncedTables = [
   "expenses",
   "incomes",
   "reminders",
+  "health_protocols",
+  "protocol_items",
 ] as const;
 export type SyncedTable = (typeof syncedTables)[number];
 export const syncedTableSchema = z.enum(syncedTables);
@@ -84,6 +90,8 @@ export const tableSchemas = {
   expenses: { insert: expenseInputSchema, update: expensePatchSchema },
   incomes: { insert: incomeInputSchema, update: incomePatchSchema },
   reminders: { insert: reminderInputSchema, update: reminderPatchSchema },
+  health_protocols: { insert: protocolInputSchema, update: protocolPatchSchema },
+  protocol_items: { insert: protocolItemInputSchema, update: protocolItemPatchSchema },
 } as const satisfies Record<SyncedTable, { insert: z.ZodTypeAny; update: z.ZodTypeAny }>;
 
 export const softDeletePayloadSchema = z.object({

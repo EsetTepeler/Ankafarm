@@ -12,7 +12,7 @@ import { todayIso } from "@/utils/date";
 /** Çiftleşmeden sonra gebelik kontrolü beklenen gün; Bugün ekranıyla aynı eşik. */
 const PREGNANCY_CHECK_DAYS = 45;
 
-export type ReminderKind = "manual" | "health" | "pregnancy" | "withdrawal";
+export type ReminderKind = "manual" | "health" | "pregnancy" | "withdrawal" | "protocol";
 
 export interface ReminderItem {
   id: string;
