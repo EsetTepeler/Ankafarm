@@ -531,7 +531,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 
 ### Faz 4: Dayanıklılık ve yayın
 
-- [ ] 4.1 Senkron sağlamlaştırma: çok cihazlı çakışma testleri (sahip ve veteriner aynı hayvana çevrimdışı yazıyor; telefonda çevrimdışı aşı girilirken bilgisayardan aynı hayvan "öldü" işaretleniyor), saat kayması, kısmi batch hataları, büyük outbox performansı (birkaç yüz mutasyon tek push), uzun süre bağlanmamış cihazın tam yeniden senkronu.
+- [x] 4.1 Senkron sağlamlaştırma: `apps/web/scripts/sync-stress.mjs` (7 adım, `corepack pnpm sync-stress`): iki cihazın aynı hayvanı çevrimdışı düzenlemesi (son yazan kazanır, kaybeden denetim kaydında kalır), çıkış tarihi kuralı (çıkıştan sonrasına kayıt RULE ile reddedilir, öncesine kabul edilir), kısmi batch (bir ret diğerlerini durdurmaz), saat kayması (ileri tarihli cihaz saati kabul edilir), 250 kayıtlık outbox'ın parça parça gönderimi, imleç sıfırlanınca tam yeniden senkron. Kural sunucuda `ruleViolation` olarak eklendi. (2026-09-21)
 - [ ] 4.2 Yedekleme: compose içindeki backup servisi, haftalık sunucu dışına kopya (Hetzner Storage Box veya S3), geri yükleme provası, sahibin tek tıkla tam dışa aktarımı.
 - [ ] 4.3 Performans: liste sanallaştırma, görsel sıkıştırma, sorgu indeksleri.
 - [ ] 4.4 Prod: Coolify'da prod compose kaynağı. iOS yolu 2.11 sonucuna göre: PWA ise web yayını yeterli; native ise Apple Developer hesabı, EAS Build, TestFlight veya App Store, EAS Update kanalı. Android build veterinerin tabletine göre.

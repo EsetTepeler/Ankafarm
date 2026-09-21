@@ -5,7 +5,7 @@ import {
   type MutationResult,
   type SyncedTable,
 } from "@anka/shared";
-import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import type { ZodError } from "zod";
 
@@ -97,6 +97,40 @@ async function applyOne(db: Db, user: AccessTokenClaims, m: MutationEnvelope): P
 }
 
 /** Tek bir işlemi uygular; sorun varsa red sonucu döner, yoksa null. */
+/**
+ * Olay zamanı kuralları (bölüm 3.2): iş kuralları kaydın ulaşma zamanına değil, olay zamanına bakar.
+ * Sürüden çıkmış hayvana çıkış gününden sonrası için kayıt girilemez; çıkıştan önceki tarihli kayıt,
+ * çıkış kaydından sonra ulaşsa bile kabul edilir (telefon günlerce çevrimdışı kalabilir).
+ */
+const eventDateFields: Partial<Record<SyncedTable, { animal: string; date: string }>> = {
+  weight_records: { animal: "animalId", date: "weighedAt" },
+  health_records: { animal: "animalId", date: "appliedAt" },
+  observations: { animal: "animalId", date: "observedAt" },
+  group_movements: { animal: "animalId", date: "movedAt" },
+  breeding_records: { animal: "femaleId", date: "matedAt" },
+  lambing_records: { animal: "motherId", date: "bornAt" },
+};
+
+async function ruleViolation(tx: Tx, user: AccessTokenClaims, table: SyncedTable, fields: Record<string, unknown>): Promise<string | null> {
+  const spec = eventDateFields[table];
+  if (!spec) return null;
+  const animalId = fields[spec.animal];
+  const when = fields[spec.date];
+  if (typeof animalId !== "string" || typeof when !== "string") return null;
+
+  const [exit] = await tx
+    .select({ exitedAt: exitRecords.exitedAt, type: exitRecords.type })
+    .from(exitRecords)
+    .where(and(eq(exitRecords.animalId, animalId), eq(exitRecords.farmId, user.farmId), isNull(exitRecords.deletedAt)))
+    .orderBy(desc(exitRecords.exitedAt))
+    .limit(1);
+  if (!exit) return null;
+  if (when.slice(0, 10) <= exit.exitedAt) return null;
+
+  const day = exit.exitedAt.split("-").reverse().join(".");
+  return `Hayvan ${day} tarihinde sürüden çıkmış; sonrasına kayıt girilemez`;
+}
+
 async function applyOp(tx: Tx, user: AccessTokenClaims, m: MutationEnvelope): Promise<MutationResult | null> {
   const entry = syncRegistry[m.table];
   // Dinamik tablo katmanı: Drizzle tip çıkarımı tablo başına farklı olduğu için burada gevşek tip kullanılır.
@@ -106,6 +140,8 @@ async function applyOp(tx: Tx, user: AccessTokenClaims, m: MutationEnvelope): Pr
     const parsed = entry.schemas.insert.safeParse({ ...m.payload, id: m.rowId });
     if (!parsed.success) return rejected(m, "VALIDATION", zodMessage(parsed.error));
     const { id: _id, ...fields } = parsed.data as Record<string, unknown>;
+    const violation = await ruleViolation(tx, user, m.table, fields);
+    if (violation) return rejected(m, "RULE", violation);
     const values = {
       ...fields,
       id: m.rowId,

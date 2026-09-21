@@ -101,7 +101,12 @@ const step = async (name, fn) => {
     log("OK  ", name);
   } catch (err) {
     failed = true;
-    log("FAIL", name, "→", err.message.split("\n")[0]);
+    const detail = err.message
+      .split(String.fromCharCode(10))
+      .filter((x) => x.trim() && !x.trim().startsWith("at "))
+      .slice(0, 3)
+      .join(" | ");
+    log("FAIL", name, String.fromCharCode(8594), detail);
     await page.screenshot({ path: `.e2e/${name.replace(/\W+/g, "_")}.png`, fullPage: true }).catch(() => {});
   }
 };
@@ -852,6 +857,8 @@ try {
   });
 
   await step("aşı programı: örnek program, madde ekleme, hatırlatıcıya düşmesi", async () => {
+    // Bir önceki adım doğrudan API'ye yazıyor; gelen canlı yenileme bitmeden tıklama kararsız kalıyor.
+    await page.getByTestId("sync-banner").getByText("Güncel").waitFor({ timeout: 60_000 });
     await page.getByTestId("nav-settings").click();
     await page.getByTestId("settings-protocols").click();
     // Program bir kez kurulur; sonraki koşularda zaten duruyor olur.
