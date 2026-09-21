@@ -67,7 +67,6 @@ export function GroupsPage() {
   return (
     <>
       <PageHeader
-        icon={Boxes}
         title="Gruplar ve bölmeler"
         description="Hayvanların bulunduğu bölme, mera ve karantina alanları"
         actions={
@@ -78,11 +77,11 @@ export function GroupsPage() {
       />
 
       {groups.data?.length === 0 ? (
-        <EmptyState icon={Boxes} title="Henüz grup yok" />
+        <EmptyState title="Henüz grup yok" />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden border bg-card">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader>
               <TableRow>
                 <TableHead>Ad</TableHead>
                 <TableHead>Tür</TableHead>

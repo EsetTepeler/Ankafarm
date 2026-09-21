@@ -58,7 +58,7 @@ export function PedigreeSection({ animalId }: { animalId: string }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Atalar</CardTitle>
+          <CardTitle>Atalar</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3">
           {tree && (tree.mother || tree.father) ? (
@@ -73,7 +73,7 @@ export function PedigreeSection({ animalId }: { animalId: string }) {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Yavrular{offspring.data?.length ? ` · ${offspring.data.length}` : ""}</CardTitle>
+          <CardTitle>Yavrular{offspring.data?.length ? ` · ${offspring.data.length}` : ""}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
           {offspring.data?.length === 0 ? <EmptyState title="Kayıtlı yavru yok" /> : null}

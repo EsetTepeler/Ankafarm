@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import type { LucideIcon } from "lucide-react";
 import { Boxes, CalendarCheck, ChevronRight, Download, History, RefreshCw, Server, Settings, ShieldCheck, SlidersHorizontal, User, Users } from "lucide-react";
 import { Link } from "react-router";
 
@@ -24,35 +23,34 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader icon={Settings} title="Ayarlar" description={farm.data?.name ?? "Çiftlik"} />
+      <PageHeader title="Ayarlar" description={farm.data?.name ?? "Çiftlik"} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Boxes className="size-4 text-primary" /> Çiftlik
+            <CardTitle>
+            Çiftlik
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-1">
-            <LinkRow icon={Boxes} to="/settings/groups" title="Gruplar ve bölmeler" sub="Ana sürü, karantina, mera" testID="settings-groups" />
+            <LinkRow to="/settings/groups" title="Gruplar ve bölmeler" sub="Ana sürü, karantina, mera" testID="settings-groups" />
             <LinkRow
-              icon={RefreshCw}
               to="/settings/sync"
               title="Senkron durumu"
               sub={`${sync.pending} bekliyor · ${sync.failed} reddedildi${sync.lastSyncAt ? ` · son ${formatDateTime(sync.lastSyncAt)}` : ""}`}
               testID="settings-sync"
             />
-            {user?.role === "owner" ? <LinkRow icon={History} to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
-            <LinkRow icon={CalendarCheck} to="/settings/protocols" title="Aşı ve bakım programı" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
-            {user?.role === "owner" ? <LinkRow icon={SlidersHorizontal} to="/settings/thresholds" title="İçgörü eşikleri" sub="Uyarılar ne zaman çıksın" testID="settings-thresholds" /> : null}
-            {user?.role === "owner" ? <LinkRow icon={ShieldCheck} to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
-            <LinkRow icon={Download} to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
+            {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
+            <LinkRow to="/settings/protocols" title="Aşı ve bakım programı" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
+            {user?.role === "owner" ? <LinkRow to="/settings/thresholds" title="İçgörü eşikleri" sub="Uyarılar ne zaman çıksın" testID="settings-thresholds" /> : null}
+            {user?.role === "owner" ? <LinkRow to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
+            <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <User className="size-4 text-primary" /> Hesap
+            <CardTitle>
+            Hesap
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm">
@@ -74,8 +72,8 @@ export function SettingsPage() {
         {user?.role === "owner" ? (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="size-4 text-primary" /> Kullanıcılar
+              <CardTitle>
+            Kullanıcılar
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2 text-sm">
@@ -98,8 +96,8 @@ export function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Server className="size-4 text-primary" /> Sistem
+            <CardTitle>
+            Sistem
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm">
@@ -122,14 +120,9 @@ export function SettingsPage() {
   );
 }
 
-function LinkRow({ to, title, sub, testID, icon: Icon }: { to: string; title: string; sub?: string; testID?: string; icon?: LucideIcon }) {
+function LinkRow({ to, title, sub, testID }: { to: string; title: string; sub?: string; testID?: string }) {
   return (
-    <Link to={to} data-testid={testID} className="group flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm transition-colors hover:bg-accent/50">
-      {Icon ? (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-4" />
-        </span>
-      ) : null}
+    <Link to={to} data-testid={testID} className="group flex items-center gap-3 border-b px-1 py-3 text-sm transition-colors last:border-0 hover:bg-accent/50">
       <div className="grid min-w-0 flex-1">
         <span className="font-medium">{title}</span>
         {sub ? <span className="truncate text-xs text-muted-foreground">{sub}</span> : null}

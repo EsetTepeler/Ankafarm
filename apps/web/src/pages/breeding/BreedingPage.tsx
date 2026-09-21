@@ -3,7 +3,7 @@ import { Baby, HeartHandshake, Percent, Users } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,14 +39,14 @@ export function BreedingPage() {
 
   return (
     <>
-      <PageHeader icon={HeartHandshake} title="Damızlık" description="Koç ve anne performansı; akrabalık kontrolü çiftleşme formunda" />
+      <PageHeader title="Damızlık" description="Koç ve anne performansı; akrabalık kontrolü çiftleşme formunda" />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Damızlık koç" value={sires.length} hint={sires.filter((s) => s.status === "active").length + " aktif"} testID="sire-count" icon={HeartHandshake} />
-        <StatTile label="Doğum yapan anne" value={dams.filter((d) => d.births > 0).length} hint={`${pregnant.length} gebe`} testID="dam-count" icon={Users} />
-        <StatTile label="Doğum başına yavru" value={num(herdPerBirth)} hint="Sürü ortalaması" icon={Percent} tone="brand" />
-        <StatTile label="Toplam yavru" value={dams.reduce((s, d) => s + d.lambs, 0)} hint={`${dams.reduce((s, d) => s + d.stillborn, 0)} ölü doğum`} icon={Baby} />
-      </div>
+      <StatGrid>
+        <StatTile label="Damızlık koç" value={sires.length} hint={sires.filter((s) => s.status === "active").length + " aktif"} testID="sire-count" />
+        <StatTile label="Doğum yapan anne" value={dams.filter((d) => d.births > 0).length} hint={`${pregnant.length} gebe`} testID="dam-count" />
+        <StatTile label="Doğum başına yavru" value={num(herdPerBirth)} hint="Sürü ortalaması" tone="brand" />
+        <StatTile label="Toplam yavru" value={dams.reduce((s, d) => s + d.lambs, 0)} hint={`${dams.reduce((s, d) => s + d.stillborn, 0)} ölü doğum`} />
+      </StatGrid>
 
       <Tabs defaultValue="sires" className="mt-6">
         <TabsList className="mb-4">
@@ -60,12 +60,12 @@ export function BreedingPage() {
 
         <TabsContent value="sires">
           {sires.length === 0 ? (
-            <EmptyState icon={HeartHandshake} title="Damızlık koç kaydı yok" description="Çiftleşme veya doğum kaydı girilince koçlar burada listelenir." />
+            <EmptyState title="Damızlık koç kaydı yok" description="Çiftleşme veya doğum kaydı girilince koçlar burada listelenir." />
           ) : (
             <>
-              <div className="overflow-hidden rounded-xl border bg-card">
+              <div className="overflow-hidden border bg-card">
                 <Table>
-                  <TableHeader className="bg-muted/50">
+                  <TableHeader>
                     <TableRow>
                       <TableHead className="w-10" />
                       <TableHead>Küpe</TableHead>
@@ -123,11 +123,11 @@ export function BreedingPage() {
 
         <TabsContent value="dams">
           {dams.length === 0 ? (
-            <EmptyState icon={Baby} title="Doğum kaydı yok" />
+            <EmptyState title="Doğum kaydı yok" />
           ) : (
-            <div className="overflow-hidden rounded-xl border bg-card">
+            <div className="overflow-hidden border bg-card">
               <Table>
-                <TableHeader className="bg-muted/50">
+                <TableHeader>
                   <TableRow>
                     <TableHead>Küpe</TableHead>
                     <TableHead className="text-right">Doğum</TableHead>
@@ -193,9 +193,8 @@ function SireCard({ sire, best }: { sire: SireStats; best: number }) {
   return (
     <Card className={cn("transition-shadow", sire.lambs === best && best > 0 && "border-primary/50 bg-primary/5 shadow-xs")} data-testid={`sire-card-${sire.tagNo}`}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <HeartHandshake className="size-4 text-primary" />
-          {sire.tagNo}
+        <CardTitle>
+            {sire.tagNo}
           {sire.name ? <span className="font-normal text-muted-foreground">· {sire.name}</span> : null}
           {sire.lambs === best && best > 0 ? <Badge className="ml-auto">En çok yavru</Badge> : null}
         </CardTitle>

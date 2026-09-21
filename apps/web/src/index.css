@@ -25,89 +25,90 @@
 @custom-variant data-selected (&[data-selected], &[aria-selected="true"]);
 
 /*
-  Anka Farm teması: nötr zemin, tek vurgu rengi.
-  Hem sayfa hem kenar çubuğu renksiz gri (kroma 0); logodan gelen yeşil yalnızca vurgu olarak
-  kullanılır (düğme, etkin sekme, ikon kutusu, grafik), amber ise kelime markası ve QR kılavuzunda.
-  Tokenlar shadcn/ui sözleşmesine uyar.
+  Anka Farm teması: tipografi önce, saç teli çizgiler, tek vurgu rengi.
+  Kutu yerine çizgi, gölge yerine boşluk: paneller 1 px kenarlıkla ayrılır, köşeler neredeyse
+  keskin (2 px). Renk yalnızca durum taşır — vurgu yeşili sayılarda ve etkin öğede, sarı/kırmızı
+  uyarıda. Mikro etiketler monospace ve büyük harf; sayılar tabular.
+  Koyu tema varsayılan; açık tema aynı dilin kâğıt hâli. Tokenlar shadcn/ui sözleşmesine uyar.
 */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.975 0 0);
-  --foreground: oklch(0.21 0 0);
+  --radius: 0.125rem;
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.16 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0 0);
+  --card-foreground: oklch(0.16 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0 0);
-  --primary: oklch(0.38 0.068 163);
+  --popover-foreground: oklch(0.16 0 0);
+  --primary: oklch(0.42 0.1 152);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0 0);
-  --secondary-foreground: oklch(0.27 0 0);
-  --muted: oklch(0.955 0 0);
-  --muted-foreground: oklch(0.51 0 0);
-  --accent: oklch(0.945 0 0);
-  --accent-foreground: oklch(0.27 0 0);
-  --destructive: oklch(0.55 0.2 27);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.24 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0.2 0 0);
+  --destructive: oklch(0.54 0.2 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.52 0.095 150);
-  /* Grafik renkleri: marka yeşilinden amber'e uzanan, birbirinden ayırt edilebilir beş ton. */
-  --chart-1: oklch(0.42 0.08 160);
-  --chart-2: oklch(0.6 0.1 135);
-  --chart-3: oklch(0.75 0.11 75);
-  --chart-4: oklch(0.55 0.12 220);
-  --chart-5: oklch(0.6 0.16 25);
-  --sidebar: oklch(0.225 0 0);
-  --sidebar-foreground: oklch(0.93 0 0);
-  --sidebar-primary: oklch(0.72 0.115 152);
-  --sidebar-primary-foreground: oklch(0.18 0 0);
-  --sidebar-accent: oklch(0.3 0 0);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.72 0.115 152);
-  --success: oklch(0.5 0.115 150);
-  --warning: oklch(0.63 0.13 70);
-  --danger: oklch(0.55 0.2 27);
-  --brand-amber: oklch(0.796 0.092 74);
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.88 0 0);
+  --ring: oklch(0.42 0.1 152);
+  /* Grafikler: vurgu yeşilinden başlayan, koyuluk sırasıyla ayrılan beş ton. */
+  --chart-1: oklch(0.42 0.1 152);
+  --chart-2: oklch(0.62 0.11 140);
+  --chart-3: oklch(0.72 0.1 78);
+  --chart-4: oklch(0.55 0.1 232);
+  --chart-5: oklch(0.58 0.15 25);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.3 0 0);
+  --sidebar-primary: oklch(0.42 0.1 152);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.16 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.42 0.1 152);
+  --success: oklch(0.47 0.11 152);
+  --warning: oklch(0.6 0.13 68);
+  --danger: oklch(0.54 0.2 27);
+  --brand-amber: oklch(0.72 0.1 78);
 }
 
 .dark {
-  --background: oklch(0.185 0 0);
-  --foreground: oklch(0.96 0 0);
-  --card: oklch(0.225 0 0);
-  --card-foreground: oklch(0.96 0 0);
-  --popover: oklch(0.225 0 0);
-  --popover-foreground: oklch(0.96 0 0);
-  --primary: oklch(0.74 0.11 148);
-  --primary-foreground: oklch(0.18 0 0);
-  --secondary: oklch(0.28 0 0);
-  --secondary-foreground: oklch(0.96 0 0);
-  --muted: oklch(0.28 0 0);
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.31 0 0);
-  --accent-foreground: oklch(0.96 0 0);
-  --destructive: oklch(0.66 0.19 27);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.965 0 0);
+  --card: oklch(0.175 0 0);
+  --card-foreground: oklch(0.965 0 0);
+  --popover: oklch(0.175 0 0);
+  --popover-foreground: oklch(0.965 0 0);
+  --primary: oklch(0.79 0.16 148);
+  --primary-foreground: oklch(0.15 0.03 150);
+  --secondary: oklch(0.225 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.215 0 0);
+  --muted-foreground: oklch(0.63 0 0);
+  --accent: oklch(0.235 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.65 0.19 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.74 0.11 148);
-  --chart-1: oklch(0.74 0.11 145);
-  --chart-2: oklch(0.68 0.1 175);
-  --chart-3: oklch(0.8 0.11 75);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.79 0.16 148);
+  --chart-1: oklch(0.79 0.16 148);
+  --chart-2: oklch(0.68 0.1 178);
+  --chart-3: oklch(0.79 0.11 78);
   --chart-4: oklch(0.68 0.12 235);
   --chart-5: oklch(0.7 0.15 25);
-  --sidebar: oklch(0.16 0 0);
-  --sidebar-foreground: oklch(0.93 0 0);
-  --sidebar-primary: oklch(0.74 0.11 148);
-  --sidebar-primary-foreground: oklch(0.16 0 0);
-  --sidebar-accent: oklch(0.26 0 0);
+  --sidebar: oklch(0.125 0 0);
+  --sidebar-foreground: oklch(0.72 0 0);
+  --sidebar-primary: oklch(0.79 0.16 148);
+  --sidebar-primary-foreground: oklch(0.15 0.03 150);
+  --sidebar-accent: oklch(0.21 0 0);
   --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.74 0.11 148);
-  --success: oklch(0.74 0.11 148);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.79 0.16 148);
+  --success: oklch(0.79 0.16 148);
   --warning: oklch(0.8 0.12 75);
   --danger: oklch(0.7 0.17 27);
-  --brand-amber: oklch(0.796 0.092 74);
+  --brand-amber: oklch(0.79 0.11 78);
 }
 
 @theme inline {
@@ -152,6 +153,28 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Ahırda internet yok: yalnızca sistemde hazır bulunan monospace aileleri. */
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+/*
+ * Mikro etiket: tablo başlıkları, sayı kartlarının üst satırı, bölüm adları.
+ * Monospace + büyük harf + geniş harf aralığı; bu dilin taşıyıcısı.
+ */
+@utility label-micro {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Büyük başlıklar sıkı dizilir; boşluk yerine tipografi hiyerarşi kurar. */
+@utility display {
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  text-wrap: balance;
 }
 
 @layer base {

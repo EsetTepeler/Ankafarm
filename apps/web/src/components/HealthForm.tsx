@@ -109,12 +109,12 @@ export function HealthForm({ values, onChange }: { values: HealthFormValues; onC
         ) : null}
         {shape.withdrawal ? (
           <div className="grid gap-1.5">
-            <Label htmlFor="health-withdrawal">Arınma süresi, gün</Label>
+            <Label htmlFor="health-withdrawal">Arınma, gün</Label>
             <Input id="health-withdrawal" inputMode="numeric" value={values.withdrawalDays} onChange={(e) => onChange({ withdrawalDays: e.target.value })} data-testid="health-withdrawal" />
           </div>
         ) : null}
         <div className="grid gap-1.5">
-          <Label htmlFor="health-cost">Maliyet, TL</Label>
+          <Label htmlFor="health-cost">Maliyet</Label>
           <Input id="health-cost" inputMode="decimal" value={values.cost} onChange={(e) => onChange({ cost: e.target.value })} data-testid="health-cost" />
         </div>
       </div>

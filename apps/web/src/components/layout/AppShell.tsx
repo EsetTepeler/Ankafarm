@@ -3,7 +3,6 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { LogoMark, Wordmark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -89,12 +88,12 @@ export function AppShell() {
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <SidebarHeader>
-          <Link to="/" className="flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-sidebar-accent">
-            <LogoMark className="size-8" />
+        <SidebarHeader className="border-b px-3 py-3">
+          <Link to="/" className="flex items-center gap-2.5">
+            <LogoMark className="size-7 rounded-xs" />
             <span className="grid leading-tight group-data-[collapsible=icon]:hidden">
-              <Wordmark tone="light" className="text-sm" />
-              <span className="text-[11px] text-sidebar-foreground/60">Çiftlik paneli</span>
+              <Wordmark tone="light" className="text-[13px] tracking-[0.08em]" />
+              <span className="label-micro text-[10px] text-sidebar-foreground/40">Çiftlik paneli</span>
             </span>
           </Link>
         </SidebarHeader>
@@ -138,17 +137,15 @@ export function AppShell() {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center gap-2 rounded-lg px-1.5 py-1 group-data-[collapsible=icon]:hidden">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
-              {initials(user?.fullName)}
-            </span>
+          <div className="flex items-center gap-2.5 border-t px-1 py-2 group-data-[collapsible=icon]:hidden">
+            <span className="label-micro flex size-7 shrink-0 items-center justify-center border text-[10px] text-sidebar-foreground/70">{initials(user?.fullName)}</span>
             <div className="grid flex-1 leading-tight">
               <span className="truncate text-sm font-medium">{user?.fullName}</span>
-              <span className="truncate text-xs text-sidebar-foreground/60">{user ? roleLabels[user.role] : ""}</span>
+              <span className="label-micro truncate text-[10px] text-sidebar-foreground/40">{user ? roleLabels[user.role] : ""}</span>
             </div>
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               aria-label="Çıkış yap"
               data-testid="logout"
               onClick={() => {
@@ -163,18 +160,17 @@ export function AppShell() {
       </Sidebar>
 
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-sm">
+        <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur-sm">
           <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-1 h-5" />
-          <h1 className="truncate text-sm font-semibold">{active?.label ?? (isActive("/settings") ? "Ayarlar" : "")}</h1>
+          <h1 className="label-micro truncate text-muted-foreground">{active?.label ?? (isActive("/settings") ? "Ayarlar" : "")}</h1>
           <div className="ml-auto flex items-center gap-1.5">
             <SyncStatus />
-            <Button variant="ghost" size="icon" aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={toggle}>
+            <Button variant="ghost" size="icon-sm" aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={toggle}>
               {theme === "dark" ? <Sun /> : <Moon />}
             </Button>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-6">
+        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 md:px-8 md:py-8">
           <Outlet />
         </main>
       </SidebarInset>

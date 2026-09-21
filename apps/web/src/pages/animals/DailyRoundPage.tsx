@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { DateField } from "@/components/DateField";
 import { EntityPicker } from "@/components/EntityPicker";
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,7 +90,6 @@ export function DailyRoundPage() {
   return (
     <>
       <PageHeader
-        icon={ClipboardCheck}
         title="Günlük tur"
         description="Sürüyü gözden geçir; varsayılan hepsi normal, sadece dikkat çekeni işaretle"
         actions={
@@ -100,18 +99,17 @@ export function DailyRoundPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="Kontrol edilen" value={rows.length} hint={groupId ? "Seçili grup" : "Tüm aktif sürü"} testID="round-total" icon={Users} />
-        <StatTile label="İşaretli" value={markedIds.length} hint={markedIds.length ? "Kaydedince gözlem olur" : "Hepsi normal"} testID="round-marked" icon={CircleAlert} tone={markedIds.length ? "warning" : "success"} />
+      <StatGrid className="lg:grid-cols-3">
+        <StatTile label="Kontrol edilen" value={rows.length} hint={groupId ? "Seçili grup" : "Tüm aktif sürü"} testID="round-total" />
+        <StatTile label="İşaretli" value={markedIds.length} hint={markedIds.length ? "Kaydedince gözlem olur" : "Hepsi normal"} testID="round-marked" tone={markedIds.length ? "warning" : "success"} />
         <StatTile
           label="Bugünkü tur"
           value={round.data ? "Yapıldı" : "Yapılmadı"}
           hint={round.data ? formatDateTime(round.data.observedAt) : "Kaydedince işaretlenir"}
           testID="round-status"
-          icon={ClipboardCheck}
           tone={round.data ? "success" : "default"}
         />
-      </div>
+      </StatGrid>
 
       <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
         <div className="w-56">
@@ -121,7 +119,7 @@ export function DailyRoundPage() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState icon={Users} title="Aktif hayvan yok" />
+        <EmptyState title="Aktif hayvan yok" />
       ) : (
         <div className="mt-4 grid gap-2">
           {rows.map((a) => {

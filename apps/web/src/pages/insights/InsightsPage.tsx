@@ -2,7 +2,7 @@ import { Check, CircleAlert, Clock, Info, Lightbulb, TriangleAlert } from "lucid
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,19 +40,19 @@ export function InsightsPage() {
 
   return (
     <>
-      <PageHeader icon={Lightbulb} title="İçgörüler" description="Kayıtlardan çıkan bulgular; teşhis değil, dikkat çekilen noktalar" />
+      <PageHeader title="İçgörüler" description="Kayıtlardan çıkan bulgular; teşhis değil, dikkat çekilen noktalar" />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="Acil" value={counts.critical} hint={counts.critical ? "Bugün bak" : "Acil bulgu yok"} testID="insight-critical" icon={TriangleAlert} tone={counts.critical ? "danger" : "success"} />
-        <StatTile label="Dikkat" value={counts.warning} testID="insight-warning" icon={CircleAlert} tone={counts.warning ? "warning" : "default"} />
-        <StatTile label="Bilgi" value={counts.info} testID="insight-info" icon={Info} />
-      </div>
+      <StatGrid className="lg:grid-cols-3">
+        <StatTile label="Acil" value={counts.critical} hint={counts.critical ? "Bugün bak" : "Acil bulgu yok"} testID="insight-critical" tone={counts.critical ? "danger" : "success"} />
+        <StatTile label="Dikkat" value={counts.warning} testID="insight-warning" tone={counts.warning ? "warning" : "default"} />
+        <StatTile label="Bilgi" value={counts.info} testID="insight-info" />
+      </StatGrid>
 
       {insights.isError ? <p className="mt-4 text-sm text-muted-foreground">İçgörüler sunucudan gelir; bağlantı kurulunca görünür.</p> : null}
 
       <div className="mt-6 grid gap-2" data-testid="insight-list">
         {!insights.isLoading && rows.length === 0 ? (
-          <EmptyState icon={Lightbulb} title="Şimdilik bir bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe burada uyarılar çıkar." />
+          <EmptyState title="Şimdilik bir bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe burada uyarılar çıkar." />
         ) : null}
         {rows.map((row) => (
           <InsightCard key={row.id} row={row} />

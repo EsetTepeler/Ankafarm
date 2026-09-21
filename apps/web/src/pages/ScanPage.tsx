@@ -130,7 +130,7 @@ export function ScanPage() {
 
   return (
     <>
-      <PageHeader icon={ScanLine} title="QR tara" description="Etiketi kameraya tut; profil kendiliğinden açılır" />
+      <PageHeader title="QR tara" description="Etiketi kameraya tut; profil kendiliğinden açılır" />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,480px)_1fr]">
         <Card>
           <CardContent className="grid gap-3 pt-6">

@@ -87,7 +87,8 @@ export function AnimalPage() {
   return (
     <>
       <PageHeader
-        title={title}
+        eyebrow="Hayvan"
+        title={<span className="font-mono">{title}</span>}
         description={[labels.species[a.species as Species], labels.sex[a.sex as Sex], a.breedName, formatAge(a.birthDate), labels.animalStatus[a.status as AnimalStatus]].filter(Boolean).join(" · ")}
         actions={
           <>
@@ -147,24 +148,24 @@ export function AnimalPage() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <Pill icon={Scale} tone={trend == null ? "muted" : trend > 0 ? "ok" : trend < 0 ? "warn" : "muted"} testID="badge-weight">
+        <Pill tone={trend == null ? "muted" : trend > 0 ? "ok" : trend < 0 ? "warn" : "muted"} testID="badge-weight">
           {a.currentWeight == null ? "Tartım yok" : `${formatKg(a.currentWeight)}${trend == null ? "" : trend > 0 ? " ↑" : trend < 0 ? " ↓" : ""}`}
         </Pill>
-        <Pill icon={Syringe} tone={healthBadge.tone} testID="badge-health">
+        <Pill tone={healthBadge.tone} testID="badge-health">
           {healthBadge.text}
         </Pill>
         {a.isPregnant && a.expectedBirthAt ? (
-          <Pill icon={Baby} tone="ok" testID="badge-pregnant">
+          <Pill tone="ok" testID="badge-pregnant">
             Gebe · {isoToDisplay(a.expectedBirthAt)}
           </Pill>
         ) : null}
         {abnormal.length ? (
-          <Pill icon={Eye} tone="warn" testID="badge-observation">
+          <Pill tone="warn" testID="badge-observation">
             {abnormal.length} olağandışı gözlem, son 3 gün
           </Pill>
         ) : null}
         {a.status !== "active" && lastExit ? (
-          <Pill icon={LogOut} tone="danger" testID="badge-exit">
+          <Pill tone="danger" testID="badge-exit">
             {labels.exitType[lastExit.type as keyof typeof labels.exitType]} · {isoToDisplay(lastExit.exitedAt)}
           </Pill>
         ) : null}
@@ -218,8 +219,8 @@ export function AnimalPage() {
         <TabsContent value="timeline">
           <Card>
             <CardContent className="pt-6">
-              {timeline.data?.length === 0 ? <EmptyState icon={Star} title="Henüz olay yok" /> : null}
-              <ol className="relative ml-3 border-l border-border/70">
+              {timeline.data?.length === 0 ? <EmptyState title="Henüz olay yok" /> : null}
+              <ol className="relative ml-3 border-l">
                 {(timeline.data ?? []).map((ev) => {
                   const Icon = eventIcon[ev.type];
                   return (
@@ -260,7 +261,7 @@ export function AnimalPage() {
         <TabsContent value="health">
           <Card>
             <CardContent className="grid gap-2 pt-6">
-              {health.data?.length === 0 ? <EmptyState icon={Syringe} title="Henüz sağlık kaydı yok" /> : null}
+              {health.data?.length === 0 ? <EmptyState title="Henüz sağlık kaydı yok" /> : null}
               {(health.data ?? []).map((h) => (
                 <div key={h.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`health-row-${h.type}`}>
                   <div className="grid">
@@ -301,14 +302,14 @@ export function AnimalPage() {
                   ) : null}
                 </div>
               ))}
-              {weightRows.length === 0 ? <EmptyState icon={Scale} title="Henüz tartım yok" /> : null}
+              {weightRows.length === 0 ? <EmptyState title="Henüz tartım yok" /> : null}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="insights">
           <div className="grid gap-2">
-            {insights.data?.length === 0 ? <EmptyState icon={Star} title="Bu hayvan için bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe uyarılar burada çıkar." /> : null}
+            {insights.data?.length === 0 ? <EmptyState title="Bu hayvan için bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe uyarılar burada çıkar." /> : null}
             {((insights.data ?? []) as InsightRow[]).map((row) => (
               <InsightCard key={row.id} row={row} />
             ))}
@@ -326,7 +327,7 @@ export function AnimalPage() {
         <TabsContent value="observations">
           <Card>
             <CardContent className="grid gap-2 pt-6">
-              {obs.data?.length === 0 ? <EmptyState icon={Eye} title="Henüz gözlem yok" description="Topallama, iştahsızlık, öksürük gibi sahada gördüklerini buraya gir; teşhis veterinerin işi." /> : null}
+              {obs.data?.length === 0 ? <EmptyState title="Henüz gözlem yok" description="Topallama, iştahsızlık, öksürük gibi sahada gördüklerini buraya gir; teşhis veterinerin işi." /> : null}
               {(obs.data ?? []).map((o) => (
                 <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`obs-row-${o.category}`}>
                   <div className="grid">
@@ -384,22 +385,20 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Pill({ icon: Icon, tone, children, testID }: { icon?: typeof Star; tone: string; children: React.ReactNode; testID?: string }) {
+/** Hayvanın durum şeridi: küçük, köşesiz, tek renkli etiketler. */
+function Pill({ tone, children, testID }: { tone: string; children: React.ReactNode; testID?: string }) {
   return (
-    <Badge
-      variant="outline"
+    <span
       data-testid={testID}
       className={cn(
-        "gap-1.5 py-1 font-medium",
-        tone === "ok" && "border-success/40 bg-success/10 text-success",
-        tone === "warn" && "border-warning/45 bg-warning/15 text-warning",
-        tone === "danger" && "border-danger/40 bg-danger/10 text-danger",
-        tone === "muted" && "bg-muted/50 text-muted-foreground",
+        "label-micro inline-flex items-center border px-2 py-1 text-muted-foreground",
+        tone === "ok" && "border-success/40 text-success",
+        tone === "warn" && "border-warning/45 text-warning",
+        tone === "danger" && "border-destructive/45 text-destructive",
       )}
     >
-      {Icon ? <Icon className="size-3.5" /> : null}
       {children}
-    </Badge>
+    </span>
   );
 }
 

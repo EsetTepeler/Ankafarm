@@ -19,7 +19,7 @@ const pages = [
 ];
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, colorScheme: "dark" });
 const page = await ctx.newPage();
 await page.goto(WEB_URL, { waitUntil: "domcontentloaded" });
 await page.getByTestId("login-page-shot").waitFor({ timeout: 5_000 }).catch(() => {});
@@ -45,12 +45,12 @@ await page.screenshot({ path: `${OUT}/hayvan-profili.png`, fullPage: false });
 // Koyu tema
 await page.goto(`${WEB_URL}/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1500);
-await page.getByRole("button", { name: /Koyu temaya geç/ }).click();
+await page.getByRole("button", { name: /Açık temaya geç/ }).click();
 await page.waitForTimeout(1200);
-await page.screenshot({ path: `${OUT}/bugun-koyu.png`, fullPage: false });
+await page.screenshot({ path: `${OUT}/bugun-acik.png`, fullPage: false });
 await page.goto(`${WEB_URL}/animals`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(1800);
-await page.screenshot({ path: `${OUT}/hayvanlar-koyu.png`, fullPage: false });
+await page.screenshot({ path: `${OUT}/hayvanlar-acik.png`, fullPage: false });
 
 await browser.close();
 console.log("hazır:", OUT);

@@ -73,7 +73,6 @@ export function SyncPage() {
   return (
     <>
       <PageHeader
-        icon={RefreshCw}
         title="Senkron durumu"
         description={text ?? (sync.lastSyncAt ? `Güncel · son senkron ${formatDateTime(sync.lastSyncAt)}` : "Henüz senkron olmadı")}
         actions={
@@ -113,11 +112,11 @@ export function SyncPage() {
       ) : null}
 
       {(rows.data ?? []).length === 0 ? (
-        <EmptyState icon={RefreshCw} title="Kuyruk boş" description="Her şey sunucuda." />
+        <EmptyState title="Kuyruk boş" description="Her şey sunucuda." />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden border bg-card">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader>
               <TableRow>
                 <TableHead>Tablo</TableHead>
                 <TableHead>İşlem</TableHead>

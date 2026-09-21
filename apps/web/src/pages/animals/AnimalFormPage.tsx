@@ -224,13 +224,13 @@ export function AnimalFormPage() {
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
-      <PageHeader icon={IdCard} title={editing ? "Hayvanı düzenle" : "Hayvan ekle"} description={editing ? existing.data?.tagNo : "Küpe numarası ve köken zorunlu, gerisi sonra da girilebilir"} />
+      <PageHeader title={editing ? "Hayvanı düzenle" : "Hayvan ekle"} description={editing ? existing.data?.tagNo : "Küpe numarası ve köken zorunlu, gerisi sonra da girilebilir"} />
 
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <IdCard className="size-4 text-primary" /> Kimlik
+            <CardTitle>
+            Kimlik
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
@@ -282,7 +282,7 @@ export function AnimalFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
+            <CardTitle className="flex items-center gap-2">
               {form.origin === "born_here" ? <CalendarDays className="size-4 text-primary" /> : <ShoppingCart className="size-4 text-primary" />}
               {form.origin === "born_here" ? "Doğum" : "Alım"}
             </CardTitle>
@@ -336,8 +336,8 @@ export function AnimalFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Tags className="size-4 text-primary" /> Irk ve grup
+            <CardTitle>
+            Irk ve grup
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">

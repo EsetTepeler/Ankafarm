@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,20 +127,19 @@ export function TodayPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Sürü" value={c?.total ?? "–"} hint={c ? `${c.sheep} koyun · ${c.goat} keçi` : undefined} testID="kpi-total" icon={Users} tone="brand" />
-        <StatTile label="Dişi / Erkek" value={c ? `${c.female} / ${c.male}` : "–"} hint={c ? `${c.lambs} yavru (6 ay altı)` : undefined} icon={Venus} />
-        <StatTile label="Gebe" value={c?.pregnant ?? "–"} hint={d?.upcomingBirths.length ? `${d.upcomingBirths.length} doğum 30 gün içinde` : "Yaklaşan doğum yok"} testID="kpi-pregnant" icon={Baby} />
-        <StatTile label="Bekleyen iş" value={critical} hint={c ? (c.staleWeights ? `${c.staleWeights} hayvan 60 gündür tartılmadı` : "Tartımlar güncel") : undefined} testID="kpi-alerts" icon={ListChecks} tone={critical === 0 ? "success" : critical > 3 ? "danger" : "warning"} />
-      </div>
+      <StatGrid>
+        <StatTile label="Sürü" value={c?.total ?? "–"} hint={c ? `${c.sheep} koyun · ${c.goat} keçi` : undefined} testID="kpi-total" tone="brand" />
+        <StatTile label="Dişi / Erkek" value={c ? `${c.female} / ${c.male}` : "–"} hint={c ? `${c.lambs} yavru (6 ay altı)` : undefined} />
+        <StatTile label="Gebe" value={c?.pregnant ?? "–"} hint={d?.upcomingBirths.length ? `${d.upcomingBirths.length} doğum 30 gün içinde` : "Yaklaşan doğum yok"} testID="kpi-pregnant" />
+        <StatTile label="Bekleyen iş" value={critical} hint={c ? (c.staleWeights ? `${c.staleWeights} hayvan 60 gündür tartılmadı` : "Tartımlar güncel") : undefined} testID="kpi-alerts" tone={critical === 0 ? "success" : critical > 3 ? "danger" : "warning"} />
+      </StatGrid>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatGrid className="mt-px">
         <StatTile
           label="Aşı uyumu"
           value={p?.compliance != null ? `%${Math.round(p.compliance * 100)}` : "–"}
           hint={p ? (p.overdueAnimals ? `${p.overdueAnimals} hayvanda geciken doz` : "Geciken doz yok") : undefined}
           testID="kpi-compliance"
-          icon={Syringe}
           tone={p?.compliance == null ? "default" : p.compliance >= 0.9 ? "success" : p.compliance >= 0.7 ? "warning" : "danger"}
         />
         <StatTile
@@ -148,7 +147,6 @@ export function TodayPage() {
           value={p?.weightTrend != null ? `${p.weightTrend > 0 ? "+" : ""}${(Math.round(p.weightTrend * 10) / 10).toString().replace(".", ",")} kg` : "–"}
           hint={p?.weightTrendCount ? `${p.weightTrendCount} hayvanda son 30 gün` : "30 günde iki tartım gerek"}
           testID="kpi-weight-trend"
-          icon={Scale}
           tone={p?.weightTrend == null ? "default" : p.weightTrend >= 0 ? "success" : "warning"}
         />
         <StatTile
@@ -156,14 +154,13 @@ export function TodayPage() {
           value={p?.feedTrend != null ? `${p.feedTrend > 0 ? "+" : ""}%${Math.round(p.feedTrend * 100)}` : "–"}
           hint={p?.feedLast7 ? `Son 7 günde ${Math.round(p.feedLast7)} birim` : "Tüketim girilince hesaplanır"}
           testID="kpi-feed-trend"
-          icon={Wheat}
         />
         {isOwner ? (
-          <StatTile label="Bu ay gider" value={formatMoney(month.data?.expense ?? 0)} hint={month.data?.income ? `${formatMoney(month.data.income)} gelir` : "Bu ay gelir yok"} testID="kpi-month-expense" icon={Wallet} />
+          <StatTile label="Bu ay gider" value={formatMoney(month.data?.expense ?? 0)} hint={month.data?.income ? `${formatMoney(month.data.income)} gelir` : "Bu ay gelir yok"} testID="kpi-month-expense" />
         ) : (
-          <StatTile label="Stok uyarısı" value={stockAlerts.length} hint={stockAlerts.length ? stockAlerts.map((r) => r.name).join(", ") : "Stok yeterli"} testID="kpi-stock" icon={Package} tone={stockAlerts.length ? "warning" : "success"} />
+          <StatTile label="Stok uyarısı" value={stockAlerts.length} hint={stockAlerts.length ? stockAlerts.map((r) => r.name).join(", ") : "Stok yeterli"} testID="kpi-stock" tone={stockAlerts.length ? "warning" : "success"} />
         )}
-      </div>
+      </StatGrid>
 
       <div
         className={cn(
@@ -199,12 +196,12 @@ export function TodayPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ListChecks className="size-4 text-primary" /> Bugünkü işler
+            <CardTitle>
+            Bugünkü işler
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
-            {d && critical === 0 ? <EmptyState icon={Check} title="Bekleyen iş yok" description="Geciken doz, süren arınma, olağandışı gözlem ve bekleyen gebelik kontrolü yok." /> : null}
+            {d && critical === 0 ? <EmptyState title="Bekleyen iş yok" description="Geciken doz, süren arınma, olağandışı gözlem ve bekleyen gebelik kontrolü yok." /> : null}
             {d?.overdue.map((h) => (
               <Row key={h.id} to={`/animals/${h.animalId}`} title={`${h.tagNo} · ${h.productName ?? h.type}`} badge={<Badge variant="destructive">Doz gecikti · {isoToDisplay(h.nextDueAt)}</Badge>} />
             ))}
@@ -227,8 +224,8 @@ export function TodayPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Package className="size-4 text-primary" /> Stok ve günlük tur
+            <CardTitle>
+            Stok ve günlük tur
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
@@ -265,12 +262,12 @@ export function TodayPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Baby className="size-4 text-primary" /> Yaklaşan doğumlar
+            <CardTitle>
+            Yaklaşan doğumlar
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
-            {d && d.upcomingBirths.length === 0 ? <EmptyState icon={Baby} title="30 gün içinde beklenen doğum yok" /> : null}
+            {d && d.upcomingBirths.length === 0 ? <EmptyState title="30 gün içinde beklenen doğum yok" /> : null}
             {d?.upcomingBirths.map((a) => {
               const days = a.expectedBirthAt ? daysUntil(a.expectedBirthAt) : null;
               return (
@@ -288,12 +285,12 @@ export function TodayPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Star className="size-4 text-primary" /> Son olaylar
+            <CardTitle>
+            Son olaylar
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {feed.data && feed.data.length === 0 ? <EmptyState icon={Star} title="Henüz olay yok" description="Tartım, aşı, gözlem girdikçe burada akar." /> : null}
+            {feed.data && feed.data.length === 0 ? <EmptyState title="Henüz olay yok" description="Tartım, aşı, gözlem girdikçe burada akar." /> : null}
             <ul className="grid gap-1" data-testid="today-feed">
               {collapseBatches(feed.data ?? []).map((it) => {
                 const Icon = eventIcon[it.event.type];

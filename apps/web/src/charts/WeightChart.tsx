@@ -28,7 +28,7 @@ export function WeightChart({ points }: { points: WeightPoint[] }) {
       padding: { top: 12, right: 16, bottom: 8, left: 8 },
       background: "transparent",
       // Marka yeşili; koyu temada okunur kalsın diye açık ton.
-      color: theme === "dark" ? ["#6FBF8E"] : ["#2F6B4F"],
+      color: theme === "dark" ? ["#5BE08E"] : ["#2E6B4E"],
       theme: theme === "dark" ? "dark" : "light",
     }) as unknown as ISpec,
     [points, theme],

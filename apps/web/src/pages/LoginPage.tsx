@@ -35,7 +35,7 @@ export function LoginPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       {/* Marka tarafı: geniş ekranda logo ve vaat, dar ekranda gizli. */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex">
+      <div className="relative hidden flex-col justify-between overflow-hidden border-r bg-sidebar p-12 text-sidebar-foreground lg:flex">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 size-[28rem] rounded-full opacity-15 blur-3xl"
@@ -45,13 +45,13 @@ export function LoginPage() {
         <span aria-hidden />
         <div className="relative grid gap-4">
           <img src="/logo-mark.png" alt="" className="size-24 rounded-3xl shadow-xl" />
-          <Wordmark tone="light" className="text-4xl" />
+          <Wordmark tone="light" className="text-4xl tracking-[0.02em]" />
           <p className="max-w-sm text-lg text-sidebar-foreground/80">{BRAND_TAGLINE}</p>
           <p className="max-w-sm text-sm leading-relaxed text-sidebar-foreground/60">
             Sürünün sağlığı, üremesi, kilosu, yemi ve masrafı tek yerde. Ahırda internet olmasa da çalışır, bağlantı gelince kendiliğinden eşitlenir.
           </p>
         </div>
-        <p className="relative text-xs uppercase tracking-[0.3em] text-sidebar-foreground/50">Takip · Bakım · Veri · Gelecek</p>
+        <p className="label-micro relative tracking-[0.3em] text-sidebar-foreground/40">Takip · Bakım · Veri · Gelecek</p>
       </div>
 
       <div className="flex items-center justify-center p-6">
@@ -64,8 +64,9 @@ export function LoginPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="mb-5 grid gap-1">
-                <h1 className="text-xl font-semibold">Çiftlik paneline giriş</h1>
+              <div className="mb-6 grid gap-1.5">
+                <span className="label-micro text-muted-foreground">Oturum</span>
+                <h1 className="display text-xl">Çiftlik paneline giriş</h1>
                 <p className="text-sm text-muted-foreground">Hesabın yoksa çiftlik sahibi açar.</p>
               </div>
               <form onSubmit={submit} className="grid gap-4">

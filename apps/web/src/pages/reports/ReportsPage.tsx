@@ -3,7 +3,7 @@ import { Baby, BarChart3, Coins, LogOut, Scale, Syringe, Users } from "lucide-re
 import { useMemo } from "react";
 
 import { BarChart, DonutChart, TrendChart } from "@/charts/Charts";
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +34,7 @@ export function ReportsPage() {
 
   return (
     <>
-      <PageHeader icon={BarChart3} title="Raporlar" description="Sürü yapısı, üretim ve para; son 12 ay" />
+      <PageHeader title="Raporlar" description="Sürü yapısı, üretim ve para; son 12 ay" />
 
       <Tabs defaultValue="herd">
         <TabsList className="mb-4">
@@ -52,16 +52,16 @@ export function ReportsPage() {
         </TabsList>
 
         <TabsContent value="herd">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label="Aktif sürü" value={h?.total ?? "–"} hint={h ? h.bySpecies.map((s) => `${s.value} ${s.name.toLocaleLowerCase("tr")}`).join(" · ") : undefined} testID="report-total" icon={Users} tone="brand" />
+          <StatGrid>
+            <StatTile label="Aktif sürü" value={h?.total ?? "–"} hint={h ? h.bySpecies.map((s) => `${s.value} ${s.name.toLocaleLowerCase("tr")}`).join(" · ") : undefined} testID="report-total" tone="brand" />
             <StatTile label="Dişi / Erkek" value={h ? h.bySex.map((s) => s.value).join(" / ") : "–"} hint={h?.bySex.map((s) => s.name).join(" / ")} />
-            <StatTile label="Ortalama kilo" value={h?.avgWeight != null ? formatKg(Math.round(h.avgWeight * 10) / 10) : "–"} hint={h ? `${h.weighed} hayvan tartıldı` : undefined} testID="report-weight" icon={Scale} />
+            <StatTile label="Ortalama kilo" value={h?.avgWeight != null ? formatKg(Math.round(h.avgWeight * 10) / 10) : "–"} hint={h ? `${h.weighed} hayvan tartıldı` : undefined} testID="report-weight" />
             <StatTile label="Irk" value={h?.byBreed.length ?? "–"} hint={h?.byBreed[0] ? `En çok ${h.byBreed[0].name}` : undefined} />
-          </div>
+          </StatGrid>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Yaş grupları</CardTitle>
+                <CardTitle>Yaş grupları</CardTitle>
               </CardHeader>
               <CardContent>
                 <DonutChart data={h?.byAge ?? []} testID="chart-age" />
@@ -69,7 +69,7 @@ export function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Irk dağılımı</CardTitle>
+                <CardTitle>Irk dağılımı</CardTitle>
               </CardHeader>
               <CardContent>
                 <BarChart data={h?.byBreed ?? []} testID="chart-breed" />
@@ -79,16 +79,16 @@ export function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="production">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label="Doğum" value={p?.births ?? "–"} hint={p ? `${p.live} canlı · ${p.stillborn} ölü doğum` : undefined} testID="report-births" icon={Baby} />
+          <StatGrid>
+            <StatTile label="Doğum" value={p?.births ?? "–"} hint={p ? `${p.live} canlı · ${p.stillborn} ölü doğum` : undefined} testID="report-births" />
             <StatTile label="Doğum başına yavru" value={p ? formatNumber(Math.round(p.perBirth * 100) / 100) : "–"} />
             <StatTile label="Yaşama oranı" value={p?.survival != null ? `%${Math.round(p.survival * 100)}` : "–"} />
             <StatTile label="Sağlık gideri" value={p ? formatMoney(p.healthCost) : "–"} hint={p ? `${p.health.reduce((s, x) => s + x.count, 0)} kayıt` : undefined} />
-          </div>
+          </StatGrid>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Aylık doğan yavru</CardTitle>
+                <CardTitle>Aylık doğan yavru</CardTitle>
               </CardHeader>
               <CardContent>
                 <BarChart data={p?.birthsByMonth ?? []} testID="chart-births" />
@@ -96,7 +96,7 @@ export function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Doğum zorluğu</CardTitle>
+                <CardTitle>Doğum zorluğu</CardTitle>
               </CardHeader>
               <CardContent>
                 <DonutChart data={p?.byDifficulty ?? []} testID="chart-difficulty" />
@@ -104,12 +104,12 @@ export function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Sağlık kayıtları</CardTitle>
+                <CardTitle>Sağlık kayıtları</CardTitle>
               </CardHeader>
               <CardContent>
-                {p && p.health.length === 0 ? <EmptyState icon={Syringe} title="Henüz sağlık kaydı yok" /> : null}
+                {p && p.health.length === 0 ? <EmptyState title="Henüz sağlık kaydı yok" /> : null}
                 <Table>
-                  <TableHeader className="bg-muted/50">
+                  <TableHeader>
                     <TableRow>
                       <TableHead>Tür</TableHead>
                       <TableHead className="text-right">Kayıt</TableHead>
@@ -130,12 +130,12 @@ export function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Sürüden çıkışlar</CardTitle>
+                <CardTitle>Sürüden çıkışlar</CardTitle>
               </CardHeader>
               <CardContent>
-                {p && p.exits.length === 0 ? <EmptyState icon={LogOut} title="Çıkış kaydı yok" /> : null}
+                {p && p.exits.length === 0 ? <EmptyState title="Çıkış kaydı yok" /> : null}
                 <Table>
-                  <TableHeader className="bg-muted/50">
+                  <TableHeader>
                     <TableRow>
                       <TableHead>Neden</TableHead>
                       <TableHead className="text-right">Hayvan</TableHead>
@@ -159,21 +159,20 @@ export function ReportsPage() {
 
         {isOwner ? (
           <TabsContent value="money">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <StatTile label="12 ay gider" value={formatMoney(totals.expense)} hint="Alımlar ve stok dışı giderler" testID="report-expense" icon={Coins} />
-              <StatTile label="12 ay gelir" value={formatMoney(totals.income)} testID="report-income" icon={Coins} />
+            <StatGrid className="lg:grid-cols-3">
+              <StatTile label="12 ay gider" value={formatMoney(totals.expense)} hint="Alımlar ve stok dışı giderler" testID="report-expense" />
+              <StatTile label="12 ay gelir" value={formatMoney(totals.income)} testID="report-income" />
               <StatTile
                 label="Denge"
                 value={formatMoney(totals.income - totals.expense)}
                 hint={totals.income >= totals.expense ? "Artıda" : "Ekside"}
-                icon={Scale}
                 tone={totals.income >= totals.expense ? "success" : "danger"}
               />
-            </div>
+            </StatGrid>
             <div className="mt-4 grid gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Aylık gider ve gelir</CardTitle>
+                  <CardTitle>Aylık gider ve gelir</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TrendChart data={moneySeries} kind="bar" unit="TL" testID="chart-money" height={280} />
@@ -181,7 +180,7 @@ export function ReportsPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Kalem bazında aylık tüketim</CardTitle>
+                  <CardTitle>Kalem bazında aylık tüketim</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TrendChart data={consumptionSeries} testID="chart-consumption" height={280} />
@@ -189,12 +188,12 @@ export function ReportsPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Hayvan başı maliyet ve yem verimliliği</CardTitle>
+                  <CardTitle>Hayvan başı maliyet ve yem verimliliği</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table data-testid="table-efficiency">
-                      <TableHeader className="bg-muted/50">
+                      <TableHeader>
                         <TableRow>
                           <TableHead>Ay</TableHead>
                           <TableHead className="text-right">Gider</TableHead>

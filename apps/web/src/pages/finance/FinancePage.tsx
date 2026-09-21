@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ZodError } from "zod";
 
 import { DateField } from "@/components/DateField";
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -53,7 +53,6 @@ export function FinancePage() {
   return (
     <>
       <PageHeader
-        icon={Wallet}
         title="Finans"
         description="Aylık gider ve gelir; stok alımları da buraya işlenir"
         actions={
@@ -80,20 +79,20 @@ export function FinancePage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="Gider" value={formatMoney(s?.expense ?? 0)} hint="Alımlar ve stok dışı giderler" testID="kpi-expense" icon={TrendingDown} />
-        <StatTile label="Gelir" value={formatMoney(s?.income ?? 0)} testID="kpi-income" icon={TrendingUp} />
-        <StatTile label="Fark" value={formatMoney(net)} hint={net >= 0 ? "Bu ay artıda" : "Bu ay ekside"} testID="kpi-net" icon={Scale} tone={net >= 0 ? "success" : "danger"} />
-      </div>
+      <StatGrid className="lg:grid-cols-3">
+        <StatTile label="Gider" value={formatMoney(s?.expense ?? 0)} hint="Alımlar ve stok dışı giderler" testID="kpi-expense" />
+        <StatTile label="Gelir" value={formatMoney(s?.income ?? 0)} testID="kpi-income" />
+        <StatTile label="Fark" value={formatMoney(net)} hint={net >= 0 ? "Bu ay artıda" : "Bu ay ekside"} testID="kpi-net" tone={net >= 0 ? "success" : "danger"} />
+      </StatGrid>
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <PieChart className="size-4 text-primary" /> Gider dağılımı
+          <CardTitle>
+            Gider dağılımı
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
-          {s && s.byCategory.length === 0 ? <EmptyState icon={PieChart} title="Bu ay gider girilmemiş" /> : null}
+          {s && s.byCategory.length === 0 ? <EmptyState title="Bu ay gider girilmemiş" /> : null}
           {s?.byCategory.map((c) => (
             <div key={`${c.category}:${c.label}`} className="grid gap-1.5" data-testid={`cost-row-${c.label || c.category}`}>
               <div className="flex justify-between text-sm">
@@ -123,7 +122,7 @@ export function FinancePage() {
 
         <TabsContent value="expenses">
           {expenses.data?.length === 0 ? (
-            <EmptyState icon={TrendingDown} title="Bu ay stok dışı gider yok" description="Yem alımları Stok ekranından girilir." />
+            <EmptyState title="Bu ay stok dışı gider yok" description="Yem alımları Stok ekranından girilir." />
           ) : (
             <Ledger
               rows={(expenses.data ?? []).map((e) => ({ id: e.id, date: e.spentAt, category: labels.expenseCategory[e.category as ExpenseCategory] ?? e.category, description: e.description, amount: e.amount }))}
@@ -135,7 +134,7 @@ export function FinancePage() {
 
         <TabsContent value="incomes">
           {incomes.data?.length === 0 ? (
-            <EmptyState icon={TrendingUp} title="Bu ay gelir yok" />
+            <EmptyState title="Bu ay gelir yok" />
           ) : (
             <Ledger
               rows={(incomes.data ?? []).map((i) => ({ id: i.id, date: i.receivedAt, category: labels.incomeCategory[i.category as IncomeCategory] ?? i.category, description: i.description, amount: i.amount }))}
@@ -168,9 +167,9 @@ export function FinancePage() {
 
 function Ledger({ rows, onDelete, testIdPrefix }: { rows: { id: string; date: string; category: string; description: string | null; amount: number }[]; onDelete: (id: string) => void; testIdPrefix: string }) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="overflow-hidden border bg-card">
       <Table>
-        <TableHeader className="bg-muted/50">
+        <TableHeader>
           <TableRow>
             <TableHead>Tarih</TableHead>
             <TableHead>Kategori</TableHead>

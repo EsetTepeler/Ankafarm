@@ -41,7 +41,6 @@ export function ExportPage() {
   return (
     <>
       <PageHeader
-        icon={FileSpreadsheet}
         title="Dışa aktarma"
         description="Kayıtları Excel'de açılabilir CSV olarak indir"
         actions={

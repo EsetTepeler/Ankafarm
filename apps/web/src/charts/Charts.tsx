@@ -19,8 +19,8 @@ function ChartFrame({ empty, height = 240, testID, children }: { empty: boolean;
  * edilebilecek kadar uzak. Canvas çizimi CSS değişkenlerini okuyamadığı için renkler sabit.
  */
 const palette = {
-  light: ["#2F6B4F", "#C9974E", "#4E7F46", "#3E6B8A", "#B4603C", "#7C6AA6"],
-  dark: ["#6FBF8E", "#E9C48E", "#9BD17A", "#7FB3D5", "#E8996B", "#B79BD6"],
+  light: ["#2E6B4E", "#B98A3C", "#4F8C63", "#3D6B8A", "#A9543A", "#6F639B"],
+  dark: ["#5BE08E", "#E3C07A", "#7FD8B0", "#79B2DE", "#E2916B", "#B39CDE"],
 } as const;
 
 const base = (theme: string) => ({

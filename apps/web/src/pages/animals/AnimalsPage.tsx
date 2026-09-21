@@ -60,7 +60,6 @@ export function AnimalsPage() {
   return (
     <>
       <PageHeader
-        icon={Users}
         title="Hayvanlar"
         description={list.isLoading ? "Yükleniyor" : `${rows.length} hayvan`}
         actions={
@@ -120,7 +119,6 @@ export function AnimalsPage() {
 
       {!list.isLoading && rows.length === 0 ? (
         <EmptyState
-          icon={Users}
           title={search || species || sex || groupId ? "Eşleşen hayvan yok" : status === "archived" ? "Arşivde hayvan yok" : "Henüz hayvan yok"}
           action={
             <Button asChild size="sm">
@@ -129,9 +127,9 @@ export function AnimalsPage() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden border bg-card">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader>
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox checked={allVisibleSelected} onCheckedChange={(v) => setSelected(v ? new Set(rows.map((a) => a.id)) : new Set())} aria-label="Tümünü seç" data-testid="select-all" />
@@ -153,7 +151,7 @@ export function AnimalsPage() {
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={selected.has(a.id)} onCheckedChange={(v) => toggle(a.id, v === true)} aria-label={`${a.tagNo} seç`} data-testid={`select-${a.tagNo}`} />
                   </TableCell>
-                  <TableCell className="font-medium tabular-nums">{a.tagNo}</TableCell>
+                  <TableCell className="font-mono text-[13px] font-medium">{a.tagNo}</TableCell>
                   <TableCell>{a.name ?? <span className="text-muted-foreground">–</span>}</TableCell>
                   <TableCell>{labels.species[a.species as Species]}</TableCell>
                   <TableCell>{labels.sex[a.sex as Sex]}</TableCell>

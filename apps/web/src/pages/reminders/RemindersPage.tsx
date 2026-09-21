@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 
 import { DateField } from "@/components/DateField";
 import { EntityPicker } from "@/components/EntityPicker";
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,7 +66,6 @@ export function RemindersPage() {
   return (
     <>
       <PageHeader
-        icon={Bell}
         title="Hatırlatıcılar"
         description="Geciken ve yaklaşan işler; aşı dozları, gebelik kontrolleri ve kendi notların"
         actions={
@@ -76,16 +75,16 @@ export function RemindersPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Geciken" value={groups.overdue.length} hint={groups.overdue.length ? "En eski: " + isoToDisplay(groups.overdue[0]!.dueAt) : "Geciken iş yok"} testID="rem-overdue" icon={TriangleAlert} tone={groups.overdue.length ? "danger" : "success"} />
-        <StatTile label="Bugün" value={groups.today.length} testID="rem-today" icon={CalendarDays} tone={groups.today.length ? "warning" : "default"} />
-        <StatTile label="Bu hafta" value={groups.week.length} testID="rem-week" icon={CalendarRange} />
-        <StatTile label="Tamamlanan" value={done.data?.length ?? 0} hint="Son kayıtlar" testID="rem-done" icon={CircleCheck} tone="success" />
-      </div>
+      <StatGrid>
+        <StatTile label="Geciken" value={groups.overdue.length} hint={groups.overdue.length ? "En eski: " + isoToDisplay(groups.overdue[0]!.dueAt) : "Geciken iş yok"} testID="rem-overdue" tone={groups.overdue.length ? "danger" : "success"} />
+        <StatTile label="Bugün" value={groups.today.length} testID="rem-today" tone={groups.today.length ? "warning" : "default"} />
+        <StatTile label="Bu hafta" value={groups.week.length} testID="rem-week" />
+        <StatTile label="Tamamlanan" value={done.data?.length ?? 0} hint="Son kayıtlar" testID="rem-done" tone="success" />
+      </StatGrid>
 
       <div className="mt-6 grid gap-4">
         {groups.overdue.length + groups.today.length + groups.week.length + groups.later.length === 0 ? (
-          <EmptyState icon={CircleCheck} title="Bekleyen iş yok" description="Aşı dozları, gebelik kontrolleri ve kendi notların burada toplanır." />
+          <EmptyState title="Bekleyen iş yok" description="Aşı dozları, gebelik kontrolleri ve kendi notların burada toplanır." />
         ) : null}
         <Section title="Geciken" items={groups.overdue} tone="danger" testID="section-overdue" />
         <Section title="Bugün" items={groups.today} tone="warn" testID="section-today" />
@@ -95,8 +94,8 @@ export function RemindersPage() {
         {done.data?.length ? (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <CircleCheck className="size-4 text-success" /> Tamamlananlar
+              <CardTitle>
+            Tamamlananlar
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
@@ -129,7 +128,7 @@ function Section({ title, items, tone, testID }: { title: string; items: Reminde
   return (
     <Card className={cn("border-l-4", tone === "danger" ? "border-l-danger" : tone === "warn" ? "border-l-warning" : "border-l-border")} data-testid={testID}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="flex items-center gap-2">
           {title}
           <Badge variant={tone === "danger" ? "destructive" : tone === "warn" ? "default" : "outline"}>{items.length}</Badge>
         </CardTitle>

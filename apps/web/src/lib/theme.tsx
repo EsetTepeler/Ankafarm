@@ -6,15 +6,16 @@ type Theme = "light" | "dark";
 const KEY = "anka.theme";
 
 const ThemeContext = createContext<{ theme: Theme; setTheme: (t: Theme) => void; toggle: () => void }>({
-  theme: "light",
+  theme: "dark",
   setTheme: () => {},
   toggle: () => {},
 });
 
+/** Tasarım koyu tema için kuruldu; sistem açık tema isterse ona uyulur, kayıtlı tercih her ikisini de ezer. */
 function readInitial(): Theme {
   const saved = storage.get(KEY);
   if (saved === "dark" || saved === "light") return saved;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
 /** Tema: html üzerinde .dark sınıfı, tercih localStorage'da. */

@@ -42,7 +42,7 @@ export function BulkPage() {
 
   return (
     <>
-      <PageHeader icon={Syringe} title="Toplu işlem" description="Tüm sürüye veya seçili hayvanlara tek seferde kayıt" />
+      <PageHeader title="Toplu işlem" description="Tüm sürüye veya seçili hayvanlara tek seferde kayıt" />
       <Tabs defaultValue="health">
         <TabsList className="mb-4">
           <TabsTrigger value="health" data-testid="tab-bulk-health">
@@ -127,8 +127,8 @@ function HealthTab({ rows, loading, picker }: TabProps) {
     <div className="grid gap-4 lg:grid-cols-5">
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Syringe className="size-4 text-primary" /> Kayıt bilgileri
+          <CardTitle>
+            Kayıt bilgileri
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -138,7 +138,7 @@ function HealthTab({ rows, loading, picker }: TabProps) {
 
       <Card className="lg:col-span-3">
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
-          <CardTitle className="text-base">
+          <CardTitle>
             Kime?{" "}
             <span className="font-normal text-muted-foreground" data-testid="bulk-count">
               {selected.length} / {rows.length} hayvan seçili
@@ -151,11 +151,11 @@ function HealthTab({ rows, loading, picker }: TabProps) {
         <CardContent className="grid gap-3">
           {picker}
           {rows.length === 0 ? (
-            <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+            <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
           ) : (
-            <div className="max-h-[420px] overflow-auto rounded-xl border">
+            <div className="max-h-[420px] overflow-auto border">
               <Table>
-                <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
+                <TableHeader className="sticky top-0 z-[1] bg-card">
                   <TableRow>
                     <TableHead className="w-10" />
                     <TableHead>Küpe</TableHead>
@@ -222,7 +222,7 @@ function WeightTab({ rows, loading, picker }: TabProps) {
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="text-base">
+        <CardTitle>
           Tartım{" "}
           <span className="font-normal text-muted-foreground" data-testid="weigh-count">
             {filled.length} / {rows.length} girildi
@@ -238,11 +238,11 @@ function WeightTab({ rows, loading, picker }: TabProps) {
           <DateField id="weigh-date" label="Tarih" value={date} onChange={setDate} testID="weigh-date" required />
         </div>
         {rows.length === 0 ? (
-          <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+          <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
         ) : (
-          <div className="max-h-[520px] overflow-auto rounded-xl border">
+          <div className="max-h-[520px] overflow-auto border">
             <Table>
-              <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
+              <TableHeader className="sticky top-0 z-[1] bg-card">
                 <TableRow>
                   <TableHead>Küpe</TableHead>
                   <TableHead>İsim</TableHead>
@@ -309,7 +309,7 @@ function MoveTab({ rows, loading, picker }: TabProps) {
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
-        <CardTitle className="text-base">
+        <CardTitle>
           Taşınacaklar{" "}
           <span className="font-normal text-muted-foreground" data-testid="move-count">
             {selected.size} seçili
@@ -327,11 +327,11 @@ function MoveTab({ rows, loading, picker }: TabProps) {
       <CardContent className="grid gap-3">
         {picker}
         {rows.length === 0 ? (
-          <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+          <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
         ) : (
-          <div className="max-h-[520px] overflow-auto rounded-xl border">
+          <div className="max-h-[520px] overflow-auto border">
             <Table>
-              <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
+              <TableHeader className="sticky top-0 z-[1] bg-card">
                 <TableRow>
                   <TableHead className="w-10" />
                   <TableHead>Küpe</TableHead>

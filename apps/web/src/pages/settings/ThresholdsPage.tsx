@@ -62,7 +62,6 @@ export function ThresholdsPage() {
   return (
     <>
       <PageHeader
-        icon={SlidersHorizontal}
         title="İçgörü eşikleri"
         description="Uyarıların ne zaman çıkacağını çiftliğine göre ayarla"
         actions={
@@ -79,7 +78,7 @@ export function ThresholdsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Eşikler</CardTitle>
+          <CardTitle>Eşikler</CardTitle>
           <CardDescription>Bu değerler kural motorunda kullanılır; değiştirince bir sonraki hesapta geçerli olur. Gece hesabı 03:00'te çalışır.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">

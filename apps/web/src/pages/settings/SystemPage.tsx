@@ -49,7 +49,7 @@ export function SystemPage() {
 
   return (
     <>
-      <PageHeader icon={ShieldCheck} title="Sistem durumu" description="Sunucu, yedekler ve depolama" />
+      <PageHeader title="Sistem durumu" description="Sunucu, yedekler ve depolama" />
 
       {status.isError ? <p className="mb-4 text-sm text-danger">Sunucuya ulaşılamadı; bu ekran bağlantı ister.</p> : null}
 
@@ -62,7 +62,7 @@ export function SystemPage() {
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="size-4 text-muted-foreground" /> Yedekler
           </CardTitle>
           <CardDescription>Sunucu dışına haftalık kopya ayrıca kurulmalı; README'de tarif var.</CardDescription>
@@ -96,7 +96,7 @@ export function SystemPage() {
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2">
             <HardDrive className="size-4 text-muted-foreground" /> Ne nerede duruyor?
           </CardTitle>
         </CardHeader>

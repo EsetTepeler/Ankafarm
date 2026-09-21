@@ -55,7 +55,7 @@ export function PhotoGallery({ entityTable, entityId, canEdit }: { entityTable: 
       ) : null}
 
       {rows.length === 0 ? (
-        <EmptyState icon={Camera} title="Henüz dosya yok" description="Fotoğraf çek ya da fatura, rapor gibi belgeleri ekle." />
+        <EmptyState title="Henüz dosya yok" description="Fotoğraf çek ya da fatura, rapor gibi belgeleri ekle." />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {rows.map((a) => (

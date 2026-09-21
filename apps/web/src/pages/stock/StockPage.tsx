@@ -3,7 +3,7 @@ import { Hourglass, Package, Pencil, Plus, ShoppingCart, Trash2, TriangleAlert, 
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { EmptyState, PageHeader, StatTile } from "@/components/PageHeader";
+import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,7 +51,6 @@ export function StockPage() {
   return (
     <>
       <PageHeader
-        icon={Package}
         title="Stok"
         description="Yem, su ve malzeme; alım, tüketim ve kalan gün"
         actions={
@@ -68,18 +67,17 @@ export function StockPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatTile label="Kalem" value={rows.filter((r) => r.active).length} hint={`${rows.filter((r) => r.active && r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" icon={Package} />
-        <StatTile label="Uyarı" value={low.length} hint={low.length ? low.map((r) => r.name).join(", ") : "Stok seviyeleri yeterli"} testID="kpi-low" icon={TriangleAlert} tone={low.length ? "warning" : "success"} />
+      <StatGrid className="lg:grid-cols-3">
+        <StatTile label="Kalem" value={rows.filter((r) => r.active).length} hint={`${rows.filter((r) => r.active && r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" />
+        <StatTile label="Uyarı" value={low.length} hint={low.length ? low.map((r) => r.name).join(", ") : "Stok seviyeleri yeterli"} testID="kpi-low" tone={low.length ? "warning" : "success"} />
         <StatTile
           label="İlk biten"
           value={soonest ? `${soonest.daysLeft} gün` : "–"}
           hint={soonest ? `${soonest.name} · ${formatQuantity(soonest.balance ?? 0, soonest.unit)}` : "Tüketim girilince hesaplanır"}
           testID="kpi-soonest"
-          icon={Hourglass}
           tone={soonest?.daysLeft == null ? "default" : soonest.daysLeft <= 7 ? "danger" : soonest.daysLeft <= 14 ? "warning" : "success"}
         />
-      </div>
+      </StatGrid>
 
       <Tabs defaultValue="levels" className="mt-6">
         <TabsList className="mb-4">
@@ -111,11 +109,11 @@ export function StockPage() {
             ) : null}
           </div>
           {rows.length === 0 ? (
-            <EmptyState icon={Package} title="Henüz kalem yok" description="Yonca, saman, arpa ve su kalemleri çiftlik açılışında eklenir." />
+            <EmptyState title="Henüz kalem yok" description="Yonca, saman, arpa ve su kalemleri çiftlik açılışında eklenir." />
           ) : (
-            <div className="overflow-hidden rounded-xl border bg-card">
+            <div className="overflow-hidden border bg-card">
               <Table>
-                <TableHeader className="bg-muted/50">
+                <TableHeader>
                   <TableRow>
                     <TableHead>Kalem</TableHead>
                     <TableHead>Tür</TableHead>
@@ -185,11 +183,11 @@ export function StockPage() {
 
         <TabsContent value="purchases">
           {purchases.data?.length === 0 ? (
-            <EmptyState icon={ShoppingCart} title="Henüz alım yok" />
+            <EmptyState title="Henüz alım yok" />
           ) : (
-            <div className="overflow-hidden rounded-xl border bg-card">
+            <div className="overflow-hidden border bg-card">
               <Table>
-                <TableHeader className="bg-muted/50">
+                <TableHeader>
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>Kalem</TableHead>
@@ -226,11 +224,11 @@ export function StockPage() {
 
         <TabsContent value="consumptions">
           {consumptions.data?.length === 0 ? (
-            <EmptyState icon={Utensils} title="Henüz tüketim girilmedi" description="Günlük turda oluğa konan yemi tek ekrandan gir." />
+            <EmptyState title="Henüz tüketim girilmedi" description="Günlük turda oluğa konan yemi tek ekrandan gir." />
           ) : (
-            <div className="overflow-hidden rounded-xl border bg-card">
+            <div className="overflow-hidden border bg-card">
               <Table>
-                <TableHeader className="bg-muted/50">
+                <TableHeader>
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>Kalem</TableHead>

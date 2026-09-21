@@ -34,7 +34,7 @@ export function BreedingSection({ animal }: { animal: AnimalListItem }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Çiftleşmeler</CardTitle>
+          <CardTitle>Çiftleşmeler</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
           {animal.isPregnant && animal.expectedBirthAt ? (
@@ -76,7 +76,7 @@ export function BreedingSection({ animal }: { animal: AnimalListItem }) {
       {isFemale ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Doğumlar</CardTitle>
+            <CardTitle>Doğumlar</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {lambings.data?.length === 0 ? <EmptyState title="Henüz doğum kaydı yok" /> : null}
