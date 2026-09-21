@@ -104,3 +104,14 @@ docker compose start api web
 
 Sahip ayrıca Ayarlar > Dışa aktarma ekranından tüm kayıtları CSV/ZIP olarak indirebilir; bu, sunucudan bağımsız üçüncü bir kopyadır.
 
+## İçgörü servisi
+
+`apps/insights` Python servisi kayıtlardan kural tabanlı bulgular üretir ve Türkçe cümleye çevirir
+(kilo kaybı, yem kesme, geciken doz, stok bitişi, aylık gider sıçraması...). Uygulama bu servise
+hiç bağlanmaz; bulgular `insights` tablosundan Node API üzerinden okunur.
+
+- Her gece 03:00 tam hesap; gün içinde `sync.push` sonrası etkilenen hayvan veya çiftlik için tetiklenir (30 sn debounce).
+- Eşikler Ayarlar > İçgörü eşikleri ekranından çiftliğe göre ayarlanır; kodda sabit eşik yok.
+- Kendi DB rolüyle çalışır: her tabloda okuma, yalnızca `insights` tablosunda yazma.
+- Yerelde çalıştırmak için: `DATABASE_URL=postgres://ankafarm:ankafarm@localhost:5433/ankafarm PYTHONPATH=apps/insights/src .venv/Scripts/python -m uvicorn insights.api:app --port 8000`
+- Testler: `.venv/Scripts/python -m pytest apps/insights/tests -q`

@@ -7,6 +7,7 @@ import Fastify from "fastify";
 
 import { createTokenService } from "./auth/tokens";
 import { createDb } from "./db/client";
+import { ensureInsightsRole } from "./db/insights-role";
 import { runMigrations } from "./db/migrate";
 import { createInsightsClient } from "./modules/insights/client";
 import { startInsightsListener } from "./modules/insights/listener";
@@ -27,6 +28,7 @@ async function main() {
   app.log.info("Migration'lar güncel");
 
   const { db, pool } = createDb(env.DATABASE_URL);
+  await ensureInsightsRole(db, env.INSIGHTS_DB_PASSWORD, (m) => app.log.info(m));
   const tokens = createTokenService(env.JWT_SECRET, env.ACCESS_TOKEN_TTL_MINUTES);
   await seedIfEmpty(db, env, (m) => app.log.info(m));
 

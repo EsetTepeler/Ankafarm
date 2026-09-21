@@ -40,6 +40,8 @@ services:
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD}
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-Çiftlik Sahibi}
       INSIGHTS_URL: http://insights:8000
+      # Rol db-init ile yalnızca boş veritabanında açılır; mevcut kurulumda API açılışta güvenceye alır.
+      INSIGHTS_DB_PASSWORD: ${SERVICE_PASSWORD_INSIGHTS}
     volumes:
       - uploads:/app/uploads
       # Yedeklerin gerçekten alındığı Ayarlar > Sistem durumu ekranından görünsün; sadece okuma.

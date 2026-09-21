@@ -15,6 +15,8 @@ const envSchema = z.object({
   UPLOADS_DIR: z.string().default("uploads"),
   /** Python içgörü servisi; boşsa tetikleme yapılmaz, gece işi yine çalışır. */
   INSIGHTS_URL: z.string().url().optional(),
+  /** İçgörü servisinin DB rolü parolası; verilirse rol açılışta oluşturulur/güncellenir. */
+  INSIGHTS_DB_PASSWORD: z.string().min(8).optional(),
   SEED_FARM_NAME: z.string().default("Anka Farm"),
   SEED_OWNER_EMAIL: z.string().email().optional(),
   SEED_OWNER_PASSWORD: z.string().min(8).optional(),
