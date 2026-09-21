@@ -5,11 +5,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { printLabelSheet } from "@/features/qr/labels";
 import { animalUrl } from "@/features/qr/qr";
+import { useFarmName } from "@/lib/farm";
 
-/** Hayvanın QR kodu: profil adresi. Ekranda gösterilir, tek etiket yazdırılır; toplu PDF basımı 3.5'te. */
+/** Hayvanın QR kodu: profil adresi. Ekranda gösterilir, tek etiket yazdırılır; toplu basım hayvan listesinden. */
 export function QrDialog({ open, onOpenChange, animalId, tagNo, name }: { open: boolean; onOpenChange: (o: boolean) => void; animalId: string; tagNo: string; name?: string | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const farmName = useFarmName();
   const url = animalUrl(animalId);
 
   useEffect(() => {
@@ -26,21 +29,9 @@ export function QrDialog({ open, onOpenChange, animalId, tagNo, name }: { open: 
     }
   }
 
-  function print() {
-    const png = canvasRef.current?.toDataURL("image/png");
-    if (!png) return;
-    const w = window.open("", "_blank", "width=420,height=520");
-    if (!w) {
-      toast.error("Açılır pencere engellendi");
-      return;
-    }
-    w.document.write(
-      `<!doctype html><title>${tagNo}</title><body style="margin:0;display:grid;place-items:center;height:100vh;font-family:system-ui;text-align:center">` +
-        `<div><img src="${png}" width="224" height="224"><div style="font-size:28px;font-weight:700;margin-top:8px">${tagNo}</div>` +
-        `${name ? `<div style="font-size:16px;color:#555">${name}</div>` : ""}</div>` +
-        `<script>window.onload=function(){window.print();window.close()}</script></body>`,
-    );
-    w.document.close();
+  async function print() {
+    const ok = await printLabelSheet([{ id: animalId, tagNo, name }], "large", farmName);
+    if (!ok) toast.error("Açılır pencere engellendi");
   }
 
   return (
@@ -62,7 +53,7 @@ export function QrDialog({ open, onOpenChange, animalId, tagNo, name }: { open: 
           <Button variant="outline" onClick={() => void copy()}>
             <Copy /> Bağlantıyı kopyala
           </Button>
-          <Button onClick={print} data-testid="qr-print">
+          <Button onClick={() => void print()} data-testid="qr-print">
             <Printer /> Yazdır
           </Button>
         </DialogFooter>

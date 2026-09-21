@@ -1,5 +1,5 @@
 import { formatKg, labels, type GroupKind, type Sex, type Species } from "@anka/shared";
-import { ArrowLeftRight, CloudUpload, Plus, Syringe, X } from "lucide-react";
+import { ArrowLeftRight, CloudUpload, Plus, Printer, Syringe, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAnimals } from "@/features/animals/repo";
 import { MoveDialog } from "@/features/groups/MoveDialog";
+import { LabelDialog } from "@/features/qr/LabelDialog";
 import { useGroups } from "@/features/groups/repo";
 import { formatAge } from "@/utils/date";
 
@@ -26,6 +27,7 @@ export function AnimalsPage() {
   const [sex, setSex] = useState<Sex | undefined>();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [moveOpen, setMoveOpen] = useState(false);
+  const [labelOpen, setLabelOpen] = useState(false);
   const list = useAnimals({ search, status, species, sex, groupId });
   const groups = useGroups();
   const rows = list.data ?? [];
@@ -101,6 +103,9 @@ export function AnimalsPage() {
           <Button size="sm" variant="outline" onClick={() => setMoveOpen(true)} data-testid="bulk-move">
             <ArrowLeftRight /> Gruba taşı
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setLabelOpen(true)} data-testid="bulk-labels">
+            <Printer /> Etiket yazdır
+          </Button>
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} className="ml-auto">
             <X /> Seçimi bırak
           </Button>
@@ -160,6 +165,7 @@ export function AnimalsPage() {
       )}
 
       <MoveDialog open={moveOpen} onOpenChange={setMoveOpen} animalIds={selectedVisible.map((a) => a.id)} onMoved={() => setSelected(new Set())} />
+      <LabelDialog open={labelOpen} onOpenChange={setLabelOpen} animals={selectedVisible.map((a) => ({ id: a.id, tagNo: a.tagNo, name: a.name }))} />
     </>
   );
 }

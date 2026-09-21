@@ -673,6 +673,24 @@ try {
     await list.getByText("Tartım").first().waitFor({ timeout: 15_000 });
     if (await list.getByText("Sürüden çıkış").count()) throw new Error("filtre dışı kayıt listede");
   });
+
+  await step("QR etiket sayfası: seçili hayvanlar için yazdırılabilir etiketler", async () => {
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`select-${tag1}`).click();
+    await page.getByTestId(`select-${tag2}`).click();
+    await page.getByTestId("bulk-labels").click();
+    await page.getByTestId("label-size-small").click();
+    const [sheet] = await Promise.all([context.waitForEvent("page"), page.getByTestId("label-print").click()]);
+    await sheet.waitForLoadState("domcontentloaded");
+    await sheet.locator(".label").first().waitFor({ timeout: 10_000 });
+    const count = await sheet.locator(".label").count();
+    if (count !== 2) throw new Error(`${count} etiket üretildi, 2 bekleniyordu`);
+    await sheet.getByText(tag1, { exact: true }).waitFor({ timeout: 5_000 });
+    const src = await sheet.locator(".label img").first().getAttribute("src");
+    if (!src || !src.startsWith("data:image/png")) throw new Error("QR görseli yok");
+    await sheet.close();
+    await page.getByTestId("selection-bar").waitFor({ timeout: 5_000 });
+  });
 } finally {
       await ctx3.close();
     }
