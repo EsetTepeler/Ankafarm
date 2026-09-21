@@ -8,6 +8,8 @@ import Fastify from "fastify";
 import { createTokenService } from "./auth/tokens";
 import { createDb } from "./db/client";
 import { runMigrations } from "./db/migrate";
+import { createInsightsClient } from "./modules/insights/client";
+import { startInsightsListener } from "./modules/insights/listener";
 import { registerUploadRoutes } from "./modules/uploads/routes";
 import { loadEnv, webOrigins } from "./env";
 import { createRealtime } from "./modules/realtime";
@@ -47,12 +49,14 @@ async function main() {
 
   const realtime = createRealtime(app, tokens, origins, env.NODE_ENV === "production");
   registerUploadRoutes(app, db, tokens, env.UPLOADS_DIR);
+  const insights = createInsightsClient(env.INSIGHTS_URL, app.log);
+  const insightsListener = startInsightsListener(env.DATABASE_URL, realtime, app.log);
 
   await app.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
     trpcOptions: {
       router: appRouter,
-      createContext: makeContextFactory({ db, env, tokens, realtime }),
+      createContext: makeContextFactory({ db, env, tokens, realtime, insights }),
       onError({ path, error }) {
         if (error.code === "INTERNAL_SERVER_ERROR") app.log.error({ path, err: error }, "tRPC hatası");
       },
@@ -61,6 +65,7 @@ async function main() {
 
   const shutdown = async () => {
     app.log.info("Kapanıyor");
+    await insightsListener.close();
     await realtime.close();
     await app.close();
     await pool.end();

@@ -8,6 +8,11 @@ export function bindQueryClient(qc: QueryClient) {
   queryClient = qc;
 }
 
+/** Senkron dışı tazelemeler için (örn. içgörü olayı). */
+export function getQueryClient(): QueryClient | null {
+  return queryClient;
+}
+
 /** Yerel veri sorgularının anahtarı: ["local", tablo, ...]. */
 export function localKey(table: LocalTableName, ...rest: unknown[]) {
   return ["local", table, ...rest] as const;

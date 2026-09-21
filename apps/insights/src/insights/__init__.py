@@ -1,0 +1,1 @@
+"""Anka Farm icgoru servisi."""

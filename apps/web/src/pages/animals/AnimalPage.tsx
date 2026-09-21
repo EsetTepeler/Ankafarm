@@ -23,6 +23,8 @@ import { useTimeline } from "@/features/animals/timeline";
 import { BreedingDialog, BreedingSection, LambingDialog } from "@/features/breeding/BreedingSection";
 import { ExitDialog } from "@/features/exits/ExitDialog";
 import { PhotoGallery } from "@/features/attachments/PhotoGallery";
+import { useInsights } from "@/features/insights/repo";
+import { InsightCard, type InsightRow } from "@/pages/insights/InsightsPage";
 import { MoveDialog } from "@/features/groups/MoveDialog";
 import { QrDialog } from "@/features/qr/QrDialog";
 import { undoExit, useExits } from "@/features/exits/repo";
@@ -53,6 +55,7 @@ export function AnimalPage() {
   const weights = useWeights(id);
   const health = useHealth(id);
   const obs = useObservations(id);
+  const insights = useInsights({ animalId: id });
   const exits = useExits(id);
   const [weightOpen, setWeightOpen] = useState(false);
   const [healthOpen, setHealthOpen] = useState(false);
@@ -206,6 +209,10 @@ export function AnimalPage() {
           <TabsTrigger value="photos" data-testid="tab-photos">
             Fotoğraflar
           </TabsTrigger>
+          <TabsTrigger value="insights" data-testid="tab-insights">
+            İçgörüler
+            {(insights.data?.length ?? 0) > 0 ? <Badge variant="secondary">{insights.data?.length}</Badge> : null}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline">
@@ -295,6 +302,15 @@ export function AnimalPage() {
               {weightRows.length === 0 ? <EmptyState title="Henüz tartım yok" /> : null}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <div className="grid gap-2">
+            {insights.data?.length === 0 ? <EmptyState title="Bu hayvan için bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe uyarılar burada çıkar." /> : null}
+            {((insights.data ?? []) as InsightRow[]).map((row) => (
+              <InsightCard key={row.id} row={row} />
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="photos">

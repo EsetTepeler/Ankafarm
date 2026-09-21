@@ -2,6 +2,7 @@ import type { AccessTokenClaims } from "@anka/shared";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 
 import type { TokenService } from "../auth/tokens";
+import type { InsightsClient } from "../modules/insights/client";
 import type { Realtime } from "../modules/realtime";
 import type { Db } from "../db/client";
 import type { Env } from "../env";
@@ -10,6 +11,7 @@ export interface AppServices {
   db: Db;
   env: Env;
   tokens: TokenService;
+  insights?: InsightsClient;
   realtime: Realtime | null;
 }
 

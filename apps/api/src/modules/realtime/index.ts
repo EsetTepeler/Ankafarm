@@ -43,6 +43,10 @@ export function createRealtime(app: FastifyInstance, tokens: TokenService, allow
 
   return {
     io,
+    /** İçgörüler yenilendi; istemci listeyi tazeler. Senkron tablolarından ayrı bir olay. */
+    emitInsights(farmId: string) {
+      io.to(`farm:${farmId}`).emit("insights", { farmId, at: new Date().toISOString() });
+    },
     emitChanged(farmId: string, tables: SyncedTable[], count: number) {
       const event: ChangedEvent = { farmId, tables, count, at: new Date().toISOString() };
       io.to(`farm:${farmId}`).emit("changed", event);

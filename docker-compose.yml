@@ -10,8 +10,11 @@ services:
       POSTGRES_DB: ankafarm
       POSTGRES_USER: ankafarm
       POSTGRES_PASSWORD: ${SERVICE_PASSWORD_DB}
+      # İçgörü servisinin ayrı rolü ilk kurulumda db-init ile açılır.
+      INSIGHTS_DB_PASSWORD: ${SERVICE_PASSWORD_INSIGHTS}
     volumes:
       - pgdata:/var/lib/postgresql
+      - ./docker/db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ankafarm -d ankafarm"]
       interval: 10s
@@ -36,6 +39,7 @@ services:
       SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL}
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD}
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-Çiftlik Sahibi}
+      INSIGHTS_URL: http://insights:8000
     volumes:
       - uploads:/app/uploads
       # Yedeklerin gerçekten alındığı Ayarlar > Sistem durumu ekranından görünsün; sadece okuma.
@@ -88,6 +92,21 @@ services:
 
   # Fotoğraf ve belgeler veritabanında değil; pg_dump onları kapsamaz.
   # Günde bir kez uploads birimini arşivler, 30 günden eskiyi siler.
+  # Python içgörü servisi: kayıtlardan kural tabanlı bulgular üretir, insights tablosuna yazar.
+  # Dışarıya port açmaz; yalnızca api konteyneri çağırır.
+  insights:
+    build:
+      context: ./apps/insights
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://insights:${SERVICE_PASSWORD_INSIGHTS}@db:5432/ankafarm
+      TZ: Europe/Istanbul
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
   uploads-backup:
     image: alpine:3
     restart: unless-stopped

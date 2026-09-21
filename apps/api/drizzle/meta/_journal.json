@@ -141,6 +141,34 @@
       "when": 1789990708212,
       "tag": "0019_attachment_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790002695616,
+      "tag": "0020_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790003153134,
+      "tag": "0021_insights_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790003344281,
+      "tag": "0022_insights_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790003344459,
+      "tag": "0023_insights_unique_nulls",
+      "breakpoints": true
     }
   ]
 }

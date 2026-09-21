@@ -3,6 +3,7 @@ import { io, type Socket } from "socket.io-client";
 import { useAuthStore } from "@/lib/auth";
 import { getApiUrl } from "@/lib/config";
 
+import { getQueryClient } from "./events";
 import { scheduleSync } from "./worker";
 
 let socket: Socket | null = null;
@@ -16,6 +17,10 @@ export function connectRealtime() {
   const auth = () => ({ token: useAuthStore.getState().accessToken ?? "" });
   socket = io(getApiUrl(), { path: "/socket.io", auth, transports: ["websocket", "polling"], reconnectionDelayMax: 30_000 });
   socket.on("changed", () => scheduleSync("remote", 500));
+  // İçgörüler senkron tablolarında değil; ayrı olayla tazelenir.
+  socket.on("insights", () => {
+    void getQueryClient()?.invalidateQueries({ queryKey: ["trpc", "insights"] });
+  });
   socket.on("connect_error", (err) => {
     if (err.message === "UNAUTHORIZED") {
       // Access token süresi dolmuş olabilir; yenileyip bir daha dene.

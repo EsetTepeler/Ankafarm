@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard, useHerdPulse, useRecentEvents, type FeedItem } from "@/features/dashboard/repo";
 import { currentMonth, useMonthlySummary } from "@/features/finance/repo";
 import { useStockLevels } from "@/features/stock/repo";
+import { useInsights } from "@/features/insights/repo";
 import { useRecentAbnormalObservations, useTodayRound } from "@/features/observations/repo";
+import { InsightCard, type InsightRow } from "@/pages/insights/InsightsPage";
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { describeSync, useSyncStore } from "@/sync/store";
@@ -56,6 +58,7 @@ export function TodayPage() {
   const pulse = useHerdPulse();
   const stock = useStockLevels();
   const round = useTodayRound();
+  const insights = useInsights({ limit: 5 });
   const isOwner = useAuthStore((st) => st.user?.role) === "owner";
   const month = useMonthlySummary(currentMonth());
   const sync = useSyncStore();
@@ -139,6 +142,14 @@ export function TodayPage() {
           </Button>
         </div>
       </div>
+
+      {(insights.data?.length ?? 0) > 0 ? (
+        <div className="mt-4 grid gap-2" data-testid="today-insights">
+          {((insights.data ?? []) as InsightRow[]).slice(0, 3).map((row) => (
+            <InsightCard key={row.id} row={row} compact />
+          ))}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>

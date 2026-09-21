@@ -541,16 +541,16 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 
 Faz 2 bittikten sonra başlanabilir, Faz 3 ile paralel yürür. Kilo ve beslenme verisi birikmeden kurallar anlamlı sonuç vermez.
 
-- [ ] 5.1 `apps/insights` iskeleti: FastAPI, uv, ruff, pytest, Dockerfile, compose'a `insights` servisi, `db-init` ile ayrı DB rolü.
-- [ ] 5.2 `insights` tablosu migration'ı (Node tarafında), NOTIFY/LISTEN köprüsü, tRPC `insights` router'ı (liste, okundu, sustur).
-- [ ] 5.3 Veri erişim katmanı: hayvan, tartım, beslenme, sağlık, üreme, tüketim ve gider verisini pandas'a çeken sorgular.
-- [ ] 5.4 Kilo kuralları: düşüş, eğilim, akran ortalamasına göre sapma, yavru büyüme.
-- [ ] 5.5 Beslenme kuralları: yemeyi kesti, azalttı, grupta hayvan başı tüketim düşüşü.
-- [ ] 5.6 Sağlık, üreme ve gözlem kuralları (multi_observation ve observation_worsening dahil).
-- [ ] 5.7 Çiftlik geneli kurallar.
-- [ ] 5.8 Türkçe metin şablonları ve şiddet sınıflandırması.
-- [ ] 5.9 Zamanlayıcı, tetikleyici uçlar, debounce, Node tarafında çağrı noktaları.
-- [ ] 5.10 Arayüz: profilde İçgörüler sekmesi, panoda öne çıkanlar, `/insights` ekranı.
+- [x] 5.1 `apps/insights`: FastAPI + APScheduler, pytest, ruff yapılandırması, Dockerfile, compose'da `insights` servisi (dışarıya port açmaz), `docker/db-init/01-roles.sh` ile ayrı `insights` DB rolü (her tabloda SELECT, yalnızca insights tablosunda yazma). pandas kullanılmadı: bu makinede yüklenemiyor ve 23 hayvanlık çiftlikte standart kütüphane fazlasıyla yeterli, imaj da küçük kalıyor. (2026-09-21)
+- [x] 5.2 `insights` tablosu (migration 0020, tekillik 0023 `NULLS NOT DISTINCT` — çiftlik geneli bulgularda animal_id boş olduğu için kayıtlar her hesapta çoğalıyordu), `NOTIFY insights_changed` → Node `LISTEN` → Socket.IO `insights` olayı, tRPC `insights` router'ı (liste, okudum, ertele). (2026-09-21)
+- [x] 5.3 Veri katmanı (`db.py`): sürü, tartım, sağlık, gözlem, üreme, doğum kayıtları tek geçişte; çiftlik için aylık gider/gelir/yem/kilo artışı/ölüm/doğum toplamları ve stok seviyeleri. 225 hayvanlık veride tam hesap 0,5 saniye. (2026-09-21)
+- [x] 5.4 Kilo kuralları: `weight_drop` (%5 uyarı, %10 kritik), `weight_trend_down` (en küçük kareler eğimi), `overweight`/`underweight` (akran z-skoru, en az 8 akran), `low_adg`, `no_weighing`. (2026-09-21)
+- [x] 5.5 Beslenme kuralları: `feed_stopped` (2 gün üst üste yemedi, kritik), `feed_reduced` (4 gün az yedi), çiftlik düzeyinde `farm_feed_per_animal` ve `farm_feed_refusal_spike`. (2026-09-21)
+- [x] 5.6 Sağlık ve üreme kuralları: `withdrawal_active`, `vaccine_overdue`, `disease_recurring`, `birth_due`/`birth_overdue`, `pregnancy_check_due`, `long_lambing_interval`, `multi_observation`, `observation_worsening`. (2026-09-21)
+- [x] 5.7 Çiftlik geneli kurallar: `farm_cost_trend`, `farm_feed_per_animal`, `farm_feed_vs_gain`, `farm_mortality`, `farm_birth_rate`, `farm_stock_runout`, `farm_feed_refusal_spike`. (2026-09-21)
+- [x] 5.8 Türkçe metin (`nlg.py`): binlik ayraç, kilo, para, yüzde ve tarih biçimleri; her bulgunun sayıları `data` alanında ayrıca duruyor (arayüz grafik çizebilsin). Şiddet info/warning/critical. 27 birim testi. (2026-09-21)
+- [x] 5.9 Her gece 03:00 tam hesap (APScheduler); `POST /compute/animal/{farm}/{animal}`, `/compute/farm/{farm}`, `/compute/all` uçları 30 sn debounce ile. Node `sync.push` sonrası etkilenen hayvan veya çiftlik için ateşle-unut tetikler (`planRecompute`); servis kapalıysa kayıt yine düşer, gece işi yakalar. (2026-09-21)
+- [x] 5.10 Arayüz: `/insights` ekranı (şiddet sayıları, okudum, ertele), hayvan profilinde İçgörüler sekmesi ve sayaç, Bugün ekranında en acil üç bulgu. Socket.IO `insights` olayıyla anında tazelenir. (2026-09-21)
 - [ ] 5.11 Eşik ayarları ekranı (Ayarlar altında).
 - [ ] 5.12 İsteğe bağlı, ayrı karar: LLM ile not tarama, Türkçe soru sorma, haftalık özet.
 - [ ] 5.13 Tahmin üretimi: kilo (doğrusal eğilim), stok bitişi, yavru sayısı; `predictions` tablosuna yazma, gerçekleşme eşleştirme, `v_prediction_accuracy` ile doğruluk ekranı. Gerçek ML modeli bu ekranda yeterli veri görününce ayrı karar.
