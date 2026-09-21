@@ -16,15 +16,31 @@ const RUN = Math.random().toString(36).slice(2, 7).toUpperCase();
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const consoleLines = [];
 
-async function api(path, input) {
+let tokenCache = null;
+async function token() {
+  if (tokenCache) return tokenCache;
   const login = await fetch(`${API_URL}/trpc/auth.login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ json: { email: EMAIL, password: PASSWORD } }),
   }).then((r) => r.json());
-  const token = login.result.data.json.accessToken;
+  tokenCache = login.result.data.json.accessToken;
+  return tokenCache;
+}
+
+async function api(path, input) {
   const url = `${API_URL}/trpc/${path}` + (input ? `?input=${encodeURIComponent(JSON.stringify({ json: input }))}` : "");
-  const res = await fetch(url, { headers: { authorization: `Bearer ${token}` } }).then((r) => r.json());
+  const res = await fetch(url, { headers: { authorization: `Bearer ${await token()}` } }).then((r) => r.json());
+  return res.result.data.json;
+}
+
+/** Test verisini toparlamak için doğrudan push; uygulamanın kullandığı yolun aynısı. */
+async function push(mutations) {
+  const res = await fetch(`${API_URL}/trpc/sync.push`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${await token()}` },
+    body: JSON.stringify({ json: { mutations } }),
+  }).then((r) => r.json());
   return res.result.data.json;
 }
 const serverGroups = async () => (await api("groups.list")).map((g) => g.name);
@@ -53,6 +69,28 @@ page.on("console", (msg) => {
 page.on("pageerror", (err) => log("[pageerror]", err.message));
 
 let failed = false;
+/** Çevrimdışı senaryo: adım patlasa da bağlantıyı geri açar, sonraki adımlar zehirlenmez. */
+const withOffline = async (fn) => {
+  await context.setOffline(true);
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  try {
+    return await fn();
+  
+  await step("temizlik: bu koşunun test kalemi pasife alınır", async () => {
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const item = pulled.tables.stock_items.find((i) => i.name === feedName);
+    if (!item) throw new Error("test kalemi bulunamadı");
+    const res = await push([
+      { mutationId: crypto.randomUUID(), table: "stock_items", op: "update", rowId: item.id, payload: { active: false }, clientCreatedAt: new Date().toISOString() },
+    ]);
+    if (res.results[0].status !== "applied") throw new Error(`temizlik reddedildi: ${JSON.stringify(res.results[0])}`);
+  });
+} finally {
+    await context.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event("online"))).catch(() => {});
+  }
+};
+
 const step = async (name, fn) => {
   try {
     await fn();
@@ -101,14 +139,14 @@ try {
 
   const name2 = `Offline ${RUN}`;
   await step("çevrimdışı grup eklenir, kuyrukta bekler", async () => {
-    await context.setOffline(true);
-    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
-    await page.getByTestId("group-add").click();
-    await page.getByTestId("group-name").fill(name2);
-    await page.getByTestId("group-save").click();
-    await page.getByRole("cell", { name: name2, exact: true }).waitFor({ timeout: 10_000 });
-    await page.getByTestId("sync-banner").getByText(/Çevrimdışı|bekliyor/).waitFor({ timeout: 15_000 });
-    if ((await serverGroups()).includes(name2)) throw new Error("çevrimdışıyken sunucuya gitmemeliydi");
+    await withOffline(async () => {
+      await page.getByTestId("group-add").click();
+      await page.getByTestId("group-name").fill(name2);
+      await page.getByTestId("group-save").click();
+      await page.getByRole("cell", { name: name2, exact: true }).waitFor({ timeout: 10_000 });
+      await page.getByTestId("sync-banner").getByText(/Çevrimdışı|bekliyor/).waitFor({ timeout: 15_000 });
+      if ((await serverGroups()).includes(name2)) throw new Error("çevrimdışıyken sunucuya gitmemeliydi");
+    });
   });
 
   await step("bağlantı gelince kuyruk boşalır", async () => {
@@ -489,14 +527,12 @@ try {
   });
 
   await step("stok: çevrimdışı tüketim kuyrukta bekler, bağlantı gelince gider", async () => {
-    await context.setOffline(true);
-    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
-    await page.getByTestId("consumption-add").click();
-    await page.getByTestId(`consumption-qty-${feedName}`).fill("30");
-    await page.getByTestId("consumption-save").click();
-    await page.getByTestId(`stock-balance-${feedName}`).getByText("445 kg").waitFor({ timeout: 10_000 });
-    await context.setOffline(false);
-    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await withOffline(async () => {
+      await page.getByTestId("consumption-add").click();
+      await page.getByTestId(`consumption-qty-${feedName}`).fill("30");
+      await page.getByTestId("consumption-save").click();
+      await page.getByTestId(`stock-balance-${feedName}`).getByText("445 kg").waitFor({ timeout: 10_000 });
+    });
     for (let i = 0; i < 20; i++) {
       const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
       const item = pulled.tables.stock_items.find((x) => x.name === feedName);
@@ -604,18 +640,16 @@ try {
 
     // Sunucunun reddedeceği bir kayıt: çevrimdışı negatif tartım yerelde de geçmez, bu yüzden
     // kuyrukta bekleyen bir kayıt üzerinden ekranı doğruluyoruz.
-    await context.setOffline(true);
-    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
-    await page.getByTestId("nav-stock").click();
-    await page.getByTestId("consumption-add").click();
-    await page.getByTestId(`consumption-qty-${feedName}`).fill("5");
-    await page.getByTestId("consumption-save").click();
-    await page.getByTestId("nav-settings").click();
-    await page.getByTestId("settings-sync").click();
-    await page.getByTestId("outbox-row-consumptions").getByText("Tüketim").waitFor({ timeout: 10_000 });
-    await page.getByTestId("outbox-row-consumptions").getByRole("link", { name: "Kaydı aç" }).waitFor({ timeout: 5_000 });
-    await context.setOffline(false);
-    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await withOffline(async () => {
+      await page.getByTestId("nav-stock").click();
+      await page.getByTestId("consumption-add").click();
+      await page.getByTestId(`consumption-qty-${feedName}`).fill("5");
+      await page.getByTestId("consumption-save").click();
+      await page.getByTestId("nav-settings").click();
+      await page.getByTestId("settings-sync").click();
+      await page.getByTestId("outbox-row-consumptions").getByText("Tüketim").waitFor({ timeout: 10_000 });
+      await page.getByTestId("outbox-row-consumptions").getByRole("link", { name: "Kaydı aç" }).waitFor({ timeout: 5_000 });
+    });
     await page.getByTestId("sync-banner").getByText("Güncel").waitFor({ timeout: 30_000 });
   });
 
@@ -690,6 +724,26 @@ try {
     if (!src || !src.startsWith("data:image/png")) throw new Error("QR görseli yok");
     await sheet.close();
     await page.getByTestId("selection-bar").waitFor({ timeout: 5_000 });
+  });
+
+  await step("damızlık analitiği: koç ve anne performansı, karşılaştırma kartı", async () => {
+    await page.getByTestId("nav-breeding").click();
+    await page.getByTestId("sire-count").waitFor({ timeout: 15_000 });
+    // tag3 bu koşuda tag1 ile çiftleşti ve tag4 doğdu: bir eş, bir doğum, bir yavru.
+    const sire = page.getByTestId(`sire-row-${tag3}`);
+    await sire.waitFor({ timeout: 10_000 });
+    const cells = (await sire.innerText()).split("	").map((c) => c.trim());
+    if (cells[2] !== "1" || cells[3] !== "1" || cells[4] !== "1") throw new Error(`koç satırı: ${cells.join("|")}`);
+    await page.getByTestId(`sire-compare-${tag3}`).click();
+    await page.getByTestId("sire-comparison").waitFor({ timeout: 5_000 });
+    await page.getByTestId(`sire-card-${tag3}`).getByText("En çok yavru").waitFor({ timeout: 5_000 });
+    await page.getByTestId(`sire-card-${tag3}`).getByText("Sürüde yaşayan yavru").waitFor({ timeout: 5_000 });
+
+    await page.getByTestId("tab-dams").click();
+    const dam = page.getByTestId(`dam-row-${tag1}`);
+    await dam.waitFor({ timeout: 10_000 });
+    const damCells = (await dam.innerText()).split("	").map((c) => c.trim());
+    if (damCells[1] !== "1" || damCells[2] !== "1") throw new Error(`anne satırı: ${damCells.join("|")}`);
   });
 } finally {
       await ctx3.close();

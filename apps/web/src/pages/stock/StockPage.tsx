@@ -68,7 +68,7 @@ export function StockPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatTile label="Kalem" value={rows.length} hint={`${rows.filter((r) => r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" />
+        <StatTile label="Kalem" value={rows.filter((r) => r.active).length} hint={`${rows.filter((r) => r.active && r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" />
         <StatTile label="Uyarı" value={low.length} hint={low.length ? low.map((r) => r.name).join(", ") : "Stok seviyeleri yeterli"} testID="kpi-low" />
         <StatTile
           label="İlk biten"
@@ -129,9 +129,10 @@ export function StockPage() {
                     return (
                       <TableRow key={r.id} data-testid={`stock-row-${r.name}`}>
                         <TableCell className="font-medium">
-                          <span className="flex items-center gap-2">
+                          <span className={cn("flex items-center gap-2", !r.active && "text-muted-foreground")}>
                             <Package className="size-4 text-muted-foreground" />
                             {r.name}
+                            {!r.active ? <Badge variant="outline">Pasif</Badge> : null}
                           </span>
                         </TableCell>
                         <TableCell>{labels.stockCategory[r.category as StockCategory] ?? r.category}</TableCell>

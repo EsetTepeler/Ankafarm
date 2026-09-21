@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 38 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.5 QR etiket basımı, 3.7 damızlık analitiği, 3.6 Excel dışa aktarma.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 40 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.6 Excel dışa aktarma, 3.3 hatırlatıcılar, 3.8 fotoğraflar.
 
 ---
 
@@ -523,9 +523,9 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [ ] 3.2 Aşı protokolleri ve otomatik hatırlatıcı üretimi (isteğe bağlı; sağlık kaydındaki `next_due_at` çoğu ihtiyacı karşılar).
 - [ ] 3.3 Hatırlatıcılar ekranı.
 - [ ] 3.4 Push bildirim. Native yolda Expo Notifications ve Expo Push API. PWA yolunda web push: VAPID anahtarı, service worker, iOS 16.4 ve sonrası ana ekrana eklenmiş olma şartı. Sunucuda tek bildirim servisi, iki taşıyıcı. node-cron ile zamanlama.
-- [ ] 3.5 QR etiket basımı: seçili hayvanlar için PDF etiket sayfası, QR'da profil adresi, altında küpe numarası ve isim, dayanıklı malzeme önerisi (tarama 1.16'da yapıldı).
+- [x] 3.5 QR etiket basımı: hayvan listesinde seçim → "Etiket yazdır"; üç boyutta A4 etiket sayfası (QR, küpe no, isim, çiftlik adı), yazdırma penceresinden PDF olarak kaydedilir. Dayanıklı malzeme önerisi dialogda. Profildeki tek etiket de aynı üreticiyi kullanır. (2026-09-21)
 - [ ] 3.6 Excel dışa aktarma (tüm tablolar) ve isteğe bağlı içe aktarma (aşı kayıtları). Mevcut veri yok, ilk yükleme gerekmiyor.
-- [ ] 3.7 Damızlık analitiği: koç ve koyun bazında doğum, yavru, yaşama oranı, yavru büyüme; koç adaylarını yan yana karşılaştırma ekranı (temel akrabalık ve özet kartı 1.9'da).
+- [x] 3.7 Damızlık ekranı (`/breeding`): koç tablosu (eş sayısı, doğum, yavru, doğum başına, yaşama oranı, yavruların ortalama doğum kilosu ve günlük artışı), anne tablosu (doğum, yavru, yaşama, doğum aralığı, gebelik durumu), seçilen koçlar için yan yana karşılaştırma kartları. Tamamı yerel veriden. (2026-09-21)
 - [ ] 3.8 Fotoğraf galerisi ve belge ekleri.
 - [x] 3.9 Değişiklik geçmişi (`/audit`, sahip yetkisi): çiftlik geneli akış, kayıt türü filtresi, hayvan profilinden o kayda filtreli giriş. Her satırda kim, ne zaman, hangi alan neyden neye değişti; teknik alanlar (updated_at, sync_seq) gizlenir, enum ve tarihler Türkçe gösterilir. Sunucu ucu `audit.list` imleçli sayfalama ile. (2026-09-21)
 

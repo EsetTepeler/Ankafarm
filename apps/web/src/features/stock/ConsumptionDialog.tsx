@@ -71,7 +71,7 @@ export function ConsumptionDialog({ open, onOpenChange }: { open: boolean; onOpe
               <CopyCheck /> {isoToDisplay(last.data.day)} gibi
             </Button>
           ) : null}
-          <div className="grid gap-2">
+          <div className="grid max-h-[45vh] gap-2 overflow-y-auto pr-1">
             {rows.map((item) => (
               <div key={item.id} className="grid grid-cols-[1fr_7rem] items-center gap-3">
                 <Label htmlFor={`consumption-${item.id}`} className="font-normal">
