@@ -169,6 +169,13 @@
       "when": 1790003344459,
       "tag": "0023_insights_unique_nulls",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790003645631,
+      "tag": "0024_prediction_accuracy",
+      "breakpoints": true
     }
   ]
 }

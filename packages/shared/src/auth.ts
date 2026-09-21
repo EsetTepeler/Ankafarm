@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { userRoleSchema } from "./farm";
+import { insightThresholdSchema, userRoleSchema } from "./farm";
 
 export const loginInputSchema = z.object({
   email: z.string().trim().toLowerCase().email("Geçerli bir e-posta girin"),
@@ -22,6 +22,7 @@ export const createUserInputSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserInputSchema>;
 
 export const updateFarmInputSchema = z.object({
+  insights: insightThresholdSchema.optional(),
   name: z.string().trim().min(2).max(120).optional(),
   location: z.string().trim().max(200).nullable().optional(),
 });

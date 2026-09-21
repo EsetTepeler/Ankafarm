@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 46 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Faz 4 tamam (4.4 Coolify ve 2.11 saha testi sahipte). Sırada Faz 5: Python içgörü servisi.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 46 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Faz 5 tamam (5.12 LLM ayrı karar). Kalanlar: 2.11 iOS saha testi, 3.4 push, 4.4 Coolify prod, Faz 6 saha cihazı.
 
 ---
 
@@ -551,9 +551,9 @@ Faz 2 bittikten sonra başlanabilir, Faz 3 ile paralel yürür. Kilo ve beslenme
 - [x] 5.8 Türkçe metin (`nlg.py`): binlik ayraç, kilo, para, yüzde ve tarih biçimleri; her bulgunun sayıları `data` alanında ayrıca duruyor (arayüz grafik çizebilsin). Şiddet info/warning/critical. 27 birim testi. (2026-09-21)
 - [x] 5.9 Her gece 03:00 tam hesap (APScheduler); `POST /compute/animal/{farm}/{animal}`, `/compute/farm/{farm}`, `/compute/all` uçları 30 sn debounce ile. Node `sync.push` sonrası etkilenen hayvan veya çiftlik için ateşle-unut tetikler (`planRecompute`); servis kapalıysa kayıt yine düşer, gece işi yakalar. (2026-09-21)
 - [x] 5.10 Arayüz: `/insights` ekranı (şiddet sayıları, okudum, ertele), hayvan profilinde İçgörüler sekmesi ve sayaç, Bugün ekranında en acil üç bulgu. Socket.IO `insights` olayıyla anında tazelenir. (2026-09-21)
-- [ ] 5.11 Eşik ayarları ekranı (Ayarlar altında).
+- [x] 5.11 Eşik ayarları (Ayarlar > İçgörü eşikleri): on eşik (kilo kaybı, tartımsız gün, yem, gebelik kontrolü, doğum aralığı, stok, gider sıçraması, en az akran) `farms.settings.insights` altına yazılır; varsayılanla aynı değer yazılmaz, servis onu kendi varsayılanından okur. (2026-09-21)
 - [ ] 5.12 İsteğe bağlı, ayrı karar: LLM ile not tarama, Türkçe soru sorma, haftalık özet.
-- [ ] 5.13 Tahmin üretimi: kilo (doğrusal eğilim), stok bitişi, yavru sayısı; `predictions` tablosuna yazma, gerçekleşme eşleştirme, `v_prediction_accuracy` ile doğruluk ekranı. Gerçek ML modeli bu ekranda yeterli veri görününce ayrı karar.
+- [x] 5.13 Tahmin üretimi: kilo (30 gün sonrası, doğrusal eğilim, `weight-trend-v1`) ve stok bitişi (`feed-runout-v1`) her gece yazılır; hedef tarihi geçen kilo tahmini ±7 gün içindeki tartımla eşleşir ve sapma hesaplanır. `v_prediction_accuracy` görünümü model bazında ortalama hata verir. Doğum tahmininde hata düzeltildi: gerçekleşen alanına sapma yazılıyordu, artık tahmin ve gerçekleşen aynı ölçekte (çiftleşmeden doğuma gün). Gerçek ML modeli bu veri birikince ayrı karar. (2026-09-21)
 
 ### Faz 6: Saha cihazı (gateway)
 

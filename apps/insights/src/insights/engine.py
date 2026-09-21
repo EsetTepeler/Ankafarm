@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from insights import db
+from insights import db, predictions
 from insights.models import Finding, Herd
 from insights.rules.animal import ANIMAL_RULES
 from insights.rules.farm import FARM_RULES
@@ -106,6 +106,10 @@ def compute_farm(farm_id: str, today: date | None = None) -> int:
             stale = [t for t in ANIMAL_TYPES if t not in active_by_animal.get(animal.id, set())]
             if stale:
                 db.save_findings(conn, farm_id, [], stale, animal.id)
+
+        # Tahminler (madde 5.13): bugün kural tabanlı, gerçekleşenle eşleşmesi için biriktirilir.
+        predictions.save_predictions(conn, farm_id, herd, farm_data)
+        predictions.evaluate_predictions(conn, farm_id, today)
 
         db.notify_changed(conn, farm_id)
     return count
