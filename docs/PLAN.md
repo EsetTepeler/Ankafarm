@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 45 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 4.5 izleme; 3.4 push ve 2.11 saha testi sahipte.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 46 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Faz 4 tamam (4.4 Coolify ve 2.11 saha testi sahipte). Sırada Faz 5: Python içgörü servisi.
 
 ---
 
@@ -535,7 +535,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 4.2 Yedekleme: `backup` servisi günlük pg_dump (30 gün, 8 hafta, 12 ay), yeni `uploads-backup` servisi günlük fotoğraf/belge arşivi (fotoğraflar veritabanında değil, pg_dump kapsamıyordu), sunucu dışı haftalık kopya için rclone tarifi ve `scripts/restore-test.sh` geri yükleme provası (geçici konteynere yükler, tablo sayımlarını yazdırır). Sahibin tek tıkla dışa aktarımı 3.6'da. README'de "Yedekleme" bölümü. (2026-09-21)
 - [x] 4.3 Performans: 217 hayvan ve 5.744 sağlık kaydıyla ölçüldü, en yavaş ekran 162 ms; liste sanallaştırma gerekmedi (gerekirse önce sayfalama denenecek). Görsel sıkıştırma 3.8'de tarayıcıda. Yerel indeksler tamamlandı (`animals.tag_no`, `health_records.next_due_at`, `health_records.withdrawal_until`; migration 0011). Program işleri (madde, gün) ikilisine göre gruplanıyor ve son uygulamalar tek sorguda çekiliyor; bu ikisi olmadan hatırlatıcı ekranı binlerce kayıtta kilitleniyordu. (2026-09-21)
 - [ ] 4.4 Prod: Coolify'da prod compose kaynağı. iOS yolu 2.11 sonucuna göre: PWA ise web yayını yeterli; native ise Apple Developer hesabı, EAS Build, TestFlight veya App Store, EAS Update kanalı. Android build veterinerin tabletine göre.
-- [ ] 4.5 İzleme: Coolify uptime, API log'ları, disk doluluk ve backup başarısızlık uyarısı.
+- [x] 4.5 İzleme: Ayarlar > Sistem durumu (sahip) — sunucu ayakta kalma süresi, veritabanı boyutu, fotoğraf/belge sayısı ve boyutu, denetim kaydı sayısı, iki yedeğin yaşı. Yedek 36 saatten eskiyse veya hiç yoksa kırmızı uyarı; API yedek birimini salt okunur bağlar (`system.status`). Coolify uptime ve disk uyarıları sunucu tarafında ayrıca açılır. (2026-09-21)
 
 ### Faz 5: İçgörü servisi (Python)
 

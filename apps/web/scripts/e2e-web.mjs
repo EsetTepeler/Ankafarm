@@ -926,6 +926,17 @@ try {
     await page.getByTestId("photo-preview").count();
   });
 
+  await step("sistem durumu: sunucu, veritabanı ve yedek bilgisi", async () => {
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-system").click();
+    await page.getByTestId("sys-uptime").waitFor({ timeout: 15_000 });
+    await page.getByTestId("sys-db").getByText(/MB|KB|GB/).first().waitFor({ timeout: 10_000 });
+    await page.getByTestId("sys-uploads").waitFor({ timeout: 10_000 });
+    // Yedek birimi yerel geliştirmede bağlı değil; satırın kendisi yine de görünmeli.
+    await page.getByTestId("backup-db").waitFor({ timeout: 10_000 });
+    await page.getByTestId("backup-uploads").waitFor({ timeout: 10_000 });
+  });
+
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
 
 } finally {

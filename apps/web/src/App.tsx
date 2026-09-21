@@ -26,6 +26,7 @@ import { ReportsPage } from "@/pages/reports/ReportsPage";
 import { AuditPage } from "@/pages/settings/AuditPage";
 import { ExportPage } from "@/pages/settings/ExportPage";
 import { ProtocolsPage } from "@/pages/settings/ProtocolsPage";
+import { SystemPage } from "@/pages/settings/SystemPage";
 import { BreedingPage } from "@/pages/breeding/BreedingPage";
 import { ScanPage } from "@/pages/ScanPage";
 import { StockPage } from "@/pages/stock/StockPage";
@@ -110,6 +111,7 @@ export function App() {
                   <Route path="audit" element={<AuditPage />} />
                   <Route path="settings/export" element={<ExportPage />} />
                   <Route path="settings/protocols" element={<ProtocolsPage />} />
+                  <Route path="settings/system" element={<SystemPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>

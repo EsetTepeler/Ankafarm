@@ -39,6 +39,7 @@ export function SettingsPage() {
             />
             {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
             <LinkRow to="/settings/protocols" title="Aşı ve bakım programı" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
+            {user?.role === "owner" ? <LinkRow to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
             <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
           </CardContent>
         </Card>
