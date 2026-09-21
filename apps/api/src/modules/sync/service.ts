@@ -26,6 +26,7 @@ import {
   observationTags,
   observations,
   purchases,
+  reminders,
   stockItems,
   weightRecords,
 } from "../../db/schema";
@@ -159,7 +160,7 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
   const finance = user.role === "owner";
   const none = Promise.resolve([] as never[]);
 
-  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows] = await Promise.all([
+  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows] = await Promise.all([
     db.select().from(breeds).where(where(breeds, since("breeds"))).orderBy(asc(breeds.syncSeq)).limit(limit),
     db.select().from(groups).where(where(groups, since("groups"))).orderBy(asc(groups.syncSeq)).limit(limit),
     db.select().from(animals).where(where(animals, since("animals"))).orderBy(asc(animals.syncSeq)).limit(limit),
@@ -201,6 +202,7 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
     db.select().from(consumptions).where(where(consumptions, since("consumptions"))).orderBy(asc(consumptions.syncSeq)).limit(limit),
     finance ? db.select().from(expenses).where(where(expenses, since("expenses"))).orderBy(asc(expenses.syncSeq)).limit(limit) : none,
     finance ? db.select().from(incomes).where(where(incomes, since("incomes"))).orderBy(asc(incomes.syncSeq)).limit(limit) : none,
+    db.select().from(reminders).where(where(reminders, since("reminders"))).orderBy(asc(reminders.syncSeq)).limit(limit),
   ]);
 
   const last = (rows: { syncSeq: number }[], fallback: number) => (rows.length ? rows[rows.length - 1]!.syncSeq : fallback);
@@ -223,6 +225,7 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       consumptions: consumptionRows,
       expenses: expenseRows,
       incomes: incomeRows,
+      reminders: reminderRows,
     },
     cursors: {
       breeds: last(breedRows, since("breeds")),
@@ -241,8 +244,9 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       consumptions: last(consumptionRows, since("consumptions")),
       expenses: last(expenseRows, since("expenses")),
       incomes: last(incomeRows, since("incomes")),
+      reminders: last(reminderRows, since("reminders")),
     } satisfies Record<SyncedTable, number>,
-    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows].some(
+    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows].some(
       (r) => r.length === limit,
     ),
     serverTime: new Date().toISOString(),

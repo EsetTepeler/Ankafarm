@@ -33,6 +33,7 @@ const tableLabels: Record<SyncedTable, string> = {
   consumptions: "Tüketim",
   expenses: "Gider",
   incomes: "Gelir",
+  reminders: "Hatırlatıcı",
 };
 
 const opLabels: Record<string, string> = { insert: "ekleme", update: "düzeltme", soft_delete: "silme" };

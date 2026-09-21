@@ -253,6 +253,21 @@ export const observationTags = pgTable(
   (t) => [uniqueIndex("observation_tags_farm_cat_label_uq").on(t.farmId, t.category, t.label), index("observation_tags_farm_sync_idx").on(t.farmId, t.syncSeq)],
 );
 
+/** Elle girilen hatırlatıcı; türev işler (geciken doz, gebelik kontrolü) kayıtlardan hesaplanır, burada durmaz. */
+export const reminders = pgTable(
+  "reminders",
+  {
+    ...syncedColumns,
+    title: text().notNull(),
+    dueAt: date({ mode: "string" }).notNull(),
+    animalId: uuid().references(() => animals.id),
+    groupId: uuid().references(() => groups.id),
+    note: text(),
+    doneAt: timestamp({ withTimezone: true, mode: "string" }),
+  },
+  (t) => [index("reminders_farm_due_idx").on(t.farmId, t.dueAt), index("reminders_farm_sync_idx").on(t.farmId, t.syncSeq)],
+);
+
 export type Breed = typeof breeds.$inferSelect;
 export type Group = typeof groups.$inferSelect;
 export type Animal = typeof animals.$inferSelect;
@@ -262,5 +277,6 @@ export type HealthRecord = typeof healthRecords.$inferSelect;
 export type BreedingRecord = typeof breedingRecords.$inferSelect;
 export type LambingRecord = typeof lambingRecords.$inferSelect;
 export type ExitRecord = typeof exitRecords.$inferSelect;
+export type Reminder = typeof reminders.$inferSelect;
 export type Observation = typeof observations.$inferSelect;
 export type ObservationTag = typeof observationTags.$inferSelect;

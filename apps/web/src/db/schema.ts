@@ -285,6 +285,20 @@ export const incomes = sqliteTable(
   (t) => [index("incomes_date_idx").on(t.receivedAt)],
 );
 
+export const reminders = sqliteTable(
+  "reminders",
+  {
+    ...synced,
+    title: text().notNull(),
+    dueAt: text().notNull(),
+    animalId: text(),
+    groupId: text(),
+    note: text(),
+    doneAt: text(),
+  },
+  (t) => [index("reminders_due_idx").on(t.dueAt)],
+);
+
 /** Sunucuya gidecek yazmalar. Onaylanınca satır silinir, reddedilince failed kalır. */
 export const outbox = sqliteTable(
   "outbox",
@@ -332,6 +346,7 @@ export const localTables = {
   consumptions,
   expenses,
   incomes,
+  reminders,
 } as const;
 export type LocalTableName = keyof typeof localTables;
 
@@ -351,4 +366,5 @@ export type LocalPurchase = typeof purchases.$inferSelect;
 export type LocalConsumption = typeof consumptions.$inferSelect;
 export type LocalExpense = typeof expenses.$inferSelect;
 export type LocalIncome = typeof incomes.$inferSelect;
+export type LocalReminder = typeof reminders.$inferSelect;
 export type OutboxRow = typeof outbox.$inferSelect;

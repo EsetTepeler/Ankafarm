@@ -1,4 +1,4 @@
-import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { SyncStatus } from "./SyncStatus";
 const nav = [
   { to: "/", label: "Bugün", icon: LayoutDashboard, end: true },
   { to: "/animals", label: "Hayvanlar", icon: Users },
+  { to: "/reminders", label: "Hatırlatıcılar", icon: Bell },
   { to: "/animals/round", label: "Günlük tur", icon: ClipboardCheck },
   { to: "/animals/bulk", label: "Toplu işlem", icon: Syringe },
   { to: "/scan", label: "QR tara", icon: ScanLine },

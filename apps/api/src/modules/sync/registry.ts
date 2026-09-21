@@ -15,6 +15,7 @@ import {
   observationTags,
   observations,
   purchases,
+  reminders,
   stockItems,
   weightRecords,
 } from "../../db/schema";
@@ -40,6 +41,7 @@ export const syncRegistry = {
   consumptions: { table: consumptions, schemas: tableSchemas.consumptions, writers: ["owner", "worker"] as UserRole[] },
   expenses: { table: expenses, schemas: tableSchemas.expenses, writers: ["owner"] as UserRole[] },
   incomes: { table: incomes, schemas: tableSchemas.incomes, writers: ["owner"] as UserRole[] },
+  reminders: { table: reminders, schemas: tableSchemas.reminders, writers: ["owner", "worker", "vet"] as UserRole[] },
 } as const satisfies Record<SyncedTable, unknown>;
 
 /** Soft delete yalnızca sahibe açık (bölüm 4.6). */

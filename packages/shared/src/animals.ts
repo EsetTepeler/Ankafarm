@@ -303,6 +303,19 @@ export const seedBreeds: ReadonlyArray<{ species: z.infer<typeof speciesSchema>;
   ...["Kıl", "Saanen", "Alpin", "Damascus", "Ankara", "Boer", "Melez"].map((name) => ({ species: "goat" as const, name })),
 ];
 
+/** Elle girilen hatırlatıcı. Sağlık dozu, gebelik kontrolü gibi türev işler tablo tutmaz, kayıttan hesaplanır. */
+export const reminderInputSchema = z.object({
+  id: uuid,
+  title: z.string().trim().min(1, "Başlık gerekli").max(120),
+  dueAt: isoDate,
+  animalId: uuid.nullable().optional(),
+  groupId: uuid.nullable().optional(),
+  note: z.string().trim().max(500).nullable().optional(),
+  doneAt: isoDateTime.nullable().optional(),
+});
+export type ReminderInput = z.infer<typeof reminderInputSchema>;
+export const reminderPatchSchema = reminderInputSchema.omit({ id: true }).partial();
+
 export const DEFAULT_GROUP_NAME = "Ana sürü";
 
 /** Günlük tur kaydının etiketi: hayvansız, sürü düzeyinde bir gözlem satırı taşır. */

@@ -21,6 +21,7 @@ import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { SyncPage } from "@/pages/settings/SyncPage";
 import { DailyRoundPage } from "@/pages/animals/DailyRoundPage";
 import { FinancePage } from "@/pages/finance/FinancePage";
+import { RemindersPage } from "@/pages/reminders/RemindersPage";
 import { ReportsPage } from "@/pages/reports/ReportsPage";
 import { AuditPage } from "@/pages/settings/AuditPage";
 import { ExportPage } from "@/pages/settings/ExportPage";
@@ -100,6 +101,7 @@ export function App() {
                   <Route path="stock" element={<StockPage />} />
                   <Route path="finance" element={<FinancePage />} />
                   <Route path="reports" element={<ReportsPage />} />
+                  <Route path="reminders" element={<RemindersPage />} />
                   <Route path="breeding" element={<BreedingPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="settings/groups" element={<GroupsPage />} />

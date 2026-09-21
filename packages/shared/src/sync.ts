@@ -12,6 +12,8 @@ import {
   observationPatchSchema,
   observationTagInputSchema,
   observationTagPatchSchema,
+  reminderInputSchema,
+  reminderPatchSchema,
   lambingInputSchema,
   lambingPatchSchema,
   breedPatchSchema,
@@ -55,6 +57,7 @@ export const syncedTables = [
   "consumptions",
   "expenses",
   "incomes",
+  "reminders",
 ] as const;
 export type SyncedTable = (typeof syncedTables)[number];
 export const syncedTableSchema = z.enum(syncedTables);
@@ -80,6 +83,7 @@ export const tableSchemas = {
   consumptions: { insert: consumptionInputSchema, update: consumptionPatchSchema },
   expenses: { insert: expenseInputSchema, update: expensePatchSchema },
   incomes: { insert: incomeInputSchema, update: incomePatchSchema },
+  reminders: { insert: reminderInputSchema, update: reminderPatchSchema },
 } as const satisfies Record<SyncedTable, { insert: z.ZodTypeAny; update: z.ZodTypeAny }>;
 
 export const softDeletePayloadSchema = z.object({

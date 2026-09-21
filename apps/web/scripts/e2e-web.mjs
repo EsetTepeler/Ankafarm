@@ -77,44 +77,22 @@ const withOffline = async (fn) => {
   await page.evaluate(() => window.dispatchEvent(new Event("offline")));
   try {
     return await fn();
-  
-  await step("temizlik: bu koşunun test kalemi pasife alınır", async () => {
-    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
-    const item = pulled.tables.stock_items.find((i) => i.name === feedName);
-    if (!item) throw new Error("test kalemi bulunamadı");
-    const res = await push([
-      { mutationId: crypto.randomUUID(), table: "stock_items", op: "update", rowId: item.id, payload: { active: false }, clientCreatedAt: new Date().toISOString() },
-    ]);
-    if (res.results[0].status !== "applied") throw new Error(`temizlik reddedildi: ${JSON.stringify(res.results[0])}`);
-  });
-
-  await step("dışa aktarma: tek tablo CSV ve tüm tablolar ZIP", async () => {
-    await page.getByTestId("nav-settings").click();
-    await page.getByTestId("settings-export").click();
-    await page.getByTestId("export-row-hayvanlar").waitFor({ timeout: 15_000 });
-
-    const [csv] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-hayvanlar").click()]);
-    const csvPath = await csv.path();
-    const text = await readFile(csvPath, "utf8");
-    if (!text.startsWith("\ufeff")) throw new Error("CSV'de UTF-8 BOM yok, Excel Türkçe karakterleri bozar");
-    const [header, ...lines] = text.trim().split("\r\n");
-    if (!header.startsWith("Küpe no;İsim;Tür")) throw new Error(`başlık: ${header.slice(0, 40)}`);
-    if (!lines.some((l) => l.startsWith(`${tag1};Pamuk;Koyun`))) throw new Error("hayvan satırı bulunamadı");
-    if (!/download="?anka|hayvanlar-/.test(csv.suggestedFilename())) throw new Error(`dosya adı: ${csv.suggestedFilename()}`);
-
-    const [zip] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-all").click()]);
-    const zipPath = await zip.path();
-    const buf = await readFile(zipPath);
-    if (buf.subarray(0, 2).toString() !== "PK") throw new Error("ZIP imzası yok");
-    const names = [...buf.toString("latin1").matchAll(/([a-z-]+\.csv)/g)].map((m) => m[1]);
-    for (const expected of ["hayvanlar.csv", "saglik.csv", "giderler.csv"]) {
-      if (!names.includes(expected)) throw new Error(`${expected} ZIP içinde yok`);
-    }
-  });
-} finally {
+  } finally {
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online"))).catch(() => {});
   }
+};
+
+/** Sayı kararlı hale gelene kadar bekler; liste filtresi bir kare geç render edebiliyor. */
+const waitForCount = async (locator, expected, timeout = 8000) => {
+  const until = Date.now() + timeout;
+  let seen = -1;
+  while (Date.now() < until) {
+    seen = await locator.count();
+    if (seen === expected) return;
+    await page.waitForTimeout(250);
+  }
+  throw new Error(`${expected} bekleniyordu, ${seen} bulundu`);
 };
 
 const step = async (name, fn) => {
@@ -416,7 +394,11 @@ try {
       await page2.getByTestId("group-save").click();
       // İlk tarayıcı hiçbir şey yapmadan, periyodik 60 sn'den çok önce görmeli.
       await page.getByRole("cell", { name, exact: true }).waitFor({ timeout: 20_000 });
-    
+    } finally {
+      await ctx2.close();
+    }
+  });
+
   await step("profilden grup değiştirilir: rozet, zaman çizelgesi, sunucuda group_id", async () => {
     await page.getByTestId("nav-animals").click();
     await page.getByTestId(`animal-row-${tag1}`).click();
@@ -450,7 +432,7 @@ try {
     await page.getByTestId("animal-group-filter-list").getByText(name2, { exact: true }).click();
     await page.getByTestId(`animal-row-${tag2}`).waitFor({ timeout: 5_000 });
     if (await page.getByTestId(`animal-row-${tag3}`).count()) throw new Error("filtre dışı hayvan listede");
-    if ((await page.getByTestId(/^animal-row-/).count()) !== 2) throw new Error("filtrede 2 hayvan olmalı");
+    await waitForCount(page.getByTestId(/^animal-row-/), 2);
     await page.getByTestId("nav-settings").click();
     await page.getByTestId("settings-groups").click();
     await page.getByTestId(`group-count-${name2}`).getByText("2", { exact: true }).waitFor({ timeout: 10_000 });
@@ -496,6 +478,12 @@ try {
       await p3.getByTestId("login-submit").click();
       await p3.getByRole("heading", { name: `${tag1} · Pamuk` }).waitFor({ timeout: 60_000 });
     
+    } finally {
+      await ctx3.close();
+    }
+  });
+
+
   await step("Bugün v1: senkron kartı, son olaylar akışı, bekleyen işler", async () => {
     await page.getByTestId("nav-today").click();
     await page.getByTestId("today-sync").getByText(/güncel|bekliyor|Senkron/).first().waitFor({ timeout: 15_000 });
@@ -773,14 +761,6 @@ try {
     const damCells = (await dam.innerText()).split("	").map((c) => c.trim());
     if (damCells[1] !== "1" || damCells[2] !== "1") throw new Error(`anne satırı: ${damCells.join("|")}`);
   });
-} finally {
-      await ctx3.close();
-    }
-  });
-} finally {
-      await ctx2.close();
-    }
-  });
 
   await step("sürüden çıkış: arşive düşer, sunucuda durum, geri alınır", async () => {
     await page.getByTestId("nav-animals").click();
@@ -806,6 +786,73 @@ try {
     animals = await serverAnimals();
     if (animals[tag3].status !== "active") throw new Error(`geri alma sonrası status ${animals[tag3].status}`);
   });
+  
+  await step("dışa aktarma: tek tablo CSV ve tüm tablolar ZIP", async () => {
+    await page.getByTestId("nav-settings").click();
+    await page.getByTestId("settings-export").click();
+    await page.getByTestId("export-row-hayvanlar").waitFor({ timeout: 15_000 });
+
+    const [csv] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-hayvanlar").click()]);
+    const csvPath = await csv.path();
+    const text = await readFile(csvPath, "utf8");
+    if (!text.startsWith("\ufeff")) throw new Error("CSV'de UTF-8 BOM yok, Excel Türkçe karakterleri bozar");
+    const [header, ...lines] = text.trim().split("\r\n");
+    if (!header.startsWith("Küpe no;İsim;Tür")) throw new Error(`başlık: ${header.slice(0, 40)}`);
+    if (!lines.some((l) => l.startsWith(`${tag1};Pamuk;Koyun`))) throw new Error("hayvan satırı bulunamadı");
+    if (!/download="?anka|hayvanlar-/.test(csv.suggestedFilename())) throw new Error(`dosya adı: ${csv.suggestedFilename()}`);
+
+    const [zip] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-all").click()]);
+    const zipPath = await zip.path();
+    const buf = await readFile(zipPath);
+    if (buf.subarray(0, 2).toString() !== "PK") throw new Error("ZIP imzası yok");
+    const names = [...buf.toString("latin1").matchAll(/([a-z-]+\.csv)/g)].map((m) => m[1]);
+    for (const expected of ["hayvanlar.csv", "saglik.csv", "giderler.csv"]) {
+      if (!names.includes(expected)) throw new Error(`${expected} ZIP içinde yok`);
+    }
+  });
+
+  await step("hatırlatıcılar: elle eklenen iş, türev işler ve tamamlama", async () => {
+    await page.getByTestId("nav-reminders").click();
+    await page.getByTestId("rem-overdue").waitFor({ timeout: 15_000 });
+
+    const late = `Gecikmiş iş ${RUN}`;
+    await page.getByTestId("reminder-add").click();
+    await page.getByTestId("reminder-title").fill(late);
+    await page.getByTestId("reminder-date").fill("2026-09-01");
+    await page.getByTestId("reminder-save").click();
+    await page.getByTestId("section-overdue").getByText(late).waitFor({ timeout: 10_000 });
+
+    const title = `Koçu ayır ${RUN}`;
+    await page.getByTestId("reminder-add").click();
+    await page.getByTestId("reminder-title").fill(title);
+    await page.getByTestId("reminder-note").fill("Doğum öncesi");
+    await page.getByTestId("reminder-save").click();
+    await page.getByTestId("section-today").getByText(title).waitFor({ timeout: 10_000 });
+    await page.getByTestId("rem-today").getByText(/[1-9]/).first().waitFor({ timeout: 5_000 });
+
+    await page.getByTestId(`rem-complete-${title}`).click();
+    await page.getByTestId(`done-row-${title}`).waitFor({ timeout: 10_000 });
+
+    await page.waitForTimeout(4000);
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const saved = pulled.tables.reminders.find((r) => r.title === title);
+    if (!saved) throw new Error("hatırlatıcı sunucuda yok");
+    if (!saved.doneAt) throw new Error("tamamlama sunucuya gitmedi");
+    if (!pulled.tables.reminders.some((r) => r.title === late)) throw new Error("gecikmiş iş sunucuda yok");
+  });
+
+  await step("temizlik: bu koşunun test kalemi pasife alınır", async () => {
+    const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
+    const item = pulled.tables.stock_items.find((i) => i.name === feedName);
+    if (!item) throw new Error("test kalemi bulunamadı");
+    const res = await push([
+      { mutationId: crypto.randomUUID(), table: "stock_items", op: "update", rowId: item.id, payload: { active: false }, clientCreatedAt: new Date().toISOString() },
+    ]);
+    if (res.results[0].status !== "applied") throw new Error(`temizlik reddedildi: ${JSON.stringify(res.results[0])}`);
+  });
+
+  // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
+
 } finally {
   await page.screenshot({ path: ".e2e/final.png", fullPage: true }).catch(() => {});
   await browser.close();

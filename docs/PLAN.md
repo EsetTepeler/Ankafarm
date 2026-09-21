@@ -1,7 +1,7 @@
 # Anka Farm: Küçükbaş Çiftlik Yönetim Paneli, Genel Plan
 
 Son güncelleme: 2026-09-20
-Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 40 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.3 hatırlatıcılar, 3.8 fotoğraflar, 3.2 aşı protokolleri.
+Durum: Faz 1 ve Faz 2 tamam (2.11 saha testi sahipte), Faz 3 başladı; uçtan uca test 43 adım geçiyor. Yayında: https://farmanka.com (web) ve https://api.farmanka.com (API), Hostinger KVM 2 üzerinde Coolify, Let's Encrypt otomatik. Repo: github.com/EsetTepeler/Ankafarm. Sırada 3.2 aşı protokolleri, 3.8 fotoğraflar, 3.4 push bildirim.
 
 ---
 
@@ -521,7 +521,7 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 
 - [x] 3.1 Toplu işlem ekranı üç sekme oldu (`/animals/bulk`): Sağlık (kırkım dahil, 1.8), Tartım (sırayla kilo, Enter bir alt satıra geçer, son kiloya göre fark, tek push) ve Grup taşıma (seçilenler tek harekette). (2026-09-21)
 - [ ] 3.2 Aşı protokolleri ve otomatik hatırlatıcı üretimi (isteğe bağlı; sağlık kaydındaki `next_due_at` çoğu ihtiyacı karşılar).
-- [ ] 3.3 Hatırlatıcılar ekranı.
+- [x] 3.3 Hatırlatıcılar ekranı (`/reminders`): geciken, bugün, bu hafta, sonra ve tamamlananlar. Elle girilenler yeni `reminders` tablosunda (migration 0014/0015, her rol yazabilir); aşı dozu, arınma bitişi ve gebelik kontrolü kayıtlardan türetilir, tabloya yazılmaz (tek doğruluk kaynağı kaydın kendisi). Tamamla, geri al, sil. (2026-09-21)
 - [ ] 3.4 Push bildirim. Native yolda Expo Notifications ve Expo Push API. PWA yolunda web push: VAPID anahtarı, service worker, iOS 16.4 ve sonrası ana ekrana eklenmiş olma şartı. Sunucuda tek bildirim servisi, iki taşıyıcı. node-cron ile zamanlama.
 - [x] 3.5 QR etiket basımı: hayvan listesinde seçim → "Etiket yazdır"; üç boyutta A4 etiket sayfası (QR, küpe no, isim, çiftlik adı), yazdırma penceresinden PDF olarak kaydedilir. Dayanıklı malzeme önerisi dialogda. Profildeki tek etiket de aynı üreticiyi kullanır. (2026-09-21)
 - [x] 3.6 Dışa aktarma (Ayarlar > Dışa aktarma): 14 tablo için CSV (noktalı virgül + UTF-8 BOM, Türkçe Excel doğrudan açar) ve hepsi tek ZIP. Kimlikler yerine okunur değerler yazılır (küpe no, ırk, kalem adı). Cihazdaki veriden üretilir, çevrimdışı çalışır. İçe aktarma yapılmadı: mevcut kayıt yok, ihtiyaç doğarsa ayrı ele alınır.

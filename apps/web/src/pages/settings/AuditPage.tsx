@@ -30,6 +30,7 @@ const tableLabels: Partial<Record<SyncedTable | string, string>> = {
   consumptions: "Tüketim",
   expenses: "Gider",
   incomes: "Gelir",
+  reminders: "Hatırlatıcı",
 };
 
 /** Trigger `TG_OP` değerini küçük harfle yazıyor; yine de ikisini de karşılayalım. */
