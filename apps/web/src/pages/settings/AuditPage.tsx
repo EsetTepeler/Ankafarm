@@ -168,6 +168,7 @@ export function AuditPage() {
   return (
     <>
       <PageHeader
+        icon={History}
         title="Değişiklik geçmişi"
         description={recordId ? "Bu kayıtta yapılan değişiklikler" : "Çiftlikte kim, ne zaman, neyi değiştirdi"}
         actions={
@@ -198,7 +199,7 @@ export function AuditPage() {
       ) : null}
 
       {history.isError ? <p className="text-sm text-danger">Geçmiş alınamadı; bu ekran için bağlantı gerekli.</p> : null}
-      {!history.isLoading && rows.length === 0 ? <EmptyState title="Kayıt yok" description="Değişiklikler burada listelenir." /> : null}
+      {!history.isLoading && rows.length === 0 ? <EmptyState icon={History} title="Kayıt yok" description="Değişiklikler burada listelenir." /> : null}
 
       <div className="grid gap-2" data-testid="audit-list">
         {(rows as { id: string; tableName: string; recordId: string; action: string; oldData: unknown; newData: unknown; createdAt: string | Date; userName: string | null }[]).map((r) => {

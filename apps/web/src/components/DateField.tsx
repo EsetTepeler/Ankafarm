@@ -15,7 +15,10 @@ interface Props {
 export function DateField({ id, label, value, onChange, testID, error, required }: Props) {
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label}
+        {required ? <span className="text-danger">*</span> : null}
+      </Label>
       <Input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} data-testid={testID} required={required} aria-invalid={!!error} />
       {error ? <p className="text-xs text-danger">{error}</p> : null}
     </div>

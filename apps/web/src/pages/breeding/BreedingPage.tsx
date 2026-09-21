@@ -1,5 +1,5 @@
 import { formatKg, formatNumber, labels, type AnimalStatus } from "@anka/shared";
-import { Baby, HeartHandshake } from "lucide-react";
+import { Baby, HeartHandshake, Percent, Users } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
@@ -39,17 +39,17 @@ export function BreedingPage() {
 
   return (
     <>
-      <PageHeader title="Damızlık" description="Koç ve anne performansı; akrabalık kontrolü çiftleşme formunda" />
+      <PageHeader icon={HeartHandshake} title="Damızlık" description="Koç ve anne performansı; akrabalık kontrolü çiftleşme formunda" />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Damızlık koç" value={sires.length} hint={sires.filter((s) => s.status === "active").length + " aktif"} testID="sire-count" />
-        <StatTile label="Doğum yapan anne" value={dams.filter((d) => d.births > 0).length} hint={`${pregnant.length} gebe`} testID="dam-count" />
-        <StatTile label="Doğum başına yavru" value={num(herdPerBirth)} hint="Sürü ortalaması" />
-        <StatTile label="Toplam yavru" value={dams.reduce((s, d) => s + d.lambs, 0)} hint={`${dams.reduce((s, d) => s + d.stillborn, 0)} ölü doğum`} />
+        <StatTile label="Damızlık koç" value={sires.length} hint={sires.filter((s) => s.status === "active").length + " aktif"} testID="sire-count" icon={HeartHandshake} />
+        <StatTile label="Doğum yapan anne" value={dams.filter((d) => d.births > 0).length} hint={`${pregnant.length} gebe`} testID="dam-count" icon={Users} />
+        <StatTile label="Doğum başına yavru" value={num(herdPerBirth)} hint="Sürü ortalaması" icon={Percent} tone="brand" />
+        <StatTile label="Toplam yavru" value={dams.reduce((s, d) => s + d.lambs, 0)} hint={`${dams.reduce((s, d) => s + d.stillborn, 0)} ölü doğum`} icon={Baby} />
       </div>
 
       <Tabs defaultValue="sires" className="mt-6">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="sires" data-testid="tab-sires">
             Koçlar
           </TabsTrigger>
@@ -60,12 +60,12 @@ export function BreedingPage() {
 
         <TabsContent value="sires">
           {sires.length === 0 ? (
-            <EmptyState title="Damızlık koç kaydı yok" description="Çiftleşme veya doğum kaydı girilince koçlar burada listelenir." />
+            <EmptyState icon={HeartHandshake} title="Damızlık koç kaydı yok" description="Çiftleşme veya doğum kaydı girilince koçlar burada listelenir." />
           ) : (
             <>
               <div className="overflow-hidden rounded-xl border bg-card">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-muted/50">
                     <TableRow>
                       <TableHead className="w-10" />
                       <TableHead>Küpe</TableHead>
@@ -80,7 +80,7 @@ export function BreedingPage() {
                   </TableHeader>
                   <TableBody>
                     {sires.map((s) => (
-                      <TableRow key={s.id} data-testid={`sire-row-${s.tagNo}`}>
+                      <TableRow key={s.id} className={compare.has(s.id) ? "bg-primary/5" : undefined} data-testid={`sire-row-${s.tagNo}`}>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox checked={compare.has(s.id)} onCheckedChange={() => toggle(s.id)} aria-label={`${s.tagNo} karşılaştır`} data-testid={`sire-compare-${s.tagNo}`} />
                         </TableCell>
@@ -123,11 +123,11 @@ export function BreedingPage() {
 
         <TabsContent value="dams">
           {dams.length === 0 ? (
-            <EmptyState title="Doğum kaydı yok" />
+            <EmptyState icon={Baby} title="Doğum kaydı yok" />
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Küpe</TableHead>
                     <TableHead className="text-right">Doğum</TableHead>
@@ -191,10 +191,10 @@ function SireCard({ sire, best }: { sire: SireStats; best: number }) {
     ["Son doğum", sire.lastBirth ? isoToDisplay(sire.lastBirth) : "–"],
   ];
   return (
-    <Card className={cn(sire.lambs === best && best > 0 && "border-primary")} data-testid={`sire-card-${sire.tagNo}`}>
+    <Card className={cn("transition-shadow", sire.lambs === best && best > 0 && "border-primary/50 bg-primary/5 shadow-xs")} data-testid={`sire-card-${sire.tagNo}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <HeartHandshake className="size-4 text-muted-foreground" />
+          <HeartHandshake className="size-4 text-primary" />
           {sire.tagNo}
           {sire.name ? <span className="font-normal text-muted-foreground">· {sire.name}</span> : null}
           {sire.lambs === best && best > 0 ? <Badge className="ml-auto">En çok yavru</Badge> : null}
@@ -202,7 +202,7 @@ function SireCard({ sire, best }: { sire: SireStats; best: number }) {
       </CardHeader>
       <CardContent className="grid gap-1 text-sm">
         {rows.map(([label, value]) => (
-          <div key={label} className="flex justify-between gap-3">
+          <div key={label} className="flex justify-between gap-3 border-b border-dashed border-border/60 py-1 last:border-0">
             <span className="text-muted-foreground">{label}</span>
             <span className="font-medium tabular-nums">{value}</span>
           </div>

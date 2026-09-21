@@ -1,5 +1,5 @@
 import { formatKg, labels, type HealthType, type Species } from "@anka/shared";
-import { ArrowLeftRight, Scale, Syringe } from "lucide-react";
+import { ArrowLeftRight, Scale, Syringe, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -42,9 +42,9 @@ export function BulkPage() {
 
   return (
     <>
-      <PageHeader title="Toplu işlem" description="Tüm sürüye veya seçili hayvanlara tek seferde kayıt" />
+      <PageHeader icon={Syringe} title="Toplu işlem" description="Tüm sürüye veya seçili hayvanlara tek seferde kayıt" />
       <Tabs defaultValue="health">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="health" data-testid="tab-bulk-health">
             Sağlık
           </TabsTrigger>
@@ -127,7 +127,9 @@ function HealthTab({ rows, loading, picker }: TabProps) {
     <div className="grid gap-4 lg:grid-cols-5">
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle className="text-base">Ne uygulandı?</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Syringe className="size-4 text-primary" /> Kayıt bilgileri
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <HealthForm values={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} />
@@ -135,7 +137,7 @@ function HealthTab({ rows, loading, picker }: TabProps) {
       </Card>
 
       <Card className="lg:col-span-3">
-        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
           <CardTitle className="text-base">
             Kime?{" "}
             <span className="font-normal text-muted-foreground" data-testid="bulk-count">
@@ -149,11 +151,11 @@ function HealthTab({ rows, loading, picker }: TabProps) {
         <CardContent className="grid gap-3">
           {picker}
           {rows.length === 0 ? (
-            <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+            <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
           ) : (
-            <div className="max-h-[420px] overflow-auto rounded-lg border">
+            <div className="max-h-[420px] overflow-auto rounded-xl border">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
                   <TableRow>
                     <TableHead className="w-10" />
                     <TableHead>Küpe</TableHead>
@@ -236,11 +238,11 @@ function WeightTab({ rows, loading, picker }: TabProps) {
           <DateField id="weigh-date" label="Tarih" value={date} onChange={setDate} testID="weigh-date" required />
         </div>
         {rows.length === 0 ? (
-          <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+          <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
         ) : (
-          <div className="max-h-[520px] overflow-auto rounded-lg border">
+          <div className="max-h-[520px] overflow-auto rounded-xl border">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
                 <TableRow>
                   <TableHead>Küpe</TableHead>
                   <TableHead>İsim</TableHead>
@@ -325,11 +327,11 @@ function MoveTab({ rows, loading, picker }: TabProps) {
       <CardContent className="grid gap-3">
         {picker}
         {rows.length === 0 ? (
-          <EmptyState title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
+          <EmptyState icon={Users} title={loading ? "Yükleniyor" : "Bu seçimde aktif hayvan yok"} />
         ) : (
-          <div className="max-h-[520px] overflow-auto rounded-lg border">
+          <div className="max-h-[520px] overflow-auto rounded-xl border">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-[1] bg-muted/95 backdrop-blur-sm">
                 <TableRow>
                   <TableHead className="w-10" />
                   <TableHead>Küpe</TableHead>

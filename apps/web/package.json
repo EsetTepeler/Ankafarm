@@ -9,7 +9,8 @@
     "preview": "vite preview --port 8090",
     "typecheck": "tsc -b --noEmit",
     "e2e:web": "node scripts/e2e-web.mjs",
-    "sync-stress": "node scripts/sync-stress.mjs"
+    "sync-stress": "node scripts/sync-stress.mjs",
+    "ui:shots": "node scripts/ui-shots.mjs"
   },
   "dependencies": {
     "@anka/shared": "workspace:*",

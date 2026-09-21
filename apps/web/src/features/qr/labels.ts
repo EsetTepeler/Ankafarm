@@ -46,14 +46,14 @@ export async function buildLabelSheet(items: LabelAnimal[], size: LabelSize, far
   * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, sans-serif; }
   .sheet { display: grid; grid-template-columns: repeat(${columns}, 1fr); gap: 4mm; }
-  .label { border: 1px dashed #999; border-radius: 3mm; padding: 3mm; text-align: center; break-inside: avoid; }
+  .label { border: 1px dashed #b3bdb6; border-radius: 3mm; padding: 3mm; text-align: center; break-inside: avoid; }
   .label img { width: 100%; height: auto; display: block; }
-  .tag { font-size: ${size === "small" ? "14pt" : "18pt"}; font-weight: 700; margin-top: 1mm; letter-spacing: 0.02em; }
-  .name { font-size: ${size === "small" ? "9pt" : "11pt"}; color: #444; }
-  .farm { font-size: 7pt; color: #888; margin-top: 1mm; }
-  @media screen { body { background: #f4f4f5; padding: 10mm; } .sheet { background: #fff; padding: 10mm; } }
+  .tag { font-size: ${size === "small" ? "14pt" : "18pt"}; font-weight: 700; margin-top: 1mm; letter-spacing: 0.02em; color: #0F3D2E; }
+  .name { font-size: ${size === "small" ? "9pt" : "11pt"}; color: #4E7F46; }
+  .farm { font-size: 7pt; color: #8a938c; margin-top: 1mm; letter-spacing: 0.08em; text-transform: uppercase; }
+  @media screen { body { background: #FBF6EF; padding: 10mm; } .sheet { background: #fff; padding: 10mm; border-radius: 4mm; box-shadow: 0 1px 3px rgba(15,61,46,.12); } }
   .bar { margin-bottom: 6mm; display: flex; gap: 8px; align-items: center; font-size: 10pt; color: #444; }
-  .bar button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid #999; background: #fff; cursor: pointer; }
+  .bar button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 0; background: #0F3D2E; color: #FBF6EF; cursor: pointer; }
   @media print { .bar { display: none; } }
 </style></head>
 <body>

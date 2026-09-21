@@ -27,12 +27,14 @@ export function WeightChart({ points }: { points: WeightPoint[] }) {
       tooltip: { mark: { title: { visible: false }, content: [{ key: "Tarih", value: (d: { date: string }) => d.date.split("-").reverse().join(".") }, { key: "Kilo", value: (d: { kg: number }) => `${d.kg} kg` }] } },
       padding: { top: 12, right: 16, bottom: 8, left: 8 },
       background: "transparent",
+      // Marka yeşili; koyu temada okunur kalsın diye açık ton.
+      color: theme === "dark" ? ["#6FBF8E"] : ["#2F6B4F"],
       theme: theme === "dark" ? "dark" : "light",
     }) as unknown as ISpec,
     [points, theme],
   );
   if (points.length < 2) {
-    return <p className="flex h-40 items-center justify-center text-sm text-muted-foreground">Grafik için en az iki tartım gerekli</p>;
+    return <p className="flex h-40 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">Grafik için en az iki tartım gerekli</p>;
   }
   return (
     <div className="h-56 w-full" data-testid="weight-chart">

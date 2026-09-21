@@ -1,5 +1,5 @@
 import { formatMoney, labels, type ExpenseCategory, type IncomeCategory } from "@anka/shared";
-import { ChevronLeft, ChevronRight, Minus, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, PieChart, Plus, Scale, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Navigate } from "react-router";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ export function FinancePage() {
   return (
     <>
       <PageHeader
+        icon={Wallet}
         title="Finans"
         description="Aylık gider ve gelir; stok alımları da buraya işlenir"
         actions={
@@ -67,7 +68,7 @@ export function FinancePage() {
         }
       />
 
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2 rounded-xl border bg-card p-2">
         <Button variant="outline" size="icon" aria-label="Önceki ay" onClick={() => setMonth(shiftMonth(month, -1))} data-testid="month-prev">
           <ChevronLeft />
         </Button>
@@ -80,19 +81,21 @@ export function FinancePage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="Gider" value={formatMoney(s?.expense ?? 0)} hint="Alımlar ve stok dışı giderler" testID="kpi-expense" />
-        <StatTile label="Gelir" value={formatMoney(s?.income ?? 0)} testID="kpi-income" />
-        <StatTile label="Fark" value={formatMoney(net)} hint={net >= 0 ? "Bu ay artıda" : "Bu ay ekside"} testID="kpi-net" />
+        <StatTile label="Gider" value={formatMoney(s?.expense ?? 0)} hint="Alımlar ve stok dışı giderler" testID="kpi-expense" icon={TrendingDown} />
+        <StatTile label="Gelir" value={formatMoney(s?.income ?? 0)} testID="kpi-income" icon={TrendingUp} />
+        <StatTile label="Fark" value={formatMoney(net)} hint={net >= 0 ? "Bu ay artıda" : "Bu ay ekside"} testID="kpi-net" icon={Scale} tone={net >= 0 ? "success" : "danger"} />
       </div>
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="text-base">Gider dağılımı</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <PieChart className="size-4 text-primary" /> Gider dağılımı
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
-          {s && s.byCategory.length === 0 ? <EmptyState title="Bu ay gider girilmemiş" /> : null}
+          {s && s.byCategory.length === 0 ? <EmptyState icon={PieChart} title="Bu ay gider girilmemiş" /> : null}
           {s?.byCategory.map((c) => (
-            <div key={`${c.category}:${c.label}`} className="grid gap-1" data-testid={`cost-row-${c.label || c.category}`}>
+            <div key={`${c.category}:${c.label}`} className="grid gap-1.5" data-testid={`cost-row-${c.label || c.category}`}>
               <div className="flex justify-between text-sm">
                 <span>
                   {labels.expenseCategory[c.category as ExpenseCategory] ?? labels.stockCategory[c.category as keyof typeof labels.stockCategory] ?? c.category}
@@ -100,8 +103,8 @@ export function FinancePage() {
                 </span>
                 <span className="font-medium tabular-nums">{formatMoney(c.amount)}</span>
               </div>
-              <div className="h-1.5 rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round((c.amount / max) * 100)}%` }} />
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${Math.max(3, Math.round((c.amount / max) * 100))}%` }} />
               </div>
             </div>
           ))}
@@ -109,7 +112,7 @@ export function FinancePage() {
       </Card>
 
       <Tabs defaultValue="expenses" className="mt-6">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="expenses" data-testid="tab-expenses">
             Giderler
           </TabsTrigger>
@@ -120,7 +123,7 @@ export function FinancePage() {
 
         <TabsContent value="expenses">
           {expenses.data?.length === 0 ? (
-            <EmptyState title="Bu ay stok dışı gider yok" description="Yem alımları Stok ekranından girilir." />
+            <EmptyState icon={TrendingDown} title="Bu ay stok dışı gider yok" description="Yem alımları Stok ekranından girilir." />
           ) : (
             <Ledger
               rows={(expenses.data ?? []).map((e) => ({ id: e.id, date: e.spentAt, category: labels.expenseCategory[e.category as ExpenseCategory] ?? e.category, description: e.description, amount: e.amount }))}
@@ -132,7 +135,7 @@ export function FinancePage() {
 
         <TabsContent value="incomes">
           {incomes.data?.length === 0 ? (
-            <EmptyState title="Bu ay gelir yok" />
+            <EmptyState icon={TrendingUp} title="Bu ay gelir yok" />
           ) : (
             <Ledger
               rows={(incomes.data ?? []).map((i) => ({ id: i.id, date: i.receivedAt, category: labels.incomeCategory[i.category as IncomeCategory] ?? i.category, description: i.description, amount: i.amount }))}
@@ -167,7 +170,7 @@ function Ledger({ rows, onDelete, testIdPrefix }: { rows: { id: string; date: st
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead>Tarih</TableHead>
             <TableHead>Kategori</TableHead>
@@ -179,7 +182,7 @@ function Ledger({ rows, onDelete, testIdPrefix }: { rows: { id: string; date: st
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id} data-testid={`${testIdPrefix}-row-${r.category}`}>
-              <TableCell>{isoToDisplay(r.date)}</TableCell>
+              <TableCell className="tabular-nums">{isoToDisplay(r.date)}</TableCell>
               <TableCell className="font-medium">{r.category}</TableCell>
               <TableCell className="text-muted-foreground">{r.description ?? "–"}</TableCell>
               <TableCell className="text-right font-medium tabular-nums">{formatMoney(r.amount)}</TableCell>

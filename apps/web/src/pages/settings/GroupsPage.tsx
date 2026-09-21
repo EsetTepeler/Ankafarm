@@ -1,5 +1,5 @@
 import { labels, type GroupKind } from "@anka/shared";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Boxes, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -67,6 +67,7 @@ export function GroupsPage() {
   return (
     <>
       <PageHeader
+        icon={Boxes}
         title="Gruplar ve bölmeler"
         description="Hayvanların bulunduğu bölme, mera ve karantina alanları"
         actions={
@@ -77,11 +78,11 @@ export function GroupsPage() {
       />
 
       {groups.data?.length === 0 ? (
-        <EmptyState title="Henüz grup yok" />
+        <EmptyState icon={Boxes} title="Henüz grup yok" />
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead>Ad</TableHead>
                 <TableHead>Tür</TableHead>

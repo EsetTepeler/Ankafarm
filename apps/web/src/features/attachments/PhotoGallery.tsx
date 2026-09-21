@@ -55,7 +55,7 @@ export function PhotoGallery({ entityTable, entityId, canEdit }: { entityTable: 
       ) : null}
 
       {rows.length === 0 ? (
-        <EmptyState title="Henüz dosya yok" description="Fotoğraf çek ya da fatura, rapor gibi belgeleri ekle." />
+        <EmptyState icon={Camera} title="Henüz dosya yok" description="Fotoğraf çek ya da fatura, rapor gibi belgeleri ekle." />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {rows.map((a) => (
@@ -82,10 +82,10 @@ function Thumb({ attachment, canEdit, onOpen }: { attachment: LocalAttachment; c
   const url = useAttachmentUrl(attachment);
   const isImage = attachment.mime.startsWith("image/");
   return (
-    <div className="group relative overflow-hidden rounded-lg border bg-muted" data-testid={`photo-item-${attachment.id}`}>
+    <div className="group relative overflow-hidden rounded-xl border bg-muted transition-shadow hover:shadow-sm" data-testid={`photo-item-${attachment.id}`}>
       <button type="button" onClick={onOpen} className="block aspect-square w-full">
         {isImage && url ? (
-          <img src={url} alt="" className="size-full object-cover" />
+          <img src={url} alt="" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
         ) : (
           <span className="flex size-full flex-col items-center justify-center gap-1 text-xs text-muted-foreground">
             <FileText className="size-6" />

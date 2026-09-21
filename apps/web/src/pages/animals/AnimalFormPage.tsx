@@ -1,4 +1,5 @@
 import { DEFAULT_GROUP_NAME, labels, type BirthType, type Origin, type Sex, type Species } from "@anka/shared";
+import { CalendarDays, IdCard, Save, ShoppingCart, Tags } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -223,12 +224,14 @@ export function AnimalFormPage() {
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
-      <PageHeader title={editing ? "Hayvanı düzenle" : "Hayvan ekle"} description={editing ? existing.data?.tagNo : "Küpe numarası ve köken zorunlu, gerisi sonra da girilebilir"} />
+      <PageHeader icon={IdCard} title={editing ? "Hayvanı düzenle" : "Hayvan ekle"} description={editing ? existing.data?.tagNo : "Küpe numarası ve köken zorunlu, gerisi sonra da girilebilir"} />
 
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Kimlik</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <IdCard className="size-4 text-primary" /> Kimlik
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-1.5">
@@ -279,7 +282,10 @@ export function AnimalFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{form.origin === "born_here" ? "Doğum" : "Alım"}</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              {form.origin === "born_here" ? <CalendarDays className="size-4 text-primary" /> : <ShoppingCart className="size-4 text-primary" />}
+              {form.origin === "born_here" ? "Doğum" : "Alım"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             {form.origin === "born_here" ? (
@@ -330,7 +336,9 @@ export function AnimalFormPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Irk ve grup</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Tags className="size-4 text-primary" /> Irk ve grup
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -378,7 +386,7 @@ export function AnimalFormPage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="sticky bottom-0 -mx-1 flex flex-wrap justify-end gap-2 border-t bg-background/90 px-1 py-3 backdrop-blur-sm">
           <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
             Vazgeç
           </Button>
@@ -388,7 +396,7 @@ export function AnimalFormPage() {
             </Button>
           ) : null}
           <Button type="submit" disabled={busy || !form.tagNo.trim()} data-testid="animal-save">
-            Kaydet
+            <Save /> Kaydet
           </Button>
         </div>
       </div>

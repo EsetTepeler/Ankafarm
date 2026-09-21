@@ -14,7 +14,21 @@ function ChartFrame({ empty, height = 240, testID, children }: { empty: boolean;
   );
 }
 
-const base = (theme: string) => ({ background: "transparent", theme: theme === "dark" ? "dark" : "light", padding: { top: 12, right: 16, bottom: 8, left: 8 } });
+/**
+ * Grafik paleti logodan türetildi: koyu yeşil ve amber önde, kalan tonlar birbirinden ayırt
+ * edilebilecek kadar uzak. Canvas çizimi CSS değişkenlerini okuyamadığı için renkler sabit.
+ */
+const palette = {
+  light: ["#2F6B4F", "#C9974E", "#4E7F46", "#3E6B8A", "#B4603C", "#7C6AA6"],
+  dark: ["#6FBF8E", "#E9C48E", "#9BD17A", "#7FB3D5", "#E8996B", "#B79BD6"],
+} as const;
+
+const base = (theme: string) => ({
+  background: "transparent",
+  theme: theme === "dark" ? "dark" : "light",
+  color: theme === "dark" ? [...palette.dark] : [...palette.light],
+  padding: { top: 12, right: 16, bottom: 8, left: 8 },
+});
 
 export interface NamedValue {
   name: string;
@@ -32,8 +46,9 @@ export function BarChart({ data, unit, testID, height }: { data: NamedValue[]; u
         xField: "name",
         yField: "value",
         bar: { style: { cornerRadius: [4, 4, 0, 0] } },
-        label: { visible: true, formatMethod: (v: unknown) => (unit ? `${v} ${unit}` : String(v)) },
-        axes: [{ orient: "left", visible: false }, { orient: "bottom" }],
+        label: { visible: true, position: "top", formatMethod: (v: unknown) => (unit ? `${v} ${unit}` : String(v)) },
+        // Etiket çubuğun tepesine yazılıyor; ekseni biraz genişletmezsek en yüksek çubukta üst üste biniyor.
+        axes: [{ orient: "left", visible: false, expand: { max: 0.18 } }, { orient: "bottom" }],
         tooltip: { mark: { content: [{ key: (d: NamedValue) => d.name, value: (d: NamedValue) => (unit ? `${d.value} ${unit}` : String(d.value)) }] } },
         ...base(theme),
       }) as unknown as ISpec,

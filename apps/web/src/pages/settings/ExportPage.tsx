@@ -41,6 +41,7 @@ export function ExportPage() {
   return (
     <>
       <PageHeader
+        icon={FileSpreadsheet}
         title="Dışa aktarma"
         description="Kayıtları Excel'de açılabilir CSV olarak indir"
         actions={
@@ -58,7 +59,7 @@ export function ExportPage() {
         </CardHeader>
         <CardContent className="grid gap-1">
           {tables.map((t) => (
-            <div key={t.key} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm" data-testid={`export-row-${t.key}`}>
+            <div key={t.key} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`export-row-${t.key}`}>
               <span className="flex items-center gap-2">
                 <FileSpreadsheet className="size-4 text-muted-foreground" />
                 {t.label}

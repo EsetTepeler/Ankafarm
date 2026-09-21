@@ -31,15 +31,18 @@ export default defineConfig({
       manifest: {
         name: "Anka Farm",
         short_name: "Anka Farm",
-        description: "Küçükbaş çiftlik yönetim paneli",
+        description: "Küçükbaş çiftlik yönetim sistemi: sağlık, üreme, kilo, yem ve finans takibi",
         lang: "tr",
         start_url: "/",
         display: "standalone",
-        background_color: "#fafaf9",
-        theme_color: "#2e7d32",
+        background_color: "#FBF6EF",
+        theme_color: "#0F3D2E",
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+          // Android ikonu kırpıyor; maskable sürümde işaret güvenli alana oturur.
+          { src: "icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          { src: "apple-touch-icon.png", sizes: "180x180", type: "image/png" },
         ],
       },
       workbox: {

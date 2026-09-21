@@ -1,5 +1,5 @@
 import jsQR from "jsqr";
-import { Camera, CameraOff, Search } from "lucide-react";
+import { Camera, CameraOff, ScanLine, Search } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -130,11 +130,11 @@ export function ScanPage() {
 
   return (
     <>
-      <PageHeader title="QR tara" description="Etiketi kameraya tut; profil kendiliğinden açılır" />
+      <PageHeader icon={ScanLine} title="QR tara" description="Etiketi kameraya tut; profil kendiliğinden açılır" />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,480px)_1fr]">
         <Card>
           <CardContent className="grid gap-3 pt-6">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-black">
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-black">
               <video ref={videoRef} className="size-full object-cover" playsInline muted data-testid="scan-video" />
               <canvas ref={canvasRef} className="hidden" />
               {camera !== "on" ? (
@@ -150,7 +150,13 @@ export function ScanPage() {
                   )}
                 </div>
               ) : (
-                <div className="pointer-events-none absolute inset-8 rounded-xl border-2 border-white/70" />
+                <div className="pointer-events-none absolute inset-8">
+                  {/* Köşe kılavuzları: tam çerçeve yerine dört köşe, kadrajı kapatmadan hedef gösteriyor. */}
+                  <span className="absolute left-0 top-0 size-8 rounded-tl-lg border-l-4 border-t-4 border-[var(--brand-amber)]" />
+                  <span className="absolute right-0 top-0 size-8 rounded-tr-lg border-r-4 border-t-4 border-[var(--brand-amber)]" />
+                  <span className="absolute bottom-0 left-0 size-8 rounded-bl-lg border-b-4 border-l-4 border-[var(--brand-amber)]" />
+                  <span className="absolute bottom-0 right-0 size-8 rounded-br-lg border-b-4 border-r-4 border-[var(--brand-amber)]" />
+                </div>
               )}
             </div>
           </CardContent>

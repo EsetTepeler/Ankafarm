@@ -55,6 +55,7 @@ export function ProtocolsPage() {
   return (
     <>
       <PageHeader
+        icon={CalendarClock}
         title="Aşı ve bakım programı"
         description="Programdaki her madde, her hayvan için hatırlatıcıya dönüşür"
         actions={
@@ -69,7 +70,7 @@ export function ProtocolsPage() {
       {!loaded ? (
         <p className="text-sm text-muted-foreground">Yükleniyor</p>
       ) : rows.length === 0 ? (
-        <EmptyState title="Henüz program yok" description="Örnek programı ekleyip kendi takvimine göre düzenleyebilirsin: enterotoksemi, çiçek, parazit, tırnak bakımı." />
+        <EmptyState icon={CalendarClock} title="Henüz program yok" description="Örnek programı ekleyip kendi takvimine göre düzenleyebilirsin: enterotoksemi, çiçek, parazit, tırnak bakımı." />
       ) : (
         <div className="grid gap-4">
           {rows.map((p) => (
@@ -99,7 +100,7 @@ export function ProtocolsPage() {
               <CardContent className="grid gap-2">
                 {p.items.length === 0 ? <EmptyState title="Madde yok" description="Aşı, ilaç veya bakım maddesi ekle." /> : null}
                 {p.items.map((i) => (
-                  <div key={i.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm" data-testid={`protocol-item-${i.productName ?? i.type}`}>
+                  <div key={i.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`protocol-item-${i.productName ?? i.type}`}>
                     <span className="grid">
                       <span className="font-medium">
                         {i.productName ?? labels.healthType[i.type as HealthType]}
@@ -133,7 +134,7 @@ export function ProtocolsPage() {
           <CardDescription>Önümüzdeki 60 gün. Sağlık kaydı girilince iş kendiliğinden ileri kayar.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-1">
-          {tasks.data?.length === 0 ? <EmptyState title="Yaklaşan iş yok" /> : null}
+          {tasks.data?.length === 0 ? <EmptyState icon={CalendarClock} title="Yaklaşan iş yok" /> : null}
           {(tasks.data ?? []).slice(0, 30).map((t) => (
             <div key={t.key} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-1.5 text-sm" data-testid="protocol-task">
               <span className="truncate">{t.title}</span>

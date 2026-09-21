@@ -14,7 +14,9 @@ let socket: Socket | null = null;
  */
 export function connectRealtime() {
   if (socket) return;
-  const auth = () => ({ token: useAuthStore.getState().accessToken ?? "" });
+  // socket.io-client `auth` fonksiyonunu geri-çağırma ile çağırır; değer döndürmek yetmiyor,
+  // cb çağrılmazsa CONNECT paketi hiç gönderilmiyor ve bağlantı sessizce zaman aşımına düşüyordu.
+  const auth = (cb: (data: { token: string }) => void) => cb({ token: useAuthStore.getState().accessToken ?? "" });
   socket = io(getApiUrl(), { path: "/socket.io", auth, transports: ["websocket", "polling"], reconnectionDelayMax: 30_000 });
   socket.on("changed", () => scheduleSync("remote", 500));
   // İçgörüler senkron tablolarında değil; ayrı olayla tazelenir.

@@ -49,7 +49,7 @@ export function SystemPage() {
 
   return (
     <>
-      <PageHeader title="Sistem durumu" description="Sunucu, yedekler ve depolama" />
+      <PageHeader icon={ShieldCheck} title="Sistem durumu" description="Sunucu, yedekler ve depolama" />
 
       {status.isError ? <p className="mb-4 text-sm text-danger">Sunucuya ulaşılamadı; bu ekran bağlantı ister.</p> : null}
 

@@ -1,4 +1,4 @@
-import { Baby, Bell, CalendarClock, Check, Plus, Syringe, Trash2, Undo2 } from "lucide-react";
+import { Baby, Bell, CalendarClock, CalendarDays, CalendarRange, Check, CircleCheck, Plus, Syringe, Trash2, TriangleAlert, Undo2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ export function RemindersPage() {
   return (
     <>
       <PageHeader
+        icon={Bell}
         title="Hatırlatıcılar"
         description="Geciken ve yaklaşan işler; aşı dozları, gebelik kontrolleri ve kendi notların"
         actions={
@@ -76,13 +77,16 @@ export function RemindersPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Geciken" value={groups.overdue.length} hint={groups.overdue.length ? "En eski: " + isoToDisplay(groups.overdue[0]!.dueAt) : "Geciken iş yok"} testID="rem-overdue" />
-        <StatTile label="Bugün" value={groups.today.length} testID="rem-today" />
-        <StatTile label="Bu hafta" value={groups.week.length} testID="rem-week" />
-        <StatTile label="Tamamlanan" value={done.data?.length ?? 0} hint="Son kayıtlar" testID="rem-done" />
+        <StatTile label="Geciken" value={groups.overdue.length} hint={groups.overdue.length ? "En eski: " + isoToDisplay(groups.overdue[0]!.dueAt) : "Geciken iş yok"} testID="rem-overdue" icon={TriangleAlert} tone={groups.overdue.length ? "danger" : "success"} />
+        <StatTile label="Bugün" value={groups.today.length} testID="rem-today" icon={CalendarDays} tone={groups.today.length ? "warning" : "default"} />
+        <StatTile label="Bu hafta" value={groups.week.length} testID="rem-week" icon={CalendarRange} />
+        <StatTile label="Tamamlanan" value={done.data?.length ?? 0} hint="Son kayıtlar" testID="rem-done" icon={CircleCheck} tone="success" />
       </div>
 
       <div className="mt-6 grid gap-4">
+        {groups.overdue.length + groups.today.length + groups.week.length + groups.later.length === 0 ? (
+          <EmptyState icon={CircleCheck} title="Bekleyen iş yok" description="Aşı dozları, gebelik kontrolleri ve kendi notların burada toplanır." />
+        ) : null}
         <Section title="Geciken" items={groups.overdue} tone="danger" testID="section-overdue" />
         <Section title="Bugün" items={groups.today} tone="warn" testID="section-today" />
         <Section title="Bu hafta" items={groups.week} testID="section-week" />
@@ -91,11 +95,13 @@ export function RemindersPage() {
         {done.data?.length ? (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Tamamlananlar</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CircleCheck className="size-4 text-success" /> Tamamlananlar
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               {done.data.map(({ r, tagNo }) => (
-                <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm text-muted-foreground" data-testid={`done-row-${r.title}`}>
+                <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground" data-testid={`done-row-${r.title}`}>
                   <span className="line-through">
                     {r.title}
                     {tagNo ? ` · ${tagNo}` : ""}
@@ -121,7 +127,7 @@ export function RemindersPage() {
 function Section({ title, items, tone, testID }: { title: string; items: ReminderItem[]; tone?: "danger" | "warn"; testID: string }) {
   if (items.length === 0) return null;
   return (
-    <Card data-testid={testID}>
+    <Card className={cn("border-l-4", tone === "danger" ? "border-l-danger" : tone === "warn" ? "border-l-warning" : "border-l-border")} data-testid={testID}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           {title}
@@ -132,8 +138,8 @@ function Section({ title, items, tone, testID }: { title: string; items: Reminde
         {items.slice(0, SECTION_LIMIT).map((r) => {
           const Icon = kindIcon[r.kind];
           return (
-            <div key={r.id} className={cn("flex items-center gap-3 rounded-lg border px-3 py-2 text-sm", tone === "danger" && "border-danger/40")} data-testid={`rem-row-${r.kind}`}>
-              <Icon className="size-4 shrink-0 text-muted-foreground" />
+            <div key={r.id} className={cn("flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40 sm:flex-nowrap sm:gap-3", tone === "danger" && "border-danger/40 bg-danger/5")} data-testid={`rem-row-${r.kind}`}>
+              <Icon className={cn("size-4 shrink-0", tone === "danger" ? "text-danger" : tone === "warn" ? "text-warning" : "text-muted-foreground")} />
               <div className="grid min-w-0 flex-1">
                 <span className="truncate font-medium">{r.title}</span>
                 {r.note ? <span className="truncate text-xs text-muted-foreground">{r.note}</span> : null}
@@ -141,7 +147,7 @@ function Section({ title, items, tone, testID }: { title: string; items: Reminde
               <Badge variant="outline" className="shrink-0">
                 {kindLabel[r.kind]}
               </Badge>
-              <span className="shrink-0 text-xs text-muted-foreground">{isoToDisplay(r.dueAt)}</span>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{isoToDisplay(r.dueAt)}</span>
               {r.animalId ? (
                 <Button asChild variant="ghost" size="sm">
                   <Link to={`/animals/${r.animalId}`}>Aç</Link>

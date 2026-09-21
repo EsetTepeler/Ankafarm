@@ -44,7 +44,7 @@ export function BreedingSection({ animal }: { animal: AnimalListItem }) {
           ) : null}
           {breedings.data?.length === 0 ? <EmptyState title="Henüz çiftleşme kaydı yok" /> : null}
           {(breedings.data ?? []).map((b) => (
-            <div key={b.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm" data-testid="breeding-row">
+            <div key={b.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid="breeding-row">
               <div className="grid">
                 <span className="font-medium">
                   {isoToDisplay(b.matedAt)} · {labels.breedingMethod[b.method as BreedingMethod] ?? b.method}
@@ -81,7 +81,7 @@ export function BreedingSection({ animal }: { animal: AnimalListItem }) {
           <CardContent className="grid gap-2">
             {lambings.data?.length === 0 ? <EmptyState title="Henüz doğum kaydı yok" /> : null}
             {(lambings.data ?? []).map((l) => (
-              <div key={l.id} className="rounded-lg border px-3 py-2 text-sm" data-testid="lambing-row">
+              <div key={l.id} className="rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid="lambing-row">
                 <span className="font-medium">
                   {isoToDisplay(l.bornAt)} · {l.liveCount} canlı{l.stillbornCount ? `, ${l.stillbornCount} ölü` : ""}
                 </span>

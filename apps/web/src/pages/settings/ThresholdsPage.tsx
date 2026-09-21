@@ -1,6 +1,6 @@
 import { insightThresholdFields } from "@anka/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RotateCcw, Save } from "lucide-react";
+import { RotateCcw, Save, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ export function ThresholdsPage() {
   return (
     <>
       <PageHeader
+        icon={SlidersHorizontal}
         title="İçgörü eşikleri"
         description="Uyarıların ne zaman çıkacağını çiftliğine göre ayarla"
         actions={

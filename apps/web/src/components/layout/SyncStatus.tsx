@@ -15,15 +15,15 @@ export function SyncStatus() {
       to="/settings/sync"
       data-testid="sync-banner"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-        tone === "ok" && "border-transparent bg-muted text-muted-foreground",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+        tone === "ok" && "border-success/30 bg-success/10 text-success",
         tone === "info" && "border-transparent bg-accent text-accent-foreground",
-        tone === "warn" && "border-warning/40 bg-warning/15 text-foreground",
+        tone === "warn" && "border-warning/45 bg-warning/15 text-warning",
         tone === "error" && "border-danger/40 bg-danger/10 text-danger",
       )}
     >
       <Icon className={cn("size-3.5", state.status === "syncing" && "animate-spin")} />
-      <span>{label}</span>
+      <span className="hidden sm:inline">{label}</span>
     </Link>
   );
 }

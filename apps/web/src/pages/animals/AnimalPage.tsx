@@ -173,7 +173,7 @@ export function AnimalPage() {
       </div>
 
       {a.status !== "active" && lastExit && role === "owner" ? (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-danger/40 bg-danger/5 px-3 py-2 text-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-danger/40 bg-danger/5 px-3 py-2.5 text-sm">
           <span>
             Bu hayvan {isoToDisplay(lastExit.exitedAt)} tarihinde sürüden çıktı{lastExit.reason ? `: ${lastExit.reason}` : ""}.
           </span>
@@ -184,7 +184,7 @@ export function AnimalPage() {
       ) : null}
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 overflow-x-auto">
           <TabsTrigger value="timeline" data-testid="tab-timeline">
             Olaylar
           </TabsTrigger>
@@ -218,14 +218,14 @@ export function AnimalPage() {
         <TabsContent value="timeline">
           <Card>
             <CardContent className="pt-6">
-              {timeline.data?.length === 0 ? <EmptyState title="Henüz olay yok" /> : null}
-              <ol className="relative ml-3 border-l">
+              {timeline.data?.length === 0 ? <EmptyState icon={Star} title="Henüz olay yok" /> : null}
+              <ol className="relative ml-3 border-l border-border/70">
                 {(timeline.data ?? []).map((ev) => {
                   const Icon = eventIcon[ev.type];
                   return (
-                    <li key={ev.id} className="mb-6 ml-6" data-testid={`timeline-${ev.type}`}>
-                      <span className="absolute -left-3 flex size-6 items-center justify-center rounded-full border bg-background">
-                        <Icon className="size-3.5 text-muted-foreground" />
+                    <li key={ev.id} className="mb-5 ml-6" data-testid={`timeline-${ev.type}`}>
+                      <span className="absolute -left-3 flex size-6 items-center justify-center rounded-full border bg-background text-primary shadow-xs">
+                        <Icon className="size-3.5" />
                       </span>
                       <p className="text-sm font-medium">{ev.title}</p>
                       <p className="text-xs text-muted-foreground">{[formatDateTime(ev.occurredAt), ev.summary].filter(Boolean).join(" · ")}</p>
@@ -260,9 +260,9 @@ export function AnimalPage() {
         <TabsContent value="health">
           <Card>
             <CardContent className="grid gap-2 pt-6">
-              {health.data?.length === 0 ? <EmptyState title="Henüz sağlık kaydı yok" /> : null}
+              {health.data?.length === 0 ? <EmptyState icon={Syringe} title="Henüz sağlık kaydı yok" /> : null}
               {(health.data ?? []).map((h) => (
-                <div key={h.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm" data-testid={`health-row-${h.type}`}>
+                <div key={h.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`health-row-${h.type}`}>
                   <div className="grid">
                     <span className="font-medium">{[labels.healthType[h.type as keyof typeof labels.healthType], h.productName].filter(Boolean).join(" · ")}</span>
                     <span className="text-xs text-muted-foreground">
@@ -285,9 +285,11 @@ export function AnimalPage() {
         <TabsContent value="weight">
           <Card>
             <CardContent className="grid gap-4 pt-6">
-              <WeightChart points={weightRows.map((w) => ({ date: w.weighedAt.slice(0, 10), kg: w.weightKg }))} />
+              <div className="rounded-xl border bg-muted/20 p-2">
+                <WeightChart points={weightRows.map((w) => ({ date: w.weighedAt.slice(0, 10), kg: w.weightKg }))} />
+              </div>
               {weightRows.map((w) => (
-                <div key={w.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
+                <div key={w.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40">
                   <div className="grid">
                     <span className="font-medium">{formatKg(w.weightKg)}</span>
                     <span className="text-xs text-muted-foreground">{[formatDate(w.weighedAt), w.note].filter(Boolean).join(" · ")}</span>
@@ -299,14 +301,14 @@ export function AnimalPage() {
                   ) : null}
                 </div>
               ))}
-              {weightRows.length === 0 ? <EmptyState title="Henüz tartım yok" /> : null}
+              {weightRows.length === 0 ? <EmptyState icon={Scale} title="Henüz tartım yok" /> : null}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="insights">
           <div className="grid gap-2">
-            {insights.data?.length === 0 ? <EmptyState title="Bu hayvan için bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe uyarılar burada çıkar." /> : null}
+            {insights.data?.length === 0 ? <EmptyState icon={Star} title="Bu hayvan için bulgu yok" description="Kilo, yem ve sağlık kayıtları biriktikçe uyarılar burada çıkar." /> : null}
             {((insights.data ?? []) as InsightRow[]).map((row) => (
               <InsightCard key={row.id} row={row} />
             ))}
@@ -324,9 +326,9 @@ export function AnimalPage() {
         <TabsContent value="observations">
           <Card>
             <CardContent className="grid gap-2 pt-6">
-              {obs.data?.length === 0 ? <EmptyState title="Henüz gözlem yok" description="Topallama, iştahsızlık, öksürük gibi sahada gördüklerini buraya gir; teşhis veterinerin işi." /> : null}
+              {obs.data?.length === 0 ? <EmptyState icon={Eye} title="Henüz gözlem yok" description="Topallama, iştahsızlık, öksürük gibi sahada gördüklerini buraya gir; teşhis veterinerin işi." /> : null}
               {(obs.data ?? []).map((o) => (
-                <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm" data-testid={`obs-row-${o.category}`}>
+                <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`obs-row-${o.category}`}>
                   <div className="grid">
                     <span className="font-medium">
                       {labels.observationCategory[o.category as keyof typeof labels.observationCategory]}
@@ -375,9 +377,9 @@ export function AnimalPage() {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span>{value}</span>
+    <div className="grid gap-0.5 rounded-lg bg-muted/40 px-3 py-2">
+      <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</span>
+      <span className="text-sm">{value}</span>
     </div>
   );
 }
@@ -387,7 +389,13 @@ function Pill({ icon: Icon, tone, children, testID }: { icon?: typeof Star; tone
     <Badge
       variant="outline"
       data-testid={testID}
-      className={cn("gap-1.5 py-1", tone === "ok" && "border-success/40 bg-success/10", tone === "warn" && "border-warning/40 bg-warning/15", tone === "danger" && "border-danger/40 bg-danger/10 text-danger")}
+      className={cn(
+        "gap-1.5 py-1 font-medium",
+        tone === "ok" && "border-success/40 bg-success/10 text-success",
+        tone === "warn" && "border-warning/45 bg-warning/15 text-warning",
+        tone === "danger" && "border-danger/40 bg-danger/10 text-danger",
+        tone === "muted" && "bg-muted/50 text-muted-foreground",
+      )}
     >
       {Icon ? <Icon className="size-3.5" /> : null}
       {children}

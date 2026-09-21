@@ -1,6 +1,7 @@
-import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
+import { LogoMark, Wordmark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,21 +26,52 @@ import { useSyncTriggers } from "@/sync/useSyncTriggers";
 
 import { SyncStatus } from "./SyncStatus";
 
-const nav = [
-  { to: "/", label: "Bugün", icon: LayoutDashboard, end: true },
-  { to: "/animals", label: "Hayvanlar", icon: Users },
-  { to: "/reminders", label: "Hatırlatıcılar", icon: Bell },
-  { to: "/insights", label: "İçgörüler", icon: Lightbulb },
-  { to: "/animals/round", label: "Günlük tur", icon: ClipboardCheck },
-  { to: "/animals/bulk", label: "Toplu işlem", icon: Syringe },
-  { to: "/scan", label: "QR tara", icon: ScanLine },
-  { to: "/breeding", label: "Damızlık", icon: HeartHandshake },
-  { to: "/stock", label: "Stok", icon: Package },
-  { to: "/finance", label: "Finans", icon: Wallet, ownerOnly: true },
-  { to: "/reports", label: "Raporlar", icon: BarChart3 },
+type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean; ownerOnly?: boolean };
+
+/** Menü üç öbekte: günlük akış, sürüyle ilgili işler, çiftlik yönetimi. Uzun tek liste yerine bu daha çabuk taranıyor. */
+const navGroups: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Günlük",
+    items: [
+      { to: "/", label: "Bugün", icon: LayoutDashboard, end: true },
+      { to: "/reminders", label: "Hatırlatıcılar", icon: Bell },
+      { to: "/animals/round", label: "Günlük tur", icon: ClipboardCheck },
+      { to: "/insights", label: "İçgörüler", icon: Lightbulb },
+    ],
+  },
+  {
+    label: "Sürü",
+    items: [
+      { to: "/animals", label: "Hayvanlar", icon: Users },
+      { to: "/animals/bulk", label: "Toplu işlem", icon: Syringe },
+      { to: "/breeding", label: "Damızlık", icon: HeartHandshake },
+      { to: "/scan", label: "QR tara", icon: ScanLine },
+    ],
+  },
+  {
+    label: "Çiftlik",
+    items: [
+      { to: "/stock", label: "Stok", icon: Package },
+      { to: "/finance", label: "Finans", icon: Wallet, ownerOnly: true },
+      { to: "/reports", label: "Raporlar", icon: BarChart3 },
+    ],
+  },
 ];
 
+const nav: NavItem[] = navGroups.flatMap((group) => group.items);
+
 const roleLabels = { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" } as const;
+
+/** "Ahmet Yılmaz" -> "AY"; kullanıcı rozetinde gösterilir. */
+function initials(fullName: string | undefined) {
+  return (fullName ?? "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toLocaleUpperCase("tr");
+}
 
 export function AppShell() {
   useSyncTriggers();
@@ -49,43 +81,48 @@ export function AppShell() {
   const signOut = useAuthStore((s) => s.signOut);
   const { theme, toggle } = useTheme();
 
-  const isActive = (to: string, end?: boolean) => (end ? location.pathname === to : location.pathname === to || location.pathname.startsWith(to + "/"));
-  const active = [...nav].reverse().find((n) => isActive(n.to, n.end));
+  // "/animals" ile "/animals/round" aynı anda eşleşiyordu; en uzun eşleşen tek satır etkin sayılır.
+  const matches = (to: string, end?: boolean) => (end ? location.pathname === to : location.pathname === to || location.pathname.startsWith(to + "/"));
+  const active = [...nav].filter((n) => matches(n.to, n.end)).sort((a, b) => b.to.length - a.to.length)[0];
+  const isActive = (to: string, end?: boolean) => (to === active?.to ? true : active ? false : matches(to, end));
 
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-1.5">
-            <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-semibold">A</div>
-            <div className="grid leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="text-sm font-semibold">Anka Farm</span>
-              <span className="text-xs text-muted-foreground">Çiftlik paneli</span>
-            </div>
-          </div>
+          <Link to="/" className="flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-sidebar-accent">
+            <LogoMark className="size-8" />
+            <span className="grid leading-tight group-data-[collapsible=icon]:hidden">
+              <Wordmark tone="light" className="text-sm" />
+              <span className="text-[11px] text-sidebar-foreground/60">Çiftlik paneli</span>
+            </span>
+          </Link>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Menü</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {nav
-                  .filter((item) => !item.ownerOnly || user?.role === "owner")
-                  .map((item) => (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={isActive(item.to, item.end)} tooltip={item.label}>
-                        <Link to={item.to} data-testid={`nav-${item.to.replace(/\W+/g, "") || "today"}`}>
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Yönetim</SidebarGroupLabel>
+          {navGroups.map((group) => {
+            const items = group.items.filter((item) => !item.ownerOnly || user?.role === "owner");
+            if (items.length === 0) return null;
+            return (
+              <SidebarGroup key={group.label}>
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {items.map((item) => (
+                      <SidebarMenuItem key={item.to}>
+                        <SidebarMenuButton asChild isActive={isActive(item.to, item.end)} tooltip={item.label}>
+                          <Link to={item.to} data-testid={`nav-${item.to.replace(/\W+/g, "") || "today"}`}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
+          <SidebarGroup className="mt-auto">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -101,10 +138,13 @@ export function AppShell() {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:hidden">
+          <div className="flex items-center gap-2 rounded-lg px-1.5 py-1 group-data-[collapsible=icon]:hidden">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
+              {initials(user?.fullName)}
+            </span>
             <div className="grid flex-1 leading-tight">
               <span className="truncate text-sm font-medium">{user?.fullName}</span>
-              <span className="truncate text-xs text-muted-foreground">{user ? roleLabels[user.role] : ""}</span>
+              <span className="truncate text-xs text-sidebar-foreground/60">{user ? roleLabels[user.role] : ""}</span>
             </div>
             <Button
               variant="ghost"
@@ -123,13 +163,13 @@ export function AppShell() {
       </Sidebar>
 
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-sm">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-1 h-5" />
-          <h1 className="text-sm font-medium text-muted-foreground">{active?.label ?? (isActive("/settings") ? "Ayarlar" : "")}</h1>
-          <div className="ml-auto flex items-center gap-2">
+          <h1 className="truncate text-sm font-semibold">{active?.label ?? (isActive("/settings") ? "Ayarlar" : "")}</h1>
+          <div className="ml-auto flex items-center gap-1.5">
             <SyncStatus />
-            <Button variant="ghost" size="icon" aria-label="Tema" onClick={toggle}>
+            <Button variant="ghost" size="icon" aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={toggle}>
               {theme === "dark" ? <Sun /> : <Moon />}
             </Button>
           </div>

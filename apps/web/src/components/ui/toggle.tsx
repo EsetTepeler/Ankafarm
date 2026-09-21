@@ -10,8 +10,10 @@ const toggleVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-transparent",
-        outline: "border border-input bg-transparent hover:bg-muted",
+        default: "bg-transparent data-[state=on]:text-primary",
+        // Filtre çipleri: seçili olan marka renginde; gri "bg-muted" ile seçiliyi ayırt etmek zordu.
+        outline:
+          "border border-input bg-transparent hover:bg-muted data-[state=on]:border-primary/45 data-[state=on]:bg-primary/10 data-[state=on]:text-primary dark:data-[state=on]:bg-primary/15",
       },
       size: {
         default:

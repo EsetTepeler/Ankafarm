@@ -1,5 +1,5 @@
 import { formatKg, labels, type GroupKind, type Sex, type Species } from "@anka/shared";
-import { ArrowLeftRight, CloudUpload, Plus, Printer, Syringe, X } from "lucide-react";
+import { ArrowLeftRight, CloudUpload, Plus, Printer, Search, Syringe, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
@@ -60,6 +60,7 @@ export function AnimalsPage() {
   return (
     <>
       <PageHeader
+        icon={Users}
         title="Hayvanlar"
         description={list.isLoading ? "Yükleniyor" : `${rows.length} hayvan`}
         actions={
@@ -78,8 +79,11 @@ export function AnimalsPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-end gap-2">
-        <Input placeholder="Küpe no veya isim" value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" data-testid="animal-search" />
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border bg-card p-3">
+        <div className="relative w-full sm:w-64">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Küpe no veya isim" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" data-testid="animal-search" />
+        </div>
         <div className="w-56 [&>div>label]:sr-only">
           <EntityPicker label="Grup" items={groupItems} value={groupId ?? null} onChange={setGroup} placeholder="Tüm gruplar" noneLabel="Tüm gruplar" testID="animal-group-filter" />
         </div>
@@ -91,15 +95,17 @@ export function AnimalsPage() {
           <ToggleGroupItem value="female">Dişi</ToggleGroupItem>
           <ToggleGroupItem value="male">Erkek</ToggleGroupItem>
         </ToggleGroup>
-        <ToggleGroup type="single" variant="outline" value={status} onValueChange={(v) => v && setStatus(v as "active" | "archived")}>
+        <ToggleGroup type="single" variant="outline" value={status} onValueChange={(v) => v && setStatus(v as "active" | "archived")} className="sm:ml-auto">
           <ToggleGroupItem value="active">Aktif</ToggleGroupItem>
-          <ToggleGroupItem value="archived" data-testid="filter-archived">Arşiv</ToggleGroupItem>
+          <ToggleGroupItem value="archived" data-testid="filter-archived">
+            Arşiv
+          </ToggleGroupItem>
         </ToggleGroup>
       </div>
 
       {selectedVisible.length > 0 ? (
-        <div className="mb-3 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm" data-testid="selection-bar">
-          <span className="font-medium">{selectedVisible.length} seçili</span>
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-sm" data-testid="selection-bar">
+          <span className="font-medium text-primary">{selectedVisible.length} seçili</span>
           <Button size="sm" variant="outline" onClick={() => setMoveOpen(true)} data-testid="bulk-move">
             <ArrowLeftRight /> Gruba taşı
           </Button>
@@ -114,6 +120,7 @@ export function AnimalsPage() {
 
       {!list.isLoading && rows.length === 0 ? (
         <EmptyState
+          icon={Users}
           title={search || species || sex || groupId ? "Eşleşen hayvan yok" : status === "archived" ? "Arşivde hayvan yok" : "Henüz hayvan yok"}
           action={
             <Button asChild size="sm">
@@ -124,7 +131,7 @@ export function AnimalsPage() {
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox checked={allVisibleSelected} onCheckedChange={(v) => setSelected(v ? new Set(rows.map((a) => a.id)) : new Set())} aria-label="Tümünü seç" data-testid="select-all" />
@@ -142,18 +149,18 @@ export function AnimalsPage() {
             </TableHeader>
             <TableBody>
               {rows.map((a) => (
-                <TableRow key={a.id} className={a.id && selected.has(a.id) ? "cursor-pointer bg-muted/40" : "cursor-pointer"} onClick={() => navigate(`/animals/${a.id}`)} data-testid={`animal-row-${a.tagNo}`}>
+                <TableRow key={a.id} className={selected.has(a.id) ? "cursor-pointer bg-primary/5" : "cursor-pointer"} onClick={() => navigate(`/animals/${a.id}`)} data-testid={`animal-row-${a.tagNo}`}>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={selected.has(a.id)} onCheckedChange={(v) => toggle(a.id, v === true)} aria-label={`${a.tagNo} seç`} data-testid={`select-${a.tagNo}`} />
                   </TableCell>
-                  <TableCell className="font-medium">{a.tagNo}</TableCell>
+                  <TableCell className="font-medium tabular-nums">{a.tagNo}</TableCell>
                   <TableCell>{a.name ?? <span className="text-muted-foreground">–</span>}</TableCell>
                   <TableCell>{labels.species[a.species as Species]}</TableCell>
                   <TableCell>{labels.sex[a.sex as Sex]}</TableCell>
                   <TableCell>{a.breedName ?? "–"}</TableCell>
                   <TableCell data-testid={`group-cell-${a.tagNo}`}>{a.groupName ?? "–"}</TableCell>
                   <TableCell>{formatAge(a.birthDate) || "–"}</TableCell>
-                  <TableCell className="text-right">{a.currentWeight != null ? formatKg(a.currentWeight) : "–"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{a.currentWeight != null ? formatKg(a.currentWeight) : "–"}</TableCell>
                   <TableCell>
                     {a.isPregnant ? <Badge variant="secondary">Gebe</Badge> : a.syncSeq === 0 ? <CloudUpload className="size-4 text-muted-foreground" aria-label="Senkron bekliyor" /> : null}
                   </TableCell>

@@ -78,7 +78,7 @@ export function PedigreeSection({ animalId }: { animalId: string }) {
         <CardContent className="grid gap-2">
           {offspring.data?.length === 0 ? <EmptyState title="Kayıtlı yavru yok" /> : null}
           {(offspring.data ?? []).map((c) => (
-            <Link key={c.id} to={`/animals/${c.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm hover:bg-muted" data-testid={`offspring-${c.tagNo}`}>
+            <Link key={c.id} to={`/animals/${c.id}`} className="flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-colors hover:border-primary/30 hover:bg-accent/40" data-testid={`offspring-${c.tagNo}`}>
               <span className="font-medium">{c.name ? `${c.tagNo} · ${c.name}` : c.tagNo}</span>
               <span className="text-xs text-muted-foreground">{[c.sex === "female" ? "Dişi" : c.sex === "male" ? "Erkek" : "Kısır", formatAge(c.birthDate), c.status !== "active" ? "arşiv" : null].filter(Boolean).join(" · ")}</span>
             </Link>

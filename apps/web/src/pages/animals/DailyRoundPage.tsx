@@ -1,5 +1,5 @@
 import { labels, type GroupKind, type ObservationCategory, type Severity } from "@anka/shared";
-import { Check, CircleAlert, ClipboardCheck } from "lucide-react";
+import { Check, CircleAlert, ClipboardCheck, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -90,6 +90,7 @@ export function DailyRoundPage() {
   return (
     <>
       <PageHeader
+        icon={ClipboardCheck}
         title="Günlük tur"
         description="Sürüyü gözden geçir; varsayılan hepsi normal, sadece dikkat çekeni işaretle"
         actions={
@@ -100,12 +101,19 @@ export function DailyRoundPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="Kontrol edilen" value={rows.length} hint={groupId ? "Seçili grup" : "Tüm aktif sürü"} testID="round-total" />
-        <StatTile label="İşaretli" value={markedIds.length} hint={markedIds.length ? "Kaydedince gözlem olur" : "Hepsi normal"} testID="round-marked" />
-        <StatTile label="Bugünkü tur" value={round.data ? "Yapıldı" : "Yapılmadı"} hint={round.data ? formatDateTime(round.data.observedAt) : "Kaydedince işaretlenir"} testID="round-status" />
+        <StatTile label="Kontrol edilen" value={rows.length} hint={groupId ? "Seçili grup" : "Tüm aktif sürü"} testID="round-total" icon={Users} />
+        <StatTile label="İşaretli" value={markedIds.length} hint={markedIds.length ? "Kaydedince gözlem olur" : "Hepsi normal"} testID="round-marked" icon={CircleAlert} tone={markedIds.length ? "warning" : "success"} />
+        <StatTile
+          label="Bugünkü tur"
+          value={round.data ? "Yapıldı" : "Yapılmadı"}
+          hint={round.data ? formatDateTime(round.data.observedAt) : "Kaydedince işaretlenir"}
+          testID="round-status"
+          icon={ClipboardCheck}
+          tone={round.data ? "success" : "default"}
+        />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3">
+      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
         <div className="w-56">
           <EntityPicker label="Grup" items={groupItems} value={groupId} onChange={setGroupId} placeholder="Tüm sürü" noneLabel="Tüm sürü" testID="round-group" />
         </div>
@@ -113,19 +121,19 @@ export function DailyRoundPage() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState title="Aktif hayvan yok" />
+        <EmptyState icon={Users} title="Aktif hayvan yok" />
       ) : (
         <div className="mt-4 grid gap-2">
           {rows.map((a) => {
             const mark = marks[a.id];
             const catTags = (tags.data ?? []).filter((t) => t.category === (mark?.category ?? "feeding")).map((t) => t.label);
             return (
-              <Card key={a.id} className={cn("py-0", mark && "border-warning/50")}>
+              <Card key={a.id} className={cn("overflow-hidden py-0 transition-colors", mark && "border-warning/50 bg-warning/5")}>
                 <CardContent className="p-0">
                   <button
                     type="button"
                     onClick={() => toggle(a.id)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-muted/60"
                     data-testid={`round-row-${a.tagNo}`}
                   >
                     <span className="font-medium">
@@ -133,19 +141,19 @@ export function DailyRoundPage() {
                       {a.name ? <span className="text-muted-foreground"> · {a.name}</span> : null}
                     </span>
                     {mark ? (
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge variant="outline" className="gap-1 border-warning/45 bg-warning/15 font-medium text-warning">
                         <CircleAlert className="size-3.5" />
                         {labels.observationCategory[mark.category]} · {labels.severity[mark.severity]}
                       </Badge>
                     ) : (
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1 text-xs text-success">
                         <Check className="size-3.5" /> Normal
                       </span>
                     )}
                   </button>
 
                   {mark ? (
-                    <div className="grid gap-3 border-t px-4 py-3" data-testid={`round-panel-${a.tagNo}`}>
+                    <div className="grid gap-3 border-t bg-background px-4 py-3" data-testid={`round-panel-${a.tagNo}`}>
                       <ToggleGroup
                         type="single"
                         variant="outline"

@@ -23,17 +23,19 @@ interface TypeShape {
   withdrawal: boolean;
   vet: boolean;
   notesLabel: string;
+  /** Seçili türün ne olduğunu bir cümlede anlatır; formun altındaki alanlar ona göre değişiyor. */
+  hint: string;
 }
 
 const shapes: Record<HealthType, TypeShape> = {
-  vaccine: { product: "Aşı adı", productHint: "Enterotoksemi, çiçek...", dose: true, next: "Sonraki doz", withdrawal: true, vet: true, notesLabel: "Not" },
-  medication: { product: "İlaç adı", dose: true, next: "Tekrar dozu", withdrawal: true, vet: true, notesLabel: "Not" },
-  deworming: { product: "İlaç adı", productHint: "İç veya dış parazit ilacı", dose: true, next: "Sonraki uygulama", withdrawal: true, vet: true, notesLabel: "Not" },
-  disease: { product: "Hastalık", productHint: "Şap, mastitis, zatürre...", dose: false, next: "Kontrol tarihi", withdrawal: false, vet: true, notesLabel: "Belirtiler ve seyri" },
-  exam: { product: null, dose: false, next: "Sonraki kontrol", withdrawal: false, vet: true, notesLabel: "Muayene bulgusu" },
-  hoof: { product: null, dose: false, next: "Sonraki bakım", withdrawal: false, vet: false, notesLabel: "Not" },
-  shearing: { product: null, dose: false, next: null, withdrawal: false, vet: false, notesLabel: "Not" },
-  other: { product: "Konu", dose: false, next: "Sonraki tarih", withdrawal: false, vet: true, notesLabel: "Açıklama" },
+  vaccine: { product: "Aşı adı", productHint: "Enterotoksemi, çiçek...", dose: true, next: "Sonraki doz", withdrawal: true, vet: true, notesLabel: "Not", hint: "Doz ve sonraki doz tarihi girilirse hatırlatıcı kendiliğinden düşer." },
+  medication: { product: "İlaç adı", dose: true, next: "Tekrar dozu", withdrawal: true, vet: true, notesLabel: "Not", hint: "Arınma süresi girilirse süt ve et için bekleme tarihi hesaplanır." },
+  deworming: { product: "İlaç adı", productHint: "İç veya dış parazit ilacı", dose: true, next: "Sonraki uygulama", withdrawal: true, vet: true, notesLabel: "Not", hint: "İç ve dış parazit ilaçları; sonraki uygulama tarihini de gir." },
+  disease: { product: "Hastalık", productHint: "Şap, mastitis, zatürre...", dose: false, next: "Kontrol tarihi", withdrawal: false, vet: true, notesLabel: "Belirtiler ve seyri", hint: "Teşhis veterinerin işi; sen gördüğünü ve seyrini yaz." },
+  exam: { product: null, dose: false, next: "Sonraki kontrol", withdrawal: false, vet: true, notesLabel: "Muayene bulgusu", hint: "Veteriner muayenesi; ürün ve doz sorulmaz." },
+  hoof: { product: null, dose: false, next: "Sonraki bakım", withdrawal: false, vet: false, notesLabel: "Not", hint: "Tırnak kesimi ve bakımı; doz ya da arınma süresi yok." },
+  shearing: { product: null, dose: false, next: null, withdrawal: false, vet: false, notesLabel: "Not", hint: "Kırkım; sadece tarih ve varsa maliyet." },
+  other: { product: "Konu", dose: false, next: "Sonraki tarih", withdrawal: false, vet: true, notesLabel: "Açıklama", hint: "Yukarıdakilere girmeyen işler." },
 };
 
 const appliedLabels: Partial<Record<HealthType, string>> = {
@@ -61,13 +63,17 @@ export function HealthForm({ values, onChange }: { values: HealthFormValues; onC
 
   return (
     <div className="grid gap-4">
-      <ToggleGroup type="single" variant="outline" value={values.type} onValueChange={(v) => v && changeType(v as HealthType)} className="flex-wrap justify-start">
-        {types.map(([value, label]) => (
-          <ToggleGroupItem key={value} value={value} data-testid={`health-type-${value}`}>
-            {label}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+      <div className="grid gap-2 rounded-xl border bg-muted/30 p-3">
+        <Label className="text-xs tracking-wide text-muted-foreground uppercase">Ne yapıldı?</Label>
+        <ToggleGroup type="single" variant="outline" value={values.type} onValueChange={(v) => v && changeType(v as HealthType)} className="flex-wrap justify-start">
+          {types.map(([value, label]) => (
+            <ToggleGroupItem key={value} value={value} data-testid={`health-type-${value}`}>
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        <p className="text-xs text-muted-foreground">{shape.hint}</p>
+      </div>
 
       {shape.product ? (
         <div className="grid gap-1.5">

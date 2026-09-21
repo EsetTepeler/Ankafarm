@@ -1,5 +1,5 @@
 import { formatMoney, formatNumber, formatQuantity, labels, type StockCategory, type StockUnit } from "@anka/shared";
-import { Package, Pencil, Plus, ShoppingCart, Trash2, Utensils } from "lucide-react";
+import { Hourglass, Package, Pencil, Plus, ShoppingCart, Trash2, TriangleAlert, Utensils } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -51,6 +51,7 @@ export function StockPage() {
   return (
     <>
       <PageHeader
+        icon={Package}
         title="Stok"
         description="Yem, su ve malzeme; alım, tüketim ve kalan gün"
         actions={
@@ -68,18 +69,20 @@ export function StockPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatTile label="Kalem" value={rows.filter((r) => r.active).length} hint={`${rows.filter((r) => r.active && r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" />
-        <StatTile label="Uyarı" value={low.length} hint={low.length ? low.map((r) => r.name).join(", ") : "Stok seviyeleri yeterli"} testID="kpi-low" />
+        <StatTile label="Kalem" value={rows.filter((r) => r.active).length} hint={`${rows.filter((r) => r.active && r.trackStock).length} kalemde bakiye tutuluyor`} testID="kpi-items" icon={Package} />
+        <StatTile label="Uyarı" value={low.length} hint={low.length ? low.map((r) => r.name).join(", ") : "Stok seviyeleri yeterli"} testID="kpi-low" icon={TriangleAlert} tone={low.length ? "warning" : "success"} />
         <StatTile
           label="İlk biten"
           value={soonest ? `${soonest.daysLeft} gün` : "–"}
           hint={soonest ? `${soonest.name} · ${formatQuantity(soonest.balance ?? 0, soonest.unit)}` : "Tüketim girilince hesaplanır"}
           testID="kpi-soonest"
+          icon={Hourglass}
+          tone={soonest?.daysLeft == null ? "default" : soonest.daysLeft <= 7 ? "danger" : soonest.daysLeft <= 14 ? "warning" : "success"}
         />
       </div>
 
       <Tabs defaultValue="levels" className="mt-6">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="levels" data-testid="tab-levels">
             Seviyeler
           </TabsTrigger>
@@ -108,11 +111,11 @@ export function StockPage() {
             ) : null}
           </div>
           {rows.length === 0 ? (
-            <EmptyState title="Henüz kalem yok" description="Yonca, saman, arpa ve su kalemleri çiftlik açılışında eklenir." />
+            <EmptyState icon={Package} title="Henüz kalem yok" description="Yonca, saman, arpa ve su kalemleri çiftlik açılışında eklenir." />
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Kalem</TableHead>
                     <TableHead>Tür</TableHead>
@@ -182,11 +185,11 @@ export function StockPage() {
 
         <TabsContent value="purchases">
           {purchases.data?.length === 0 ? (
-            <EmptyState title="Henüz alım yok" />
+            <EmptyState icon={ShoppingCart} title="Henüz alım yok" />
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>Kalem</TableHead>
@@ -223,11 +226,11 @@ export function StockPage() {
 
         <TabsContent value="consumptions">
           {consumptions.data?.length === 0 ? (
-            <EmptyState title="Henüz tüketim girilmedi" description="Günlük turda oluğa konan yemi tek ekrandan gir." />
+            <EmptyState icon={Utensils} title="Henüz tüketim girilmedi" description="Günlük turda oluğa konan yemi tek ekrandan gir." />
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>Kalem</TableHead>
