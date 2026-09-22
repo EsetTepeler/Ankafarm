@@ -59,7 +59,17 @@ Port eşlemeleri `docker-compose.override.yml` içindedir; Coolify o dosyayı ok
 1. Repoyu bağla, kaynak türü Docker Compose, dosya `docker-compose.yml`.
 2. `db`, `api` ve `web` için Coolify `SERVICE_PASSWORD_DB`, `SERVICE_BASE64_64_JWT`, `SERVICE_URL_WEB`, `SERVICE_URL_API` değerlerini üretir; `api` ve `web` servislerine alan adı ver.
 3. `SEED_OWNER_EMAIL` ve `SEED_OWNER_PASSWORD` ortam değişkenlerini ekle (ilk sahip hesabı).
-4. Deploy. `api` açılışta migration çalıştırır; `web` açılışta `API_URL` ile `config.json` yazar.
+4. `PLATFORM_ADMIN_EMAIL` ve `PLATFORM_ADMIN_PASSWORD` ekle (süper admin). Bunlar verilmezse
+   `/admin` konsoluna giriş yapılamaz; hesap yalnızca tablo boşken, açılışta bir kez açılır.
+5. Deploy. `api` açılışta migration çalıştırır; `web` açılışta `API_URL` ile `config.json` yazar.
+
+### Süper admin konsolu
+
+`https://<alan-adı>/admin` — çiftlik oturumundan bağımsız, ayrı giriş. Kiracıları listeler
+(kod, hayvan ve kullanıcı sayısı, son giriş), yeni çiftlik açar (çiftlik + ilk sahip + ırk,
+grup, stok ve gözlem etiketi tohumları), askıya alır ve geri açar. Hayvan kaydına dokunmaz,
+bir çiftliğin içine giremez. Askıya alınan çiftliğin kullanıcıları giriş yapamaz ve açık
+oturumları iptal edilir; kayıtları silinmez.
 
 ## Yedekleme
 

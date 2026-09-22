@@ -39,6 +39,10 @@ services:
       SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL}
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD}
       SEED_OWNER_NAME: ${SEED_OWNER_NAME:-Çiftlik Sahibi}
+      # Süper admin: tablo boşsa açılışta açılır. Verilmezse /admin konsoluna giriş yapılamaz.
+      PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD}
+      PLATFORM_ADMIN_NAME: ${PLATFORM_ADMIN_NAME:-Süper Admin}
       INSIGHTS_URL: http://insights:8000
       # Rol db-init ile yalnızca boş veritabanında açılır; mevcut kurulumda API açılışta güvenceye alır.
       INSIGHTS_DB_PASSWORD: ${SERVICE_PASSWORD_INSIGHTS}
