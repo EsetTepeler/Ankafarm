@@ -1,12 +1,21 @@
-import { createFarmInputSchema, farmStatusSchema, loginInputSchema, refreshInputSchema } from "@anka/shared";
+import {
+  createFarmInputSchema,
+  farmStatusSchema,
+  loginInputSchema,
+  refreshInputSchema,
+  totpDisableInputSchema,
+  totpEnableInputSchema,
+  totpLoginInputSchema,
+} from "@anka/shared";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { hashPassword, verifyPassword } from "../../auth/password";
 import { assertNotLocked, platformLoginThrottle, recordFailure, recordSuccess } from "../../auth/throttle";
+import { generateRecoveryCodes, generateTotpSecret, normalizeRecoveryCode, otpauthUri, verifyTotp } from "../../auth/totp";
 import { hashRefreshToken } from "../../auth/tokens";
-import { farms, platformAdmins, platformRefreshTokens, refreshTokens, users } from "../../db/schema";
+import { farms, platformAdmins, platformRecoveryCodes, platformRefreshTokens, refreshTokens, users } from "../../db/schema";
 import type { Context } from "../../trpc/context";
 import { publicProcedure, router, superAdminProcedure } from "../../trpc/init";
 import { bootstrapFarm, generateFarmCode } from "../farm/service";
@@ -35,6 +44,26 @@ function toDate(value: unknown): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * Kurtarma kodu tek kullanımlık. Kodlar yüksek entropili değil (40 bit), o yüzden şifre gibi
+ * scrypt ile saklanıyor; veritabanı sızsa bile kaba kuvvet pahalı olsun.
+ */
+async function consumeRecoveryCode(db: Context["db"], adminId: string, input: string): Promise<boolean> {
+  const clean = normalizeRecoveryCode(input);
+  if (clean.length < 8) return false;
+  const rows = await db
+    .select()
+    .from(platformRecoveryCodes)
+    .where(and(eq(platformRecoveryCodes.adminId, adminId), isNull(platformRecoveryCodes.usedAt)));
+  for (const row of rows) {
+    if (await verifyPassword(clean, row.codeHash)) {
+      await db.update(platformRecoveryCodes).set({ usedAt: new Date() }).where(eq(platformRecoveryCodes.id, row.id));
+      return true;
+    }
+  }
+  return false;
+}
+
 const publicAdmin = { id: platformAdmins.id, email: platformAdmins.email, fullName: platformAdmins.fullName, active: platformAdmins.active };
 
 /**
@@ -57,9 +86,46 @@ export const platformRouter = router({
     }
     if (!admin.active) throw new TRPCError({ code: "FORBIDDEN", message: "Hesap devre dışı" });
     for (const key of keys) recordSuccess(key);
+
+    // 2FA açıksa şifre tek başına yetmez: kısa ömürlü aşama tokenı döner, oturum ikinci adımda açılır.
+    if (admin.totpEnabled) {
+      const challengeToken = await ctx.tokens.signTotpChallenge({ sub: admin.id, kind: "platform-totp" });
+      return { status: "totp" as const, challengeToken };
+    }
+
     await ctx.db.update(platformAdmins).set({ lastLoginAt: new Date() }).where(eq(platformAdmins.id, admin.id));
     const tokens = await issuePlatformTokens(ctx, admin.id, input.device);
-    return { ...tokens, admin: { id: admin.id, email: admin.email, fullName: admin.fullName } };
+    return { status: "ok" as const, ...tokens, admin: { id: admin.id, email: admin.email, fullName: admin.fullName } };
+  }),
+
+  /** İkinci adım: kimlik doğrulayıcı kodu ya da tek kullanımlık kurtarma kodu. */
+  loginTotp: publicProcedure.input(totpLoginInputSchema).mutation(async ({ ctx, input }) => {
+    const claims = await ctx.tokens.verifyTotpChallenge(input.challengeToken);
+    if (!claims) throw new TRPCError({ code: "UNAUTHORIZED", message: "Doğrulama süresi doldu, baştan giriş yapın" });
+
+    // Altı hane 1.000.000 ihtimal; kısıt olmadan denenebilir.
+    const key = `platform-totp:${claims.sub}`;
+    assertNotLocked(key, platformLoginThrottle);
+
+    const [admin] = await ctx.db.select().from(platformAdmins).where(eq(platformAdmins.id, claims.sub)).limit(1);
+    if (!admin || !admin.active || !admin.totpEnabled || !admin.totpSecret) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Doğrulama yapılamadı" });
+    }
+
+    let ok = verifyTotp(admin.totpSecret, input.code);
+    let usedRecovery = false;
+    if (!ok) ok = usedRecovery = await consumeRecoveryCode(ctx.db, admin.id, input.code);
+    if (!ok) {
+      const locked = recordFailure(key, platformLoginThrottle);
+      ctx.req.log.warn({ adminId: admin.id, ip: ctx.req.ip, locked }, "yönetici ikinci adım doğrulaması başarısız");
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Kod doğrulanamadı" });
+    }
+    recordSuccess(key);
+    if (usedRecovery) ctx.req.log.warn({ adminId: admin.id, ip: ctx.req.ip }, "yönetici girişinde kurtarma kodu kullanıldı");
+
+    await ctx.db.update(platformAdmins).set({ lastLoginAt: new Date() }).where(eq(platformAdmins.id, admin.id));
+    const tokens = await issuePlatformTokens(ctx, admin.id, input.device);
+    return { status: "ok" as const, ...tokens, admin: { id: admin.id, email: admin.email, fullName: admin.fullName }, usedRecovery };
   }),
 
   refresh: publicProcedure.input(refreshInputSchema).mutation(async ({ ctx, input }) => {
@@ -87,9 +153,67 @@ export const platformRouter = router({
   }),
 
   me: superAdminProcedure.query(async ({ ctx }) => {
-    const [admin] = await ctx.db.select(publicAdmin).from(platformAdmins).where(eq(platformAdmins.id, ctx.admin.sub)).limit(1);
+    const [admin] = await ctx.db
+      .select({ ...publicAdmin, totpEnabled: platformAdmins.totpEnabled })
+      .from(platformAdmins)
+      .where(eq(platformAdmins.id, ctx.admin.sub))
+      .limit(1);
     if (!admin) throw new TRPCError({ code: "UNAUTHORIZED", message: "Yönetici bulunamadı" });
-    return admin;
+    const [left] = await ctx.db
+      .select({ value: sql<number>`count(*)`.mapWith(Number) })
+      .from(platformRecoveryCodes)
+      .where(and(eq(platformRecoveryCodes.adminId, ctx.admin.sub), isNull(platformRecoveryCodes.usedAt)));
+    return { ...admin, recoveryCodesLeft: left?.value ?? 0 };
+  }),
+
+  /** Kurulum: gizli anahtar üretilir ve saklanır ama kod doğrulanana kadar etkinleşmez. */
+  totpSetup: superAdminProcedure.mutation(async ({ ctx }) => {
+    const [admin] = await ctx.db.select().from(platformAdmins).where(eq(platformAdmins.id, ctx.admin.sub)).limit(1);
+    if (!admin) throw new TRPCError({ code: "UNAUTHORIZED", message: "Yönetici bulunamadı" });
+    if (admin.totpEnabled) throw new TRPCError({ code: "BAD_REQUEST", message: "İki adımlı doğrulama zaten açık" });
+    const secret = generateTotpSecret();
+    await ctx.db.update(platformAdmins).set({ totpSecret: secret, updatedAt: new Date() }).where(eq(platformAdmins.id, admin.id));
+    return { secret, uri: otpauthUri(secret, admin.email) };
+  }),
+
+  /** Kod doğrulanınca etkinleşir; kurtarma kodları bir kez gösterilir, sonra yalnızca özeti kalır. */
+  totpEnable: superAdminProcedure.input(totpEnableInputSchema).mutation(async ({ ctx, input }) => {
+    const [admin] = await ctx.db.select().from(platformAdmins).where(eq(platformAdmins.id, ctx.admin.sub)).limit(1);
+    if (!admin?.totpSecret) throw new TRPCError({ code: "BAD_REQUEST", message: "Önce kurulumu başlatın" });
+    if (!verifyTotp(admin.totpSecret, input.code)) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Kod doğrulanamadı; telefonun saati doğru mu?" });
+    }
+    const codes = generateRecoveryCodes();
+    await ctx.db.transaction(async (tx) => {
+      await tx
+        .update(platformAdmins)
+        .set({ totpEnabled: true, totpConfirmedAt: new Date(), updatedAt: new Date() })
+        .where(eq(platformAdmins.id, admin.id));
+      await tx.delete(platformRecoveryCodes).where(eq(platformRecoveryCodes.adminId, admin.id));
+      for (const code of codes) {
+        await tx.insert(platformRecoveryCodes).values({ adminId: admin.id, codeHash: await hashPassword(normalizeRecoveryCode(code)) });
+      }
+    });
+    ctx.req.log.warn({ adminId: admin.id }, "yönetici hesabında iki adımlı doğrulama açıldı");
+    return { recoveryCodes: codes };
+  }),
+
+  /** Kapatmak şifre ister: çalınan oturum 2FA'yı tek başına kaldıramasın. */
+  totpDisable: superAdminProcedure.input(totpDisableInputSchema).mutation(async ({ ctx, input }) => {
+    const [admin] = await ctx.db.select().from(platformAdmins).where(eq(platformAdmins.id, ctx.admin.sub)).limit(1);
+    if (!admin) throw new TRPCError({ code: "UNAUTHORIZED", message: "Yönetici bulunamadı" });
+    if (!(await verifyPassword(input.password, admin.passwordHash))) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Şifre hatalı" });
+    }
+    await ctx.db.transaction(async (tx) => {
+      await tx
+        .update(platformAdmins)
+        .set({ totpEnabled: false, totpSecret: null, totpConfirmedAt: null, updatedAt: new Date() })
+        .where(eq(platformAdmins.id, admin.id));
+      await tx.delete(platformRecoveryCodes).where(eq(platformRecoveryCodes.adminId, admin.id));
+    });
+    ctx.req.log.warn({ adminId: admin.id, ip: ctx.req.ip }, "yönetici hesabında iki adımlı doğrulama kapatıldı");
+    return { ok: true };
   }),
 
   /**

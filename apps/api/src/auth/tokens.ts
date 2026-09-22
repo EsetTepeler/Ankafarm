@@ -1,6 +1,13 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { accessTokenClaimsSchema, platformTokenClaimsSchema, type AccessTokenClaims, type PlatformTokenClaims } from "@anka/shared";
+import {
+  accessTokenClaimsSchema,
+  platformTokenClaimsSchema,
+  totpChallengeClaimsSchema,
+  type AccessTokenClaims,
+  type PlatformTokenClaims,
+  type TotpChallengeClaims,
+} from "@anka/shared";
 import { SignJWT, jwtVerify } from "jose";
 
 export function createTokenService(secret: string, accessTtlMinutes: number) {
@@ -46,6 +53,26 @@ export function createTokenService(secret: string, accessTtlMinutes: number) {
       try {
         const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
         const parsed = platformTokenClaimsSchema.safeParse({ sub: payload.sub, kind: payload.kind });
+        return parsed.success ? parsed.data : null;
+      } catch {
+        return null;
+      }
+    },
+
+    /** İkinci adım için kısa ömürlü aşama tokenı; tek başına hiçbir yetkiye açılmaz. */
+    async signTotpChallenge(claims: TotpChallengeClaims): Promise<string> {
+      return new SignJWT({ kind: claims.kind })
+        .setProtectedHeader({ alg: "HS256" })
+        .setSubject(claims.sub)
+        .setIssuedAt()
+        .setExpirationTime("5m")
+        .sign(key);
+    },
+
+    async verifyTotpChallenge(token: string): Promise<TotpChallengeClaims | null> {
+      try {
+        const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
+        const parsed = totpChallengeClaimsSchema.safeParse({ sub: payload.sub, kind: payload.kind });
         return parsed.success ? parsed.data : null;
       } catch {
         return null;

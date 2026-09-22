@@ -8,7 +8,8 @@ import { getApiUrl } from "./config";
 import { storage } from "./storage";
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
-export type AdminUser = RouterOutputs["platform"]["login"]["admin"];
+// Giriş artık iki şekilli dönüyor (token ya da ikinci adım); yönetici künyesi refresh yanıtından alınır.
+export type AdminUser = RouterOutputs["platform"]["refresh"]["admin"];
 
 /**
  * Süper admin oturumu, çiftlik oturumundan tamamen ayrı: ayrı token türü, ayrı refresh tablosu,
@@ -24,7 +25,8 @@ interface AdminAuthState {
   refreshToken: string | null;
   admin: AdminUser | null;
   restore: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ needsTotp: boolean; challengeToken?: string }>;
+  signInTotp: (challengeToken: string, code: string) => Promise<{ usedRecovery: boolean }>;
   signOut: () => Promise<void>;
   refreshAccess: () => Promise<string | null>;
 }
@@ -61,11 +63,22 @@ export const useAdminAuthStore = create<AdminAuthState>((set, get) => ({
     if (!token) set({ status: "signedOut" });
   },
 
+  /** İki adımlı doğrulama açıksa token yerine aşama tokenı döner; oturum ikinci adımda açılır. */
   async signIn(email, password) {
     const result = await plainClient().platform.login.mutate({ email, password, device: "admin web" });
+    if (result.status === "totp") return { needsTotp: true as const, challengeToken: result.challengeToken };
     storage.set(REFRESH_KEY, result.refreshToken);
     storage.set(ADMIN_KEY, JSON.stringify(result.admin));
     set({ status: "signedIn", accessToken: result.accessToken, refreshToken: result.refreshToken, admin: result.admin });
+    return { needsTotp: false as const };
+  },
+
+  async signInTotp(challengeToken, code) {
+    const result = await plainClient().platform.loginTotp.mutate({ challengeToken, code, device: "admin web" });
+    storage.set(REFRESH_KEY, result.refreshToken);
+    storage.set(ADMIN_KEY, JSON.stringify(result.admin));
+    set({ status: "signedIn", accessToken: result.accessToken, refreshToken: result.refreshToken, admin: result.admin });
+    return { usedRecovery: result.usedRecovery };
   },
 
   async signOut() {

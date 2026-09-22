@@ -71,5 +71,26 @@ export const createFarmInputSchema = z.object({
 });
 export type CreateFarmInput = z.infer<typeof createFarmInputSchema>;
 
+/**
+ * İki adımlı doğrulama. Şifre doğrulanınca token yerine kısa ömürlü bir "aşama" tokenı döner;
+ * ikinci adım onu ve kodu ister. Şifreyi tekrar göndermek yerine böyle: şifre ağda bir kez geçer.
+ */
+export const totpChallengeClaimsSchema = z.object({
+  sub: z.string().uuid(),
+  kind: z.literal("platform-totp"),
+});
+export type TotpChallengeClaims = z.infer<typeof totpChallengeClaimsSchema>;
+
+export const totpLoginInputSchema = z.object({
+  challengeToken: z.string().min(20),
+  /** Kimlik doğrulayıcı kodu ya da kurtarma kodu. */
+  code: z.string().trim().min(6).max(20),
+  device: z.string().max(120).optional(),
+});
+export type TotpLoginInput = z.infer<typeof totpLoginInputSchema>;
+
+export const totpEnableInputSchema = z.object({ code: z.string().trim().min(6).max(10) });
+export const totpDisableInputSchema = z.object({ password: z.string().min(8) });
+
 export const farmStatusSchema = z.enum(["active", "suspended"]);
 export type FarmStatus = z.infer<typeof farmStatusSchema>;

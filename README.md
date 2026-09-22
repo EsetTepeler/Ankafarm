@@ -71,6 +71,12 @@ grup, stok ve gözlem etiketi tohumları), askıya alır ve geri açar. Hayvan k
 bir çiftliğin içine giremez. Askıya alınan çiftliğin kullanıcıları giriş yapamaz ve açık
 oturumları iptal edilir; kayıtları silinmez.
 
+**İki adımlı doğrulama.** Konsolun altındaki karttan açılır: karekod bir kimlik doğrulayıcıya
+okutulur (Google Authenticator, 1Password vb.), sonra kod doğrulanır. Açıldığında sekiz
+kurtarma kodu **bir kez** gösterilir — telefon kaybolursa girişin tek yolu onlar, sunucuda
+yalnızca özetleri durur. Her kod bir kez çalışır. Kapatmak şifre ister ki çalınan bir oturum
+korumayı tek başına kaldıramasın. Bu hesap bütün kiracıları gördüğü için açılması önerilir.
+
 ## Yedekleme
 
 Üç katman var:

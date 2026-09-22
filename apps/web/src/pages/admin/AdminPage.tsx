@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ban, Copy, Loader2, LogIn, LogOut, Play, Plus } from "lucide-react";
+import { Ban, Copy, Loader2, LogIn, LogOut, Play, Plus, ShieldCheck } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { errorMessage } from "@/lib/auth";
 import { adminClient, useAdminAuthStore } from "@/lib/adminAuth";
 import { formatDateTime } from "@/utils/date";
+
+import { TwoFactorCard } from "./TwoFactorCard";
 
 /** Okunabilir ama tahmin edilemez şifre; ilk sahibe elden verilir. */
 function suggestPassword(): string {
@@ -48,17 +50,28 @@ export function AdminPage() {
 
 function AdminLogin() {
   const signIn = useAdminAuthStore((s) => s.signIn);
+  const signInTotp = useAdminAuthStore((s) => s.signInTotp);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      await signIn(email.trim().toLowerCase(), password);
+      if (challengeToken) {
+        const { usedRecovery } = await signInTotp(challengeToken, code);
+        if (usedRecovery) toast.warning("Kurtarma kodu kullanıldı", { description: "O kod bir daha çalışmaz; yenilerini üretmeyi unutma." });
+        return;
+      }
+      const result = await signIn(email.trim().toLowerCase(), password);
+      // İki adımlı doğrulama açıksa şifre yetmez; aynı ekran kod adımına geçer.
+      if (result.needsTotp && result.challengeToken) setChallengeToken(result.challengeToken);
     } catch (err) {
       toast.error(errorMessage(err));
+      setCode("");
     } finally {
       setBusy(false);
     }
@@ -75,27 +88,64 @@ function AdminLogin() {
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={submit} className="grid gap-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="admin-email">E-posta</Label>
-                <Input id="admin-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="admin-email" required />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="admin-password">Şifre</Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  data-testid="admin-password"
-                  minLength={8}
-                  required
-                />
-              </div>
-              <Button type="submit" disabled={busy} data-testid="admin-submit" size="lg">
-                {busy ? <Loader2 className="animate-spin" /> : <LogIn />}
-                {busy ? "Giriş yapılıyor" : "Giriş yap"}
-              </Button>
+              {challengeToken ? (
+                <>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="admin-totp">Doğrulama kodu</Label>
+                    <Input
+                      id="admin-totp"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      className="font-mono text-lg tracking-[0.3em]"
+                      data-testid="admin-totp"
+                      autoFocus
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Kimlik doğrulayıcı uygulamandaki altı haneli kod. Telefonun yoksa kurtarma kodunu gir.</p>
+                  </div>
+                  <Button type="submit" disabled={busy || code.trim().length < 6} data-testid="admin-totp-submit" size="lg">
+                    {busy ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
+                    Doğrula
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setChallengeToken(null);
+                      setCode("");
+                    }}
+                  >
+                    Baştan başla
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="admin-email">E-posta</Label>
+                    <Input id="admin-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="admin-email" required />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="admin-password">Şifre</Label>
+                    <Input
+                      id="admin-password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      data-testid="admin-password"
+                      minLength={8}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" disabled={busy} data-testid="admin-submit" size="lg">
+                    {busy ? <Loader2 className="animate-spin" /> : <LogIn />}
+                    {busy ? "Giriş yapılıyor" : "Giriş yap"}
+                  </Button>
+                </>
+              )}
             </form>
           </CardContent>
         </Card>
@@ -248,6 +298,10 @@ function Console() {
       <p className="mt-4 max-w-prose text-xs text-muted-foreground">
         Askıya alınan çiftliğin kullanıcıları giriş yapamaz ve açık oturumları iptal edilir. Kayıtları silinmez, geri açılınca yerinde durur.
       </p>
+
+      <div className="mt-8 grid gap-4 border-t pt-6 lg:max-w-2xl">
+        <TwoFactorCard />
+      </div>
 
       <Dialog open={draft != null} onOpenChange={(o) => !o && setDraft(null)}>
         <DialogContent className="max-w-md">

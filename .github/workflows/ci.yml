@@ -31,6 +31,9 @@ jobs:
       - name: Tip kontrolü
         run: corepack pnpm -r typecheck
 
+      - name: API birim testleri (TOTP)
+        run: corepack pnpm --filter @anka/api test
+
       - name: API derlemesi
         run: corepack pnpm --filter @anka/api build
 

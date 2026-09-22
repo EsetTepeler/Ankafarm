@@ -1,6 +1,6 @@
 import type { FarmSettings } from "@anka/shared";
 import { sql } from "drizzle-orm";
-import { boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["owner", "worker", "vet"]);
 export const farmStatusEnum = pgEnum("farm_status", ["active", "suspended"]);
@@ -59,8 +59,27 @@ export const platformAdmins = pgTable("platform_admins", {
   fullName: text().notNull(),
   active: boolean().notNull().default(true),
   lastLoginAt: timestamp({ withTimezone: true }),
+  /** TOTP gizli anahtarı (base32). Kurulum başlayınca yazılır, doğrulanınca etkinleşir. */
+  totpSecret: text(),
+  totpEnabled: boolean().notNull().default(false),
+  totpConfirmedAt: timestamp({ withTimezone: true }),
   ...timestamps,
 });
+
+/** Telefon kaybolursa girişi açan tek kullanımlık kodlar; yalnızca özeti saklanır. */
+export const platformRecoveryCodes = pgTable(
+  "platform_recovery_codes",
+  {
+    id: uuid().primaryKey().default(sql`uuidv7()`),
+    adminId: uuid()
+      .notNull()
+      .references(() => platformAdmins.id, { onDelete: "cascade" }),
+    codeHash: text().notNull(),
+    usedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("platform_recovery_admin_idx").on(t.adminId)],
+);
 
 export const platformRefreshTokens = pgTable("platform_refresh_tokens", {
   id: uuid().primaryKey().default(sql`uuidv7()`),

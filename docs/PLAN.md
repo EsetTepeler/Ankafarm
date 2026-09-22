@@ -395,6 +395,14 @@ girişinde 5 hata → 30 dakika kilit. Başarısız yönetici denemeleri `warn` 
 düşer. Sayaç bellekte; API tek konteyner çalıştığı sürece yeterli, kopya sayısı artarsa ortak
 bir sayaç gerekir.
 
+İki adımlı doğrulama (2026-09-23): yönetici hesabında TOTP (RFC 6238). `auth/totp.ts` elle
+yazıldı — algoritma kısa ve tam tanımlı, RFC'nin kendi test vektörleriyle doğrulanıyor
+(`totp.test.ts`, CI'da koşuyor); projedeki scrypt ve tarayıcıda küçültme tercihleri gibi burada
+da yeni bağımlılık yok. Şifre doğrulanınca token yerine beş dakikalık bir aşama tokenı dönüyor;
+o token tek başına hiçbir uca yetki vermiyor. Sekiz kurtarma kodu scrypt ile saklanıyor (40 bit
+entropi, hızlı özetle kaba kuvvete açık olurdu), her biri tek kullanımlık. Kod denemeleri de
+kısıtlı: altı hane bir milyon ihtimal, sınırsız denenebilirdi.
+
 `trustProxy` açıldı: Coolify'ın ters vekili önde durduğu için bu ayar olmadan her isteğin IP'si
 vekilinki görünüyordu, yani hız sınırı ve giriş kısıtı tek kovaya düşüyor ve bir saldırgan
 bütün kullanıcıların payını tüketebiliyordu. API doğrudan internete açılırsa `TRUST_PROXY=false`
