@@ -1,5 +1,5 @@
 import { labels } from "@anka/shared";
-import { ArrowLeftRight, BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
+import { ArrowLeftRight, BarChart3, ChevronLeft, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { LogoMark, Wordmark } from "@/components/Logo";
@@ -21,9 +21,11 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/lib/auth";
+import { routeMeta } from "@/lib/routes";
 import { useTheme } from "@/lib/theme";
 import { useSyncTriggers } from "@/sync/useSyncTriggers";
 
+import { BottomNav } from "./BottomNav";
 import { SyncStatus } from "./SyncStatus";
 
 type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean; ownerOnly?: boolean };
@@ -79,6 +81,7 @@ export function AppShell() {
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
   const { theme, toggle } = useTheme();
+  const meta = routeMeta(location.pathname);
 
   // "/animals" ile "/animals/round" aynı anda eşleşiyordu; en uzun eşleşen tek satır etkin sayılır.
   const matches = (to: string, end?: boolean) => (end ? location.pathname === to : location.pathname === to || location.pathname.startsWith(to + "/"));
@@ -160,9 +163,23 @@ export function AppShell() {
       </Sidebar>
 
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur-sm">
-          <SidebarTrigger />
-          <h1 className="label-micro truncate text-muted-foreground">{active?.label ?? (isActive("/settings") ? "Ayarlar" : "")}</h1>
+        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b bg-background/90 px-2 backdrop-blur-sm md:px-4">
+          {/*
+            Geri düğmesi üst rotaya gider, tarayıcı geçmişine değil: QR etiketinden doğrudan
+            açılan profilde geçmiş boş oluyor ve history.back() uygulamadan çıkarıyordu.
+            Telefonda kenar çubuğu düğmesi gizlenir; çekmece alt menüdeki "Menü" ile açılıyor.
+          */}
+          {meta.parent ? (
+            <Button asChild variant="ghost" size="icon-sm" aria-label="Geri">
+              <Link to={meta.parent} data-testid="nav-back">
+                <ChevronLeft />
+              </Link>
+            </Button>
+          ) : null}
+          <SidebarTrigger className={meta.parent ? "hidden md:flex" : "md:flex"} />
+          <h1 className="label-micro truncate text-muted-foreground" data-testid="page-title">
+            {meta.label}
+          </h1>
           <div className="ml-auto flex items-center gap-1.5">
             <SyncStatus />
             <Button variant="ghost" size="icon-sm" aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"} onClick={toggle}>
@@ -170,9 +187,11 @@ export function AppShell() {
             </Button>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 md:px-8 md:py-8">
+        {/* Alt menü içeriğin üstüne binmesin diye telefonda ek boşluk. */}
+        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
           <Outlet />
         </main>
+        <BottomNav />
       </SidebarInset>
     </SidebarProvider>
   );

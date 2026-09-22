@@ -46,7 +46,7 @@ export function StatTile({ label, value, hint, testID, tone = "default" }: { lab
 
 /** Sayı kartlarını bitişik bir ızgaraya dizer: aradaki çizgiler tek piksel kalır. */
 export function StatGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 [&>*]:border-0", className)}>{children}</div>;
+  return <div className={cn("grid grid-cols-2 gap-px bg-border lg:grid-cols-4 [&>*]:border-0", className)}>{children}</div>;
 }
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {

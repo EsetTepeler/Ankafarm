@@ -421,6 +421,13 @@ Expo Router yapısı ve içerik:
 
 Arayüz ilkeleri: büyük dokunma alanları, en sık işlemler iki dokunuşta, her formda "kaydet ve yeni ekle", bağlantı yokken her şey çalışır ve üstte küçük "senkron bekliyor" göstergesi durur, tüm metinler Türkçe.
 
+Gezinme (2026-09-22, çiftlik sahibi geri bildirimi: telefonda alt sayfalardan çıkış yolu yoktu):
+rota haritası `apps/web/src/lib/routes.ts` içinde tek kaynak — başlık çubuğundaki ad ve geri
+düğmesinin hedefi oradan gelir. Geri düğmesi tarayıcı geçmişine değil üst rotaya gider; QR
+etiketinden doğrudan açılan profilde geçmiş boş oluyor ve `history.back()` uygulamadan
+çıkarıyordu. Telefonda alt menü (Bugün, Hayvanlar, Tur, QR, Menü) kenar çubuğu çekmecesini
+açmadan geçiş sağlar; kenar çubuğu düğmesi telefonda gizlenir.
+
 ---
 
 ## 6. Raporlar ve pano

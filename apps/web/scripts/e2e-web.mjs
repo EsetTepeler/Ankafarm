@@ -1067,6 +1067,26 @@ try {
     if (animals[tag]) throw new Error("hayvan hâlâ A'nın sunucu listesinde");
   });
 
+  await step("gezinme: alt sayfada doğru başlık ve geri düğmesi", async () => {
+    await page.getByTestId("nav-settings").click();
+    // Ana sayfada geri düğmesi olmamalı; üstü yok.
+    if (await page.getByTestId("nav-back").count()) throw new Error("Ayarlar ana sayfasında geri düğmesi var");
+    await page.getByTestId("page-title").getByText("Ayarlar", { exact: true }).waitFor({ timeout: 10_000 });
+
+    await page.getByTestId("settings-groups").click();
+    // Başlık üst sayfanınki değil, açılan sayfanın adı olmalı.
+    await page.getByTestId("page-title").getByText("Gruplar ve bölmeler", { exact: true }).waitFor({ timeout: 10_000 });
+    await page.getByTestId("nav-back").click();
+    await page.getByTestId("settings-groups").waitFor({ timeout: 10_000 });
+    if (!page.url().endsWith("/settings")) throw new Error(`geri düğmesi Ayarlar'a dönmedi: ${page.url()}`);
+
+    // Hayvan profilinden geri liste; QR ile gelindiğinde geçmiş boş olabildiği için üst rotaya gider.
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`animal-row-${tag1}`).click();
+    await page.getByTestId("nav-back").click();
+    await page.getByTestId("animal-search").waitFor({ timeout: 10_000 });
+  });
+
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
 
 } finally {
