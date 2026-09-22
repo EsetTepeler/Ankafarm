@@ -611,11 +611,17 @@ getiriyor ve 7.4-7.6 bunları çözer:
   göründü, ırk B'de aynı adla açıldı, grup B'nin Ana sürüsü oldu, taşınan 63 sağlık kaydının
   maliyeti boşaldı, A'ya 1 hayvan + 63 sağlık silinme kaydı düştü. Küpe çakışmasında kabul
   reddedildi, yeni küpeyle geçti.)
-- [ ] 7.6 Transfer arayüzü: hayvan profilinde "Başka çiftliğe devret" (hedef çiftlik kodu + not),
+- [x] 7.6 Transfer arayüzü: hayvan profilinde "Başka çiftliğe devret" (hedef çiftlik kodu + not),
   `/transfers` ekranında Gelen ve Giden sekmeleri, kabul/ret. Çevrimdışı çalışmaz; iki kiracıya
-  birden dokunduğu için sunucu gerektirir (kullanıcı yönetimi gibi).
-- [ ] 7.7 Uçtan uca test: iki çiftlik, süper adminle ikincisini açma, hayvan devri, A'nın cihazından
+  birden dokunduğu için sunucu gerektirir (kullanıcı yönetimi gibi). (2026-09-22. Çiftlik kodu
+  Ayarlar başlığında, tıklayınca kopyalanıyor. Devirle gelen hayvanın künyesi profilin Özet
+  sekmesinde: geldiği çiftlik, devir tarihi, eski küpe, anne ve baba küpeleri.)
+- [x] 7.7 Uçtan uca test: iki çiftlik, süper adminle ikincisini açma, hayvan devri, A'nın cihazından
   silindiğinin ve B'nin cihazına geldiğinin doğrulanması, küpe çakışmasında yeni küpe.
+  (2026-09-22. e2e 48 adım: ikinci çiftlik süper admin API'siyle açılıyor, devir isteği hayvan
+  profilinden gönderiliyor, B ayrı tarayıcıda kabul ediyor, hayvan B'nin cihazına iniyor ve
+  A'nın cihazından düşüyor. Her koşu yeni bir test çiftliği açıyor; yerel veritabanında
+  birikiyorlar, gerekirse konsoldan askıya alınır.)
 
 ### Faz 6: Saha cihazı (gateway)
 

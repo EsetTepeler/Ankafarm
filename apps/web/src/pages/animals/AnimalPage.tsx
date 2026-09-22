@@ -1,5 +1,5 @@
 import { formatKg, labels, type AnimalEvent, type AnimalStatus, type BirthType, type Origin, type Sex, type Species } from "@anka/shared";
-import { ArrowLeftRight, Baby, Eye, HeartHandshake, History, LogOut, Pencil, Plus, QrCode, Scale, Star, Syringe, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeftRight, Baby, Eye, HeartHandshake, History, LogOut, Pencil, Plus, QrCode, Scale, Send, Star, Syringe, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import { useInsights } from "@/features/insights/repo";
 import { InsightCard, type InsightRow } from "@/pages/insights/InsightsPage";
 import { MoveDialog } from "@/features/groups/MoveDialog";
 import { QrDialog } from "@/features/qr/QrDialog";
+import { TransferDialog } from "@/features/transfers/TransferDialog";
 import { undoExit, useExits } from "@/features/exits/repo";
 import { ObservationDialog } from "@/features/observations/ObservationDialog";
 import { deleteObservation, recentAbnormal, useObservations } from "@/features/observations/repo";
@@ -65,6 +66,7 @@ export function AnimalPage() {
   const [exitOpen, setExitOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
   const [tab, setTab] = useState("timeline");
   const a = animal.data;
 
@@ -134,6 +136,11 @@ export function AnimalPage() {
                 {a.status === "active" ? (
                   <DropdownMenuItem onSelect={() => setMoveOpen(true)} data-testid="event-move">
                     <ArrowLeftRight /> Grup değiştir
+                  </DropdownMenuItem>
+                ) : null}
+                {a.status === "active" && role === "owner" ? (
+                  <DropdownMenuItem onSelect={() => setTransferOpen(true)} data-testid="event-transfer">
+                    <Send /> Başka çiftliğe devret
                   </DropdownMenuItem>
                 ) : null}
                 {a.status === "active" ? (
@@ -253,6 +260,20 @@ export function AnimalPage() {
               <Field label="Irk" value={[a.breedName, a.breedNote].filter(Boolean).join(" · ") || "–"} />
               <Field label="Grup" value={a.groupName ?? "–"} />
               {a.rfid ? <Field label="RFID" value={a.rfid} /> : null}
+              {a.provenance ? (
+                <Field
+                  label="Devir"
+                  value={[
+                    `${a.provenance.fromFarmName} (${a.provenance.fromFarmCode})`,
+                    isoToDisplay(a.provenance.transferredAt),
+                    a.provenance.previousTagNo && a.provenance.previousTagNo !== a.tagNo ? `eski küpe ${a.provenance.previousTagNo}` : null,
+                    a.provenance.motherTagNo ? `anne ${a.provenance.motherTagNo}` : null,
+                    a.provenance.fatherTagNo ? `baba ${a.provenance.fatherTagNo}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                />
+              ) : null}
               {a.notes ? <Field label="Not" value={a.notes} /> : null}
             </CardContent>
           </Card>
@@ -367,6 +388,7 @@ export function AnimalPage() {
           setTab("breeding");
         }}
       />
+      <TransferDialog open={transferOpen} onOpenChange={setTransferOpen} animalId={a.id} tagNo={a.tagNo} />
       <QrDialog open={qrOpen} onOpenChange={setQrOpen} animalId={a.id} tagNo={a.tagNo} name={a.name} />
       <MoveDialog open={moveOpen} onOpenChange={setMoveOpen} animalIds={[a.id]} currentGroupId={a.groupId} onMoved={() => setTab("timeline")} />
       <ObservationDialog open={obsOpen} onOpenChange={setObsOpen} animalId={a.id} tagNo={a.tagNo} />

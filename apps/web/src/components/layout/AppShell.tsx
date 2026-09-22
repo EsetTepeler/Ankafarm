@@ -1,5 +1,5 @@
 import { labels } from "@anka/shared";
-import { BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
+import { ArrowLeftRight, BarChart3, LayoutDashboard, LogOut, Moon, Package, Settings, Sun, Syringe, Users, ScanLine, Wallet, ClipboardCheck, HeartHandshake, Bell, Lightbulb, type LucideIcon } from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 import { LogoMark, Wordmark } from "@/components/Logo";
@@ -46,6 +46,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { to: "/animals/bulk", label: "Toplu işlem", icon: Syringe },
       { to: "/breeding", label: "Damızlık", icon: HeartHandshake },
       { to: "/scan", label: "QR tara", icon: ScanLine },
+      { to: "/transfers", label: "Devirler", icon: ArrowLeftRight },
     ],
   },
   {

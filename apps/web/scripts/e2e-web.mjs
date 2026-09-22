@@ -12,6 +12,8 @@ const API_URL = process.env.API_URL ?? "http://localhost:3000";
 const EMAIL = process.env.E2E_EMAIL ?? "sahip@ankafarm.local";
 const PASSWORD = process.env.E2E_PASSWORD ?? "degistir123";
 const CHANNEL = process.env.BROWSER_CHANNEL ?? "chrome";
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@ankafarm.local";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "degistir123";
 
 /** Koşu kimliği: sunucu verisi kalıcı olduğu için her koşu kendi adlarını kullanmalı. */
 const RUN = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -976,6 +978,93 @@ try {
 
     // Son sahip korunur: kendi hesabını kapatma düğmesi hiç çıkmaz
     if (await page.getByTestId(`user-toggle-${EMAIL}`).count()) throw new Error("kendi hesabını kapatma düğmesi görünüyor");
+  });
+
+  await step("devir: ikinci çiftlik açılır, hayvan devredilir, A'nın cihazından düşer", async () => {
+    // İkinci kiracı süper admin konsolunun API'siyle açılır; e2e tek çiftlikle başlıyor.
+    const adminLogin = await fetch(`${API_URL}/trpc/platform.login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ json: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } }),
+    }).then((r) => r.json());
+    const adminToken = adminLogin.result?.data?.json?.accessToken;
+    if (!adminToken) throw new Error("süper admin girişi başarısız; PLATFORM_ADMIN_* ayarlı mı?");
+
+    const bEmail = `devir.${RUN.toLowerCase()}@ankafarm.local`;
+    const bPassword = "devir12345";
+    const created = await fetch(`${API_URL}/trpc/platform.createFarm`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({
+        json: { name: `Devir Testi ${RUN}`, ownerFullName: `Devir ${RUN}`, ownerEmail: bEmail, ownerPassword: bPassword },
+      }),
+    }).then((r) => r.json());
+    const bCode = created.result?.data?.json?.code;
+    if (!bCode) throw new Error(`ikinci çiftlik açılamadı: ${JSON.stringify(created.error?.json?.message)}`);
+
+    // Devredilecek hayvan: bu koşuya ait, sonraki adımları etkilemeyen yeni bir kayıt.
+    const tag = `DEV-${RUN}`;
+    const animalId = crypto.randomUUID();
+    // Dışarıdan alınan hayvanda ırk zorunlu; devirde ırk eşlemesi de böylece sınanır.
+    const breeds = await api("breeds.list");
+    const breedId = breeds.find((b) => b.species === "sheep")?.id;
+    if (!breedId) throw new Error("koyun ırkı bulunamadı");
+    const pushed = await push([
+      {
+        mutationId: crypto.randomUUID(),
+        table: "animals",
+        op: "insert",
+        rowId: animalId,
+        payload: { id: animalId, tagNo: tag, species: "sheep", sex: "female", origin: "purchased", breedId },
+        clientCreatedAt: new Date().toISOString(),
+      },
+    ]);
+    if (pushed.results[0].status !== "applied") throw new Error(`devir hayvanı eklenemedi: ${JSON.stringify(pushed.results[0])}`);
+
+    // A'nın cihazı hayvanı görsün, sonra profilden devir isteği gönderilsin.
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId(`animal-row-${tag}`).waitFor({ timeout: 60_000 });
+    await page.getByTestId(`animal-row-${tag}`).click();
+    await page.getByTestId("event-add").click();
+    await page.getByTestId("event-transfer").click();
+    await page.getByTestId("transfer-code").fill(bCode);
+    await page.getByTestId("transfer-note").fill("e2e devir");
+    await page.getByTestId("transfer-send").click();
+
+    await page.getByTestId("nav-transfers").click();
+    await page.getByTestId("tab-outgoing").click();
+    await page.getByTestId(`out-row-${tag}`).getByText("Bekliyor", { exact: true }).waitFor({ timeout: 15_000 });
+
+    // B tarafı ayrı bir tarayıcıda kabul eder.
+    const ctxB = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+    const pageB = await ctxB.newPage();
+    try {
+      await pageB.goto(WEB_URL, { waitUntil: "domcontentloaded" });
+      await pageB.getByTestId("login-email").fill(bEmail);
+      await pageB.getByTestId("login-password").fill(bPassword);
+      await pageB.getByTestId("login-submit").click();
+      await pageB.getByTestId("sync-banner").waitFor({ timeout: 90_000 });
+      await pageB.getByTestId("nav-transfers").click();
+      await pageB.getByTestId(`in-row-${tag}`).waitFor({ timeout: 20_000 });
+      await pageB.getByTestId(`accept-${tag}`).click();
+      await pageB.getByTestId("accept-save").click();
+      await pageB.getByTestId(`in-row-${tag}`).getByText("Kabul edildi", { exact: true }).waitFor({ timeout: 20_000 });
+
+      // B'nin cihazına hayvan iner.
+      await pageB.getByTestId("nav-animals").click();
+      await pageB.getByTestId("animal-search").fill(tag);
+      await pageB.getByTestId(`animal-row-${tag}`).waitFor({ timeout: 60_000 });
+    } finally {
+      await ctxB.close();
+    }
+
+    // Asıl sınav: A'nın cihazındaki kopya silinme akışıyla düşüyor mu?
+    await page.getByTestId("nav-animals").click();
+    await page.getByTestId("animal-search").fill(tag);
+    await page.getByTestId(`animal-row-${tag}`).waitFor({ state: "detached", timeout: 90_000 });
+
+    const animals = await serverAnimals();
+    if (animals[tag]) throw new Error("hayvan hâlâ A'nın sunucu listesinde");
   });
 
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.

@@ -1,3 +1,4 @@
+import type { AnimalProvenance } from "@anka/shared";
 import { sql } from "drizzle-orm";
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
@@ -70,6 +71,8 @@ export const animals = sqliteTable(
     photoPath: text(),
     notes: text(),
     currentWeight: real(),
+    /** Devirle gelen künye: geldiği çiftlik, devir tarihi, anne ve baba küpeleri. */
+    provenance: text({ mode: "json" }).$type<AnimalProvenance | null>(),
     isPregnant: integer({ mode: "boolean" }).notNull().default(false),
     expectedBirthAt: text(),
   },

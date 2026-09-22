@@ -33,6 +33,7 @@ import { ThresholdsPage } from "@/pages/settings/ThresholdsPage";
 import { UsersPage } from "@/pages/settings/UsersPage";
 import { BreedingPage } from "@/pages/breeding/BreedingPage";
 import { ScanPage } from "@/pages/ScanPage";
+import { TransfersPage } from "@/pages/transfers/TransfersPage";
 import { StockPage } from "@/pages/stock/StockPage";
 import { TodayPage } from "@/pages/TodayPage";
 import { bindQueryClient } from "@/sync/events";
@@ -112,6 +113,7 @@ export function App() {
                   <Route path="reminders" element={<RemindersPage />} />
                   <Route path="insights" element={<InsightsPage />} />
                   <Route path="breeding" element={<BreedingPage />} />
+                  <Route path="transfers" element={<TransfersPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="settings/groups" element={<GroupsPage />} />
                   <Route path="settings/sync" element={<SyncPage />} />

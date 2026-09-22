@@ -1,6 +1,7 @@
 import { labels } from "@anka/shared";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { Boxes, CalendarCheck, ChevronRight, Download, History, RefreshCw, Server, Settings, ShieldCheck, SlidersHorizontal, User, Users } from "lucide-react";
+import { Boxes, CalendarCheck, ChevronRight, Copy, Download, History, RefreshCw, Server, Settings, ShieldCheck, SlidersHorizontal, User, Users } from "lucide-react";
 import { Link } from "react-router";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -23,7 +24,24 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Ayarlar" description={farm.data?.name ?? "Çiftlik"} />
+      <PageHeader
+        eyebrow="Çiftlik"
+        title="Ayarlar"
+        description={farm.data?.name ?? "Çiftlik"}
+        actions={
+          farm.data?.code ? (
+            <button
+              type="button"
+              className="label-micro flex items-center gap-1.5 border px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-primary"
+              title="Çiftlik kodunu kopyala"
+              data-testid="farm-code"
+              onClick={() => void navigator.clipboard.writeText(farm.data.code).then(() => toast.success("Çiftlik kodu kopyalandı"))}
+            >
+              {farm.data.code} <Copy className="size-3" />
+            </button>
+          ) : null
+        }
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -43,7 +61,8 @@ export function SettingsPage() {
             <LinkRow to="/settings/protocols" title="Aşı ve bakım programı" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
             {user?.role === "owner" ? <LinkRow to="/settings/thresholds" title="İçgörü eşikleri" sub="Uyarılar ne zaman çıksın" testID="settings-thresholds" /> : null}
             {user?.role === "owner" ? <LinkRow to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
-            <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
+            <LinkRow to="/transfers" title="Devirler" sub="Hayvanın başka çiftliğe geçişi; çiftlik kodu yukarıda" testID="settings-transfers" />
+              <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
           </CardContent>
         </Card>
 
