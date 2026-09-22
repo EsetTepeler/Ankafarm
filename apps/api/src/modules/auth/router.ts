@@ -41,6 +41,14 @@ const publicUser = {
   active: users.active,
 };
 
+/** Askıya alınmış kiracının kullanıcısı ne giriş yapabilir ne de oturumunu tazeleyebilir (7.1). */
+async function assertFarmActive(ctx: Context, farmId: string) {
+  const [farm] = await ctx.db.select({ status: farms.status }).from(farms).where(eq(farms.id, farmId)).limit(1);
+  if (farm?.status === "suspended") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Çiftlik hesabı askıya alınmış, yöneticiyle görüşün" });
+  }
+}
+
 export const authRouter = router({
   login: publicProcedure.input(loginInputSchema).mutation(async ({ ctx, input }) => {
     const [user] = await ctx.db.select().from(users).where(eq(users.email, input.email)).limit(1);
@@ -51,6 +59,7 @@ export const authRouter = router({
     if (!user.active) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Hesap devre dışı" });
     }
+    await assertFarmActive(ctx, user.farmId);
     await ctx.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
     const tokens = await issueTokens(ctx, user, input.device);
     const { passwordHash: _omit, ...safeUser } = user;
@@ -68,6 +77,7 @@ export const authRouter = router({
     if (!row || row.token.expiresAt < new Date() || !row.user.active) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Oturum süresi doldu, yeniden giriş yapın" });
     }
+    await assertFarmActive(ctx, row.user.farmId);
     // Döndürme: eski token iptal edilir, yeni çift üretilir.
     await ctx.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, row.token.id));
     const tokens = await issueTokens(ctx, row.user, row.token.device ?? undefined);

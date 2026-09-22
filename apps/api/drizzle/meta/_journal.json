@@ -176,6 +176,13 @@
       "when": 1790003645631,
       "tag": "0024_prediction_accuracy",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790003705631,
+      "tag": "0025_tenancy",
+      "breakpoints": true
     }
   ]
 }

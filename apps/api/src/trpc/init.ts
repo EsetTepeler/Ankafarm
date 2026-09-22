@@ -25,3 +25,11 @@ export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next();
 });
+
+/** Sadece platform yöneticisi. Çiftlik tokenı buradan geçemez; ayrı token türü taşır. */
+export const superAdminProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.admin) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Yönetici oturumu gerekli" });
+  }
+  return next({ ctx: { ...ctx, admin: ctx.admin } });
+});

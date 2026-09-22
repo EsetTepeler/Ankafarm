@@ -555,6 +555,60 @@ Faz 2 bittikten sonra başlanabilir, Faz 3 ile paralel yürür. Kilo ve beslenme
 - [ ] 5.12 İsteğe bağlı, ayrı karar: LLM ile not tarama, Türkçe soru sorma, haftalık özet.
 - [x] 5.13 Tahmin üretimi: kilo (30 gün sonrası, doğrusal eğilim, `weight-trend-v1`) ve stok bitişi (`feed-runout-v1`) her gece yazılır; hedef tarihi geçen kilo tahmini ±7 gün içindeki tartımla eşleşir ve sapma hesaplanır. `v_prediction_accuracy` görünümü model bazında ortalama hata verir. Doğum tahmininde hata düzeltildi: gerçekleşen alanına sapma yazılıyordu, artık tahmin ve gerçekleşen aynı ölçekte (çiftleşmeden doğuma gün). Gerçek ML modeli bu veri birikince ayrı karar. (2026-09-21)
 
+### Faz 7: Çok kiracılı yapı, süper admin ve çiftlikler arası transfer
+
+Ürün kararı (2026-09-22, çiftlik sahibi): her çiftlik ayrı bir kiracı, ileride satılacak; tüm
+kiracıları gören tek bir süper admin olacak; hayvanlar küpe numarasıyla çiftlikler arasında
+devredilebilecek.
+
+Veri katmanı zaten kiracıya hazır: `farm_id` her senkron tablosunda var, `sync.push`/`pull`
+çiftliğe kilitli, küpe numarası çiftlik içinde tekil. Eksik olan çiftlik açma, süper admin ve
+transfer.
+
+Transfer kararı: **kayıt taşınır** (`farm_id` değişir), kopyalanmaz. Bu üç şeyi beraberinde
+getiriyor ve 7.4-7.6 bunları çözer:
+1. A'nın cihazındaki kopya kendiliğinden silinmez — pull `farm_id = A` diye baktığı için satır
+   artık hiç gelmez. Bunun için ayrı bir "silindi" akışı gerekiyor (7.4).
+2. Anne, baba, grup ve ırk bağları A'nın satırlarını gösterir; taşınırken yeniden bağlanmalı.
+3. A'nın o hayvana ait gideri ve geliri A'da kalmalı; para bilgisi B'ye geçmemeli.
+
+- [x] 7.1 Çiftlik kimliği ve durumu: `farms` tablosuna `code` (kısa ve tekil, örn. `ANKA-7K2M`;
+  transfer bu kodla yapılır, çiftlik adı aranabilir değil) ve `status` (`active`/`suspended`).
+  Askıya alınan çiftliğin kullanıcıları giriş yapamaz, açık oturumlarının refresh'i reddedilir.
+- [x] 7.2 Süper admin: ayrı `platform_admins` tablosu (e-posta, şifre, ad, aktiflik). Çiftlik
+  kullanıcılarıyla aynı tabloda değil ve tokenı ayrı bir tür taşıyor (`kind: "platform"`); böylece
+  çiftlik tokenı yönetim uçlarına, yönetim tokenı çiftlik uçlarına geçemiyor. `superAdminProcedure`
+  ve ayrı `/admin` giriş ekranı.
+- [x] 7.3 Süper admin konsolu `/admin`: çiftlik listesi (ad, kod, durum, hayvan sayısı, kullanıcı
+  sayısı, son etkinlik), yeni çiftlik açma (çiftlik + ilk sahip + `bootstrapFarm` ile ırklar,
+  "Ana sürü", stok kalemleri, gözlem etiketleri), askıya alma ve geri açma. Hayvan kaydına
+  karışmaz, çiftliğin içine giremez. (2026-09-22. Migration 0025. Çiftlik kodu `CF-XXXXXX`;
+  yönetici hesabı `PLATFORM_ADMIN_EMAIL`/`PLATFORM_ADMIN_PASSWORD` ile açılışta tohumlanır.
+  İki yönlü token yalıtımı doğrulandı: çiftlik tokenı `platform.*` uçlarından, yönetici tokenı
+  çiftlik uçlarından geçmiyor.)
+- [ ] 7.4 Silinme akışı: `sync_removals` tablosu (`farm_id`, `table_name`, `row_id`, `sync_seq`,
+  `reason`). `sync.pull` yanıtına `removals` eklenir, istemci o satırları yerelden siler ve
+  imlecini ilerletir. Transferden bağımsız olarak da doğru mekanizma: bugüne kadar bir satırın bir
+  çiftlikten tamamen çıkması mümkün değildi.
+- [ ] 7.5 Transfer sözleşmesi: `animal_transfers` tablosu (hayvan, kaynak ve hedef çiftlik, küpe,
+  durum `pending`/`accepted`/`rejected`/`cancelled`, isteyen ve karar veren kullanıcı, tarihler,
+  not, gerekiyorsa yeni küpe). Çift taraflı: A gönderir, B kabul eder. Tek taraflı olsa A istediği
+  hayvanı B'nin sürüsüne atabilirdi.
+  Kabulde tek işlemde:
+  - `animals.farm_id = B`; `group_id` B'nin Ana sürüsü, `breed_id` B'de aynı adlı ırk (yoksa
+    açılır), `mother_id`/`father_id` boşaltılır (küpeleri `provenance` alanında metin olarak kalır),
+    `origin = purchased`, `acquired_at = devir tarihi`, `source = A'nın adı`, `purchase_price` boş.
+  - Bakım geçmişi taşınır: `health_records` ve `weight_records` `farm_id = B` olur;
+    `health_records.cost` boşaltılır (A'nın parası).
+  - A'da kalanlar: gözlemler, çiftleşme ve doğum kayıtları, ekler, grup hareketleri, gider ve gelir.
+  - A'ya `sync_removals` satırları yazılır (hayvan + taşınan sağlık ve tartım satırları).
+  - Küpe B'de doluysa kabul yeni küpe ister.
+- [ ] 7.6 Transfer arayüzü: hayvan profilinde "Başka çiftliğe devret" (hedef çiftlik kodu + not),
+  `/transfers` ekranında Gelen ve Giden sekmeleri, kabul/ret. Çevrimdışı çalışmaz; iki kiracıya
+  birden dokunduğu için sunucu gerektirir (kullanıcı yönetimi gibi).
+- [ ] 7.7 Uçtan uca test: iki çiftlik, süper adminle ikincisini açma, hayvan devri, A'nın cihazından
+  silindiğinin ve B'nin cihazına geldiğinin doğrulanması, küpe çakışmasında yeni küpe.
+
 ### Faz 6: Saha cihazı (gateway)
 
 Cihaz alındığında başlar. Sözleşme bölüm 3.6'da; API tarafı cihazdan önce yazılıp sahte istemciyle test edilebilir.

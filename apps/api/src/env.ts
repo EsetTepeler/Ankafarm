@@ -21,6 +21,10 @@ const envSchema = z.object({
   SEED_OWNER_EMAIL: z.string().email().optional(),
   SEED_OWNER_PASSWORD: z.string().min(8).optional(),
   SEED_OWNER_NAME: z.string().default("Çiftlik Sahibi"),
+  /** Platform yöneticisi (süper admin); tablo boşsa açılışta oluşturulur. */
+  PLATFORM_ADMIN_EMAIL: z.string().email().optional(),
+  PLATFORM_ADMIN_PASSWORD: z.string().min(8).optional(),
+  PLATFORM_ADMIN_NAME: z.string().default("Süper Admin"),
 });
 
 export type Env = z.infer<typeof envSchema>;

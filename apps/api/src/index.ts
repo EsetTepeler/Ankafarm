@@ -15,7 +15,7 @@ import { registerUploadRoutes } from "./modules/uploads/routes";
 import { loadEnv, webOrigins } from "./env";
 import { createRealtime } from "./modules/realtime";
 import { appRouter, type AppRouter } from "./router";
-import { seedIfEmpty } from "./seed";
+import { seedIfEmpty, seedPlatformAdmin } from "./seed";
 import { makeContextFactory } from "./trpc/context";
 
 async function main() {
@@ -31,6 +31,7 @@ async function main() {
   await ensureInsightsRole(db, env.INSIGHTS_DB_PASSWORD, (m) => app.log.info(m));
   const tokens = createTokenService(env.JWT_SECRET, env.ACCESS_TOKEN_TTL_MINUTES);
   await seedIfEmpty(db, env, (m) => app.log.info(m));
+  await seedPlatformAdmin(db, env, (m) => app.log.info(m));
 
   const origins = webOrigins(env);
   await app.register(cors, {

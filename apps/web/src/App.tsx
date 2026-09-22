@@ -15,6 +15,7 @@ import { AnimalFormPage } from "@/pages/animals/AnimalFormPage";
 import { AnimalPage } from "@/pages/animals/AnimalPage";
 import { AnimalsPage } from "@/pages/animals/AnimalsPage";
 import { BulkPage } from "@/pages/animals/BulkPage";
+import { AdminPage } from "@/pages/admin/AdminPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { GroupsPage } from "@/pages/settings/GroupsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
@@ -87,6 +88,8 @@ export function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/login" element={status === "signedIn" ? <Navigate to="/" replace /> : <LoginPage />} />
+                {/* Yönetim konsolu çiftlik oturumundan bağımsız; kabuğun ve RequireAuth'un dışında durur. */}
+                <Route path="/admin" element={<AdminPage />} />
                 <Route
                   element={
                     <RequireAuth>
