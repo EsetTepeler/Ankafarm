@@ -121,6 +121,13 @@ Repo kökündeki `docker-compose.yml`, Coolify'da "Docker Compose" build pack il
 | web | `docker/web.Dockerfile` | `expo export` çıktısını nginx ile servis eder, port 80 |
 | backup | prodrigestivill/postgres-backup-local | Günlük pg_dump, `backups` volume, 30 gün saklama |
 
+Her servisin healthcheck'i var; Coolify servis durumunu bundan okuyor (2026-09-22: `backup`,
+`insights` ve `uploads-backup` eksikti, konsolda durumları görünmüyordu). Kontroller imajda
+bulunan araca göre yazıldı: `api` ve `web` busybox `wget`, `backup` `curl` (bu imajda wget yok),
+`insights` `python -c urllib.request` (slim imajda ikisi de yok). `uploads-backup` bir uç sunmuyor,
+son 25 saatte arşiv üretilmiş mi diye bakılıyor. `api` ve `web` için `start_period` var: açılışta
+migration çalışırken başarısız kontroller sağlıksız saymasın.
+
 Taslak (Coolify'ın `SERVICE_*` sihirli değişkenleri ve imaj etiketleri kurulum sırasında güncel dokümana göre doğrulanacak):
 
 ```yaml

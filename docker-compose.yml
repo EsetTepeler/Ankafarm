@@ -58,6 +58,8 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      # Açılışta migration çalışıyor; bu süre boyunca başarısız kontroller sağlıksız saymaz.
+      start_period: 40s
 
   web:
     build:
@@ -76,6 +78,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
   backup:
     image: prodrigestivill/postgres-backup-local:18
@@ -95,6 +98,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      # İmajda curl var, wget yok; go-cron durumu HEALTHCHECK_PORT üzerinden veriyor.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # Fotoğraf ve belgeler veritabanında değil; pg_dump onları kapsamaz.
   # Günde bir kez uploads birimini arşivler, 30 günden eskiyi siler.
@@ -112,6 +122,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      # Slim imajda curl ve wget yok; istek Python ile atılır. Uç veritabanına da dokunur.
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/health", timeout=5)
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   uploads-backup:
     image: alpine:3
@@ -129,6 +150,14 @@ services:
           find /backups/uploads -name 'uploads-*.tar.gz' -mtime +30 -delete 2>/dev/null || true
           sleep 86400
         done
+    healthcheck:
+      # Sunduğu bir uç yok: son 25 saatte arşiv üretilmişse döngü yaşıyor demektir.
+      test: ["CMD-SHELL", "find /backups/uploads -name 'uploads-*.tar.gz' -mmin -1500 | grep -q ."]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      # İlk arşiv açılışta alınıyor ama büyük uploads biriminde sürebilir.
+      start_period: 300s
 
 volumes:
   pgdata:
