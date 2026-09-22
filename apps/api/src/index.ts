@@ -22,7 +22,16 @@ async function main() {
   // Yerel geliştirmede .env dosyası; üretimde değişkenler konteynerden gelir.
   if (process.env.NODE_ENV !== "production" && existsSync(".env")) process.loadEnvFile(".env");
   const env = loadEnv();
-  const app = Fastify({ logger: { level: env.NODE_ENV === "production" ? "info" : "debug" } });
+  /*
+   * trustProxy: üretimde Coolify'ın ters vekili (Traefik) önde duruyor. Bu ayar olmadan her
+   * isteğin IP'si vekilin IP'si görünüyor; hız sınırı ve giriş kısıtı tek kovaya düşüyor, yani
+   * bir saldırgan bütün kullanıcıların payını tüketebiliyordu. Yalnızca gerçekten vekil arkasında
+   * olduğumuz için güvenli; doğrudan internete açık çalıştırılırsa kapatılmalı.
+   */
+  const app = Fastify({
+    logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
+    trustProxy: env.TRUST_PROXY,
+  });
 
   await runMigrations(env.DATABASE_URL, env.MIGRATIONS_DIR);
   app.log.info("Migration'lar güncel");

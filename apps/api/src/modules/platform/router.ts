@@ -4,6 +4,7 @@ import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { hashPassword, verifyPassword } from "../../auth/password";
+import { assertNotLocked, platformLoginThrottle, recordFailure, recordSuccess } from "../../auth/throttle";
 import { hashRefreshToken } from "../../auth/tokens";
 import { farms, platformAdmins, platformRefreshTokens, refreshTokens, users } from "../../db/schema";
 import type { Context } from "../../trpc/context";
@@ -42,10 +43,20 @@ const publicAdmin = { id: platformAdmins.id, email: platformAdmins.email, fullNa
  */
 export const platformRouter = router({
   login: publicProcedure.input(loginInputSchema).mutation(async ({ ctx, input }) => {
+    // Hem e-posta hem IP sayılır: tek hesabı zorlamak da, adres değiştirip denemek de kısıtlansın.
+    const keys = [`platform:${input.email}`, `platform-ip:${ctx.req.ip}`];
+    for (const key of keys) assertNotLocked(key, platformLoginThrottle);
+
     const [admin] = await ctx.db.select().from(platformAdmins).where(eq(platformAdmins.email, input.email)).limit(1);
     const ok = admin ? await verifyPassword(input.password, admin.passwordHash) : false;
-    if (!admin || !ok) throw new TRPCError({ code: "UNAUTHORIZED", message: "E-posta veya şifre hatalı" });
+    if (!admin || !ok) {
+      const locked = keys.map((key) => recordFailure(key, platformLoginThrottle)).some(Boolean);
+      // Yönetici girişi tüm kiracıları açıyor; başarısız denemeler günlüğe düşsün.
+      ctx.req.log.warn({ email: input.email, ip: ctx.req.ip, locked }, "platform yönetici girişi başarısız");
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "E-posta veya şifre hatalı" });
+    }
     if (!admin.active) throw new TRPCError({ code: "FORBIDDEN", message: "Hesap devre dışı" });
+    for (const key of keys) recordSuccess(key);
     await ctx.db.update(platformAdmins).set({ lastLoginAt: new Date() }).where(eq(platformAdmins.id, admin.id));
     const tokens = await issuePlatformTokens(ctx, admin.id, input.device);
     return { ...tokens, admin: { id: admin.id, email: admin.email, fullName: admin.fullName } };

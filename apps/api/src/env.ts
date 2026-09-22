@@ -17,6 +17,11 @@ const envSchema = z.object({
   INSIGHTS_URL: z.string().url().optional(),
   /** İçgörü servisinin DB rolü parolası; verilirse rol açılışta oluşturulur/güncellenir. */
   INSIGHTS_DB_PASSWORD: z.string().min(8).optional(),
+  /** Ters vekil arkasındayken X-Forwarded-For'a güven; IP bazlı sınırların çalışması için şart. */
+  TRUST_PROXY: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   SEED_FARM_NAME: z.string().default("Anka Farm"),
   SEED_OWNER_EMAIL: z.string().email().optional(),
   SEED_OWNER_PASSWORD: z.string().min(8).optional(),

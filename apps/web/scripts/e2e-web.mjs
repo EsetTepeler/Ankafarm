@@ -18,6 +18,13 @@ const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "degistir123";
 /** Koşu kimliği: sunucu verisi kalıcı olduğu için her koşu kendi adlarını kullanmalı. */
 const RUN = Math.random().toString(36).slice(2, 7).toUpperCase();
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
+
+/**
+ * Yerel gün (YYYY-AA-GG). Uygulama tarihleri yerel saatle yazıyor (`todayIso`), test de öyle
+ * beklemeli: `toISOString()` UTC verdiği için gece yarısı ile saat farkı arasında bir gün geriye
+ * kayıyor ve adımlar yalnızca o saatlerde patlıyordu.
+ */
+const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const consoleLines = [];
 
 let tokenCache = null;
@@ -693,7 +700,7 @@ try {
     // tag1'in 2026-10-01 tarihli ileri tarihli tartımı var; "son kilo" o kalır, bugünkü 58 kg onu geçmez.
     if (Number(animals[tag2].currentWeight) !== 44.5) throw new Error(`sunucuda kilo ${animals[tag2].currentWeight}`);
     const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDate();
     const mine = pulled.tables.weight_records.filter((w) => w.animalId === animals[tag1].id && String(w.weighedAt).slice(0, 10) === today);
     if (!mine.some((w) => Number(w.weightKg) === 58)) throw new Error("toplu tartım sunucuya ulaşmadı");
   });

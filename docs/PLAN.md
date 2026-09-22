@@ -388,6 +388,17 @@ Hepsi Drizzle SQL migration dosyalarında yaşar; API bunları Drizzle üzerinde
 - Çevrimdışı kullanım için refresh token ömrü uzun (90 gün). Yerel SQLite cihaz şifresiyle korunur; telefon kilidi yeterli, ayrıca şifreleme yok.
 - Cihaz anahtarları sadece `ingest` ucuna erişir, `farm_id` anahtara bağlıdır, istemciden gelmez.
 
+Giriş kısıtı (2026-09-23): genel hız sınırı (dakikada 300 istek) şifre denemesi için fazla
+cömertti; yönetici hesabı tüm kiracıları açtığı için dakikada yüzlerce deneme kabul edilemez.
+`auth/throttle.ts` e-posta ve IP başına sayar: çiftlik girişinde 10 hata → 15 dakika, yönetici
+girişinde 5 hata → 30 dakika kilit. Başarısız yönetici denemeleri `warn` seviyesinde günlüğe
+düşer. Sayaç bellekte; API tek konteyner çalıştığı sürece yeterli, kopya sayısı artarsa ortak
+bir sayaç gerekir.
+
+`trustProxy` açıldı: Coolify'ın ters vekili önde durduğu için bu ayar olmadan her isteğin IP'si
+vekilinki görünüyordu, yani hız sınırı ve giriş kısıtı tek kovaya düşüyor ve bir saldırgan
+bütün kullanıcıların payını tüketebiliyordu. API doğrudan internete açılırsa `TRUST_PROXY=false`
+yapılmalı, yoksa istemci `X-Forwarded-For` uydurup sınırı aşabilir.
 ### 4.7 İçgörüler
 
 - **insights**: `animal_id` (çiftlik geneli için null), `type` (bölüm 3.5 kataloğundaki kural adı), `severity` (info | warning | critical), `title`, `message`, `data jsonb` (hesapta kullanılan sayılar), `computed_at`, `valid_until`, `acknowledged_at`, `acknowledged_by`, `snoozed_until`.

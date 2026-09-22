@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { verifyPassword } from "../../auth/password";
+import { assertNotLocked, farmLoginThrottle, recordFailure, recordSuccess } from "../../auth/throttle";
 import { hashRefreshToken } from "../../auth/tokens";
 import { farms, refreshTokens, users } from "../../db/schema";
 import type { Context } from "../../trpc/context";
@@ -51,11 +52,17 @@ async function assertFarmActive(ctx: Context, farmId: string) {
 
 export const authRouter = router({
   login: publicProcedure.input(loginInputSchema).mutation(async ({ ctx, input }) => {
+    const keys = [`farm:${input.email}`, `farm-ip:${ctx.req.ip}`];
+    for (const key of keys) assertNotLocked(key, farmLoginThrottle);
+
     const [user] = await ctx.db.select().from(users).where(eq(users.email, input.email)).limit(1);
     const ok = user ? await verifyPassword(input.password, user.passwordHash) : false;
     if (!user || !ok) {
+      const locked = keys.map((key) => recordFailure(key, farmLoginThrottle)).some(Boolean);
+      ctx.req.log.warn({ email: input.email, ip: ctx.req.ip, locked }, "giriş başarısız");
       throw new TRPCError({ code: "UNAUTHORIZED", message: "E-posta veya şifre hatalı" });
     }
+    for (const key of keys) recordSuccess(key);
     if (!user.active) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Hesap devre dışı" });
     }
