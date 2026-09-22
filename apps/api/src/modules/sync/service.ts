@@ -1,8 +1,10 @@
 import {
+  REMOVALS_CURSOR,
   softDeletePayloadSchema,
   type AccessTokenClaims,
   type MutationEnvelope,
   type MutationResult,
+  type Removal,
   type SyncedTable,
 } from "@anka/shared";
 import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
@@ -28,6 +30,7 @@ import {
   observationTags,
   observations,
   protocolItems,
+  syncRemovals,
   purchases,
   reminders,
   stockItems,
@@ -193,13 +196,14 @@ function pgErrorCode(err: unknown): string | undefined {
 
 /** Tablo başına imleçten sonraki satırlar, sync_seq sırasıyla. Silinmişler de gelir (deleted_at dolu). */
 export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Record<string, number>, limit: number) {
-  const since = (t: SyncedTable) => cursors[t] ?? 0;
+  // Senkron tabloları ve silinme akışı aynı imleç sözlüğünü paylaşır, o yüzden anahtar düz metin.
+  const since = (t: string) => cursors[t] ?? 0;
   const where = (t: { farmId: any; syncSeq: any }, cursor: number) => and(eq(t.farmId, user.farmId), gt(t.syncSeq, cursor));
   // Bakıcı ve veteriner finans satırlarını cihazına hiç almaz (bölüm 2, rol tablosu).
   const finance = user.role === "owner";
   const none = Promise.resolve([] as never[]);
 
-  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows, protocolRows, protocolItemRows, attachmentRows] = await Promise.all([
+  const [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows, protocolRows, protocolItemRows, attachmentRows, removalRows] = await Promise.all([
     db.select().from(breeds).where(where(breeds, since("breeds"))).orderBy(asc(breeds.syncSeq)).limit(limit),
     db.select().from(groups).where(where(groups, since("groups"))).orderBy(asc(groups.syncSeq)).limit(limit),
     db.select().from(animals).where(where(animals, since("animals"))).orderBy(asc(animals.syncSeq)).limit(limit),
@@ -245,6 +249,14 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
     db.select().from(healthProtocols).where(where(healthProtocols, since("health_protocols"))).orderBy(asc(healthProtocols.syncSeq)).limit(limit),
     db.select().from(protocolItems).where(where(protocolItems, since("protocol_items"))).orderBy(asc(protocolItems.syncSeq)).limit(limit),
     db.select().from(attachments).where(where(attachments, since("attachments"))).orderBy(asc(attachments.syncSeq)).limit(limit),
+    // Silinme akışı: bu çiftlikten tamamen çıkmış satırlar (transfer). Senkron tablosu değil,
+    // o yüzden kendi imleciyle ilerler.
+    db
+      .select({ tableName: syncRemovals.tableName, rowId: syncRemovals.rowId, syncSeq: syncRemovals.syncSeq, reason: syncRemovals.reason })
+      .from(syncRemovals)
+      .where(and(eq(syncRemovals.farmId, user.farmId), gt(syncRemovals.syncSeq, since(REMOVALS_CURSOR))))
+      .orderBy(asc(syncRemovals.syncSeq))
+      .limit(limit),
   ]);
 
   const last = (rows: { syncSeq: number }[], fallback: number) => (rows.length ? rows[rows.length - 1]!.syncSeq : fallback);
@@ -272,6 +284,7 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       protocol_items: protocolItemRows,
       attachments: attachmentRows,
     },
+    removals: removalRows as Removal[],
     cursors: {
       breeds: last(breedRows, since("breeds")),
       groups: last(groupRows, since("groups")),
@@ -293,10 +306,33 @@ export async function pullChanges(db: Db, user: AccessTokenClaims, cursors: Reco
       health_protocols: last(protocolRows, since("health_protocols")),
       protocol_items: last(protocolItemRows, since("protocol_items")),
       attachments: last(attachmentRows, since("attachments")),
-    } satisfies Record<SyncedTable, number>,
-    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows, protocolRows, protocolItemRows, attachmentRows].some(
+      [REMOVALS_CURSOR]: last(removalRows, since(REMOVALS_CURSOR)),
+    } satisfies Record<SyncedTable | typeof REMOVALS_CURSOR, number>,
+    hasMore: [breedRows, groupRows, animalRows, movementRows, weightRows, healthRows, breedingRows, lambingRows, exitRows, obsRows, tagRows, itemRows, purchaseRows, consumptionRows, expenseRows, incomeRows, reminderRows, protocolRows, protocolItemRows, attachmentRows, removalRows].some(
       (r) => r.length === limit,
     ),
     serverTime: new Date().toISOString(),
   };
+}
+
+/**
+ * Bir satırın bu çiftlikten tamamen çıktığını kaydeder; sıradaki pull'da istemci yerel kopyayı siler.
+ * Soft delete satırı çiftlikte bıraktığı için bunun yerine geçmez: burada satır artık o çiftliğin
+ * pull sorgusuna hiç girmiyor (örneğin transferde farm_id değişti).
+ */
+export async function recordRemoval(
+  tx: Db | Parameters<Parameters<Db["transaction"]>[0]>[0],
+  farmId: string,
+  tableName: SyncedTable,
+  rowId: string,
+  reason: string,
+) {
+  await tx
+    .insert(syncRemovals)
+    .values({ farmId, tableName, rowId, reason })
+    .onConflictDoUpdate({
+      target: [syncRemovals.farmId, syncRemovals.tableName, syncRemovals.rowId],
+      // Tekrar düşerse imleci geçmiş cihazlar da görsün diye sync_seq tetikleyiciyle yenilenir.
+      set: { reason, updatedAt: new Date() },
+    });
 }

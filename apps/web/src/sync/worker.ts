@@ -1,4 +1,4 @@
-import { syncedTables, type MutationEnvelope, type SyncedTable } from "@anka/shared";
+import { REMOVALS_CURSOR, syncedTables, type MutationEnvelope, type SyncedTable } from "@anka/shared";
 import { asc, count, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb, withLocalTransaction } from "@/db";
@@ -163,7 +163,16 @@ async function pullAll() {
           await tx.insert(local).values(values).onConflictDoUpdate({ target: local.id, set: values });
         }
       }
-      for (const table of syncedTables) {
+      // Silinme akışı: satır artık bu çiftlikte değil (transfer). Soft delete'ten farkı,
+      // satırın sunucudaki pull sorgusuna bir daha hiç girmemesi; yerel kopya burada silinir.
+      for (const removal of res.removals ?? []) {
+        const local = localTables[removal.tableName] as any;
+        if (!local) continue;
+        await tx.delete(local).where(eq(local.id, removal.rowId));
+        if (!changed.includes(removal.tableName)) changed.push(removal.tableName);
+      }
+      const cursorKeys: (SyncedTable | typeof REMOVALS_CURSOR)[] = [...syncedTables, REMOVALS_CURSOR];
+      for (const table of cursorKeys) {
         const cursor = res.cursors[table];
         if (cursor == null) continue;
         await tx

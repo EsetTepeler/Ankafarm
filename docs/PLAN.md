@@ -586,10 +586,13 @@ getiriyor ve 7.4-7.6 bunları çözer:
   yönetici hesabı `PLATFORM_ADMIN_EMAIL`/`PLATFORM_ADMIN_PASSWORD` ile açılışta tohumlanır.
   İki yönlü token yalıtımı doğrulandı: çiftlik tokenı `platform.*` uçlarından, yönetici tokenı
   çiftlik uçlarından geçmiyor.)
-- [ ] 7.4 Silinme akışı: `sync_removals` tablosu (`farm_id`, `table_name`, `row_id`, `sync_seq`,
+- [x] 7.4 Silinme akışı: `sync_removals` tablosu (`farm_id`, `table_name`, `row_id`, `sync_seq`,
   `reason`). `sync.pull` yanıtına `removals` eklenir, istemci o satırları yerelden siler ve
   imlecini ilerletir. Transferden bağımsız olarak da doğru mekanizma: bugüne kadar bir satırın bir
-  çiftlikten tamamen çıkması mümkün değildi.
+  çiftlikten tamamen çıkması mümkün değildi. (2026-09-22. Migration 0026; `recordRemoval()`
+  yardımcısı. İstemci önce tablo satırlarını yazar, sonra silinmeleri uygular; sıra böyle olmalı
+  ki imleci sıfırlanmış bir cihaz satırı alıp hemen ardından silsin. Doğrulandı: sunucuya düşen
+  silinme kaydı sonrası yeni bir tarayıcı hayvanı hiç görmedi.)
 - [ ] 7.5 Transfer sözleşmesi: `animal_transfers` tablosu (hayvan, kaynak ve hedef çiftlik, küpe,
   durum `pending`/`accepted`/`rejected`/`cancelled`, isteyen ve karar veren kullanıcı, tarihler,
   not, gerekiyorsa yeni küpe). Çift taraflı: A gönderir, B kabul eder. Tek taraflı olsa A istediği

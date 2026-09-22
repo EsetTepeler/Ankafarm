@@ -131,6 +131,18 @@ export const mutationResultSchema = z.discriminatedUnion("status", [
 ]);
 export type MutationResult = z.infer<typeof mutationResultSchema>;
 
+/** Silinme akışı imlecinin anahtarı. Senkron tablosu değil; ayrı bir imleçle ilerler. */
+export const REMOVALS_CURSOR = "removals";
+
+/** Bir satırın çiftlikten tamamen çıktığını bildirir; istemci yerel kopyayı siler. */
+export const removalSchema = z.object({
+  tableName: syncedTableSchema,
+  rowId: z.string().uuid(),
+  syncSeq: z.number().int().nonnegative(),
+  reason: z.string().nullable(),
+});
+export type Removal = z.infer<typeof removalSchema>;
+
 export const pullInputSchema = z.object({
   /** Tablo başına son alınan sync_seq. Eksik tablo 0 sayılır. */
   cursors: z.record(z.string(), z.number().int().nonnegative()).default({}),

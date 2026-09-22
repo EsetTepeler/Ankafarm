@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, jsonb, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { farms, users } from "./core";
 
@@ -61,3 +61,28 @@ export const appliedMutations = pgTable("applied_mutations", {
   userId: uuid().references(() => users.id),
   deviceId: uuid(),
 });
+
+/**
+ * Bir satırın bir çiftlikten tamamen çıkması (transfer). Soft delete satırı çiftlikte bırakır;
+ * burada ise satır artık o çiftliğin pull sorgusuna hiç girmediği için cihazdaki kopyayı
+ * silmesini söyleyecek ayrı bir akış gerekiyor.
+ */
+export const syncRemovals = pgTable(
+  "sync_removals",
+  {
+    id: uuid().primaryKey().default(sql`uuidv7()`),
+    farmId: uuid()
+      .notNull()
+      .references(() => farms.id),
+    tableName: text().notNull(),
+    rowId: uuid().notNull(),
+    syncSeq: bigint({ mode: "number" }).notNull().default(0),
+    reason: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("sync_removals_farm_seq_idx").on(t.farmId, t.syncSeq),
+    uniqueIndex("sync_removals_farm_row_uq").on(t.farmId, t.tableName, t.rowId),
+  ],
+);
