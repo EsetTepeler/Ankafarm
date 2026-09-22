@@ -1,6 +1,7 @@
 import { formatMoney, formatNumber, formatQuantity, labels, type StockCategory, type StockUnit } from "@anka/shared";
 import { Hourglass, Package, Pencil, Plus, ShoppingCart, Trash2, TriangleAlert, Utensils } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
@@ -34,6 +35,23 @@ export function StockPage() {
   const [editing, setEditing] = useState<StockLevel | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [consumptionOpen, setConsumptionOpen] = useState(false);
+  const [params, setParams] = useSearchParams();
+
+  /**
+   * Finans ekranındaki "yem aldım / sürüye verdim" yönlendirmesi doğrudan doğru diyaloğu açsın;
+   * kullanıcıyı Stok listesine bırakıp düğmeyi kendisi bulsun demek aynı kaybolmayı tekrarlatır.
+   */
+  useEffect(() => {
+    const ekle = params.get("ekle");
+    if (!ekle) return;
+    if (ekle === "alim") setPurchaseOpen(true);
+    if (ekle === "tuketim") setConsumptionOpen(true);
+    setParams((p) => {
+      const next = new URLSearchParams(p);
+      next.delete("ekle");
+      return next;
+    });
+  }, [params, setParams]);
 
   const rows = levels.data ?? [];
   const low = rows.filter((r) => r.belowMin || (r.daysLeft != null && r.daysLeft <= 14));

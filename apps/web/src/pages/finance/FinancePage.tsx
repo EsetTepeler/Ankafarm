@@ -1,7 +1,7 @@
 import { formatMoney, labels, type ExpenseCategory, type IncomeCategory } from "@anka/shared";
-import { ChevronLeft, ChevronRight, Minus, PieChart, Plus, Scale, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, PieChart, Plus, Scale, ShoppingCart, Trash2, TrendingDown, TrendingUp, Utensils, Wallet } from "lucide-react";
 import { useState } from "react";
-import { Navigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { ZodError } from "zod";
 
@@ -218,6 +218,9 @@ function EntryDialog({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+  // Yem ve su ayrı bir defterde: alım stok bakiyesini artırır, tüketim düşürür.
+  const stockHint = testIdPrefix === "expense" && (category === "feed" || category === "water");
 
   async function save() {
     setBusy(true);
@@ -251,6 +254,24 @@ function EntryDialog({
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          {stockHint ? (
+            <div className="grid gap-2 border border-warning/40 bg-warning/5 p-3" data-testid="expense-stock-hint">
+              <p className="label-micro text-warning">Bunu burada girme</p>
+              <p className="text-xs text-muted-foreground">
+                Yem ve suyu Stok ekranı takip eder. <strong className="text-foreground">Aldığın</strong> yem oradan girilir; hem gider kaydı açılır hem bakiye artar.{" "}
+                <strong className="text-foreground">Sürüye verdiğin</strong> yem ise toplu tüketimden girilir, para değil stok düşer. Burada girersen stok tutmaz
+                ve gider iki kez sayılır.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" data-testid="hint-purchase" onClick={() => navigate("/stock?ekle=alim")}>
+                  <ShoppingCart /> Yem aldım
+                </Button>
+                <Button type="button" variant="outline" size="sm" data-testid="hint-consumption" onClick={() => navigate("/stock?ekle=tuketim")}>
+                  <Utensils /> Sürüye verdim
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <DateField id={`${testIdPrefix}-date`} label="Tarih" value={date} onChange={setDate} testID={`${testIdPrefix}-date`} required />
           <div className="grid gap-1.5">
             <Label htmlFor={`${testIdPrefix}-amount`}>Tutar, TL</Label>

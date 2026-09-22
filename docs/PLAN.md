@@ -515,6 +515,10 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 - [x] 2.3 Günlük tüketim girişi: tek dialogda tüm yem, su ve malzeme kalemleri, varsayılan tüm sürü, "dünkü gibi" son günü doldurur, hepsi tek yerel işlem ve tek push. Su kova bazlı, bakiyesi tutulmaz. (2026-09-21)
 - [x] 2.4 Stok seviyeleri: kalem başına bakiye, son 14 gün tüketimi, kalan gün rozeti (7 günden az kırmızı, 14 günden az sarı), alt sınır uyarısı; hesap `shared/stock.ts` içinde, sunucu view'ı ile birebir aynı. (2026-09-21)
 - [x] 2.5 Gider ve gelir girişi: Finans ekranı (sahip rolüne açık), ay seçici, gider/gelir/fark kutuları, kategori dağılımı çubukları, gider ve gelir defterleri. Stok alımları aylık gidere kalem adıyla girer, iki kez sayılmaz. (2026-09-21)
+  2026-09-22: çiftlik sahibi sürüye verilen yemi buradan girmeye çalışıp bulamadı. Yem ve su
+  kategorisi seçilince uyarı çıkıyor ve iki düğme doğru ekrana götürüyor: "Yem aldım" alım
+  diyaloğunu, "Sürüye verdim" toplu tüketimi açar (`/stock?ekle=alim|tuketim`). Kullanıcıyı stok
+  listesine bırakmak aynı kaybolmayı tekrarlatıyordu.
 - [x] 2.6 Günlük tur ekranı (`/animals/round`): sürü listesi, varsayılan "hepsi normal", hayvana dokununca kategori, şiddet, hazır etiket ve not açılır. Kaydet hem işaretli hayvanların gözlemlerini hem de sürü düzeyinde tur kaydını (hayvansız satır, `DAILY_ROUND_TAG`) tek işlemde yazar; Bugün ekranı turun yapılıp yapılmadığını gösterir. (2026-09-21)
 - [x] 2.7 Raporlar ekranı: Sürü sekmesi (yaş grubu halkası, ırk dağılımı, ortalama kilo), Üretim sekmesi (aylık doğan yavru, doğum zorluğu, sağlık kayıtları ve maliyeti, çıkışlar), Para sekmesi (12 aylık gider/gelir çubukları, kalem bazında aylık tüketim). Ortak VisActor sarmalayıcıları `charts/Charts.tsx`; tümü yerel veriden. (2026-09-21)
 - [x] 2.8 Bugün ekranı v2: ikinci KPI şeridi (aşı uyumu, kilo eğilimi, yem trendi, bu ay gider; bakıcıda gider yerine stok uyarısı), "Stok ve günlük tur" kartı (kalan günü azalan kalemler, turun durumu). Hesaplar `useHerdPulse` içinde yerel veriden; Faz 5'te içgörü servisi bunların üzerine kurulacak. (2026-09-21)

@@ -1087,6 +1087,22 @@ try {
     await page.getByTestId("animal-search").waitFor({ timeout: 10_000 });
   });
 
+  await step("gider ekranı yem girişini stok ekranına yönlendirir", async () => {
+    await page.getByTestId("nav-finance").click();
+    await page.getByTestId("expense-add").click();
+    // Yem dışı kategoride uyarı çıkmamalı; her girişte bağırmasın.
+    await page.getByTestId("expense-cat-vet").click();
+    if (await page.getByTestId("expense-stock-hint").count()) throw new Error("veteriner giderinde stok uyarısı çıktı");
+
+    await page.getByTestId("expense-cat-feed").click();
+    await page.getByTestId("expense-stock-hint").waitFor({ timeout: 10_000 });
+    await page.getByTestId("hint-consumption").click();
+    // Kullanıcı stok listesine bırakılmamalı; doğrudan toplu tüketim açılmalı.
+    await page.getByTestId("consumption-date").waitFor({ timeout: 15_000 });
+    if (!page.url().includes("/stock")) throw new Error(`stok ekranına gidilmedi: ${page.url()}`);
+    await page.keyboard.press("Escape");
+  });
+
   // Yeni adımlar buraya, bu satırın hemen üstüne eklenir.
 
 } finally {
