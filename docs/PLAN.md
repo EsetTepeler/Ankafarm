@@ -593,7 +593,7 @@ getiriyor ve 7.4-7.6 bunları çözer:
   yardımcısı. İstemci önce tablo satırlarını yazar, sonra silinmeleri uygular; sıra böyle olmalı
   ki imleci sıfırlanmış bir cihaz satırı alıp hemen ardından silsin. Doğrulandı: sunucuya düşen
   silinme kaydı sonrası yeni bir tarayıcı hayvanı hiç görmedi.)
-- [ ] 7.5 Transfer sözleşmesi: `animal_transfers` tablosu (hayvan, kaynak ve hedef çiftlik, küpe,
+- [x] 7.5 Transfer sözleşmesi: `animal_transfers` tablosu (hayvan, kaynak ve hedef çiftlik, küpe,
   durum `pending`/`accepted`/`rejected`/`cancelled`, isteyen ve karar veren kullanıcı, tarihler,
   not, gerekiyorsa yeni küpe). Çift taraflı: A gönderir, B kabul eder. Tek taraflı olsa A istediği
   hayvanı B'nin sürüsüne atabilirdi.
@@ -606,6 +606,11 @@ getiriyor ve 7.4-7.6 bunları çözer:
   - A'da kalanlar: gözlemler, çiftleşme ve doğum kayıtları, ekler, grup hareketleri, gider ve gelir.
   - A'ya `sync_removals` satırları yazılır (hayvan + taşınan sağlık ve tartım satırları).
   - Küpe B'de doluysa kabul yeni küpe ister.
+  (2026-09-22. Migration 0027; `animals.provenance` jsonb anne/baba küpelerini ve geldiği çiftliği
+  metin olarak taşır. Doğrulandı: hayvan A'nın listesinden düştü, B'de "dışarıdan alındı" kökeniyle
+  göründü, ırk B'de aynı adla açıldı, grup B'nin Ana sürüsü oldu, taşınan 63 sağlık kaydının
+  maliyeti boşaldı, A'ya 1 hayvan + 63 sağlık silinme kaydı düştü. Küpe çakışmasında kabul
+  reddedildi, yeni küpeyle geçti.)
 - [ ] 7.6 Transfer arayüzü: hayvan profilinde "Başka çiftliğe devret" (hedef çiftlik kodu + not),
   `/transfers` ekranında Gelen ve Giden sekmeleri, kabul/ret. Çevrimdışı çalışmaz; iki kiracıya
   birden dokunduğu için sunucu gerektirir (kullanıcı yönetimi gibi).

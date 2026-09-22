@@ -1,6 +1,8 @@
+import type { AnimalProvenance } from "@anka/shared";
 import { sql } from "drizzle-orm";
 import { boolean, date, index, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 
+import { farms, users } from "./core";
 import { eventColumns, syncedColumns } from "./synced";
 
 export const speciesEnum = pgEnum("species", ["sheep", "goat"]);
@@ -75,6 +77,8 @@ export const animals = pgTable(
     notes: text(),
     // Türev, trigger ve servislerle güncellenir
     currentWeight: numeric({ precision: 6, scale: 2, mode: "number" }),
+    /** Devirle gelen künye bilgisi: geldiği çiftlik, devir tarihi, anne ve baba küpeleri. */
+    provenance: jsonb().$type<AnimalProvenance | null>(),
     isPregnant: boolean().notNull().default(false),
     expectedBirthAt: date({ mode: "string" }),
   },
@@ -331,3 +335,40 @@ export type ProtocolItem = typeof protocolItems.$inferSelect;
 export type Attachment = typeof attachments.$inferSelect;
 export type Observation = typeof observations.$inferSelect;
 export type ObservationTag = typeof observationTags.$inferSelect;
+
+export const transferStatusEnum = pgEnum("transfer_status", ["pending", "accepted", "rejected", "cancelled"]);
+
+/**
+ * Çiftlikler arası hayvan devri. Çift taraflı: A gönderir, B kabul eder.
+ * Senkron tablosu değil — iki kiracıya birden dokunduğu için sunucuda yaşar, cihaza inmez.
+ */
+export const animalTransfers = pgTable(
+  "animal_transfers",
+  {
+    id: uuid().primaryKey().default(sql`uuidv7()`),
+    animalId: uuid()
+      .notNull()
+      .references(() => animals.id),
+    fromFarmId: uuid()
+      .notNull()
+      .references(() => farms.id),
+    toFarmId: uuid()
+      .notNull()
+      .references(() => farms.id),
+    tagNo: text().notNull(),
+    newTagNo: text(),
+    status: transferStatusEnum().notNull().default("pending"),
+    note: text(),
+    decisionNote: text(),
+    requestedBy: uuid().references(() => users.id),
+    decidedBy: uuid().references(() => users.id),
+    requestedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    decidedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("animal_transfers_to_idx").on(t.toFarmId, t.status),
+    index("animal_transfers_from_idx").on(t.fromFarmId, t.status),
+  ],
+);

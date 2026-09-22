@@ -38,6 +38,20 @@ export const healthTypeSchema = z.enum(["vaccine", "medication", "deworming", "d
 export type HealthType = z.infer<typeof healthTypeSchema>;
 
 /** Türkçe etiketler; arayüz ve Python metin şablonları aynı kaynağı kullanır. */
+/**
+ * Devirle gelen hayvanın künyesi. Anne, baba ve geldiği çiftlik karşı tarafta kaldığı için
+ * kimlikle değil metinle saklanır; soy ağacı bağları çiftlik sınırını geçmez.
+ */
+export const animalProvenanceSchema = z.object({
+  fromFarmName: z.string(),
+  fromFarmCode: z.string(),
+  transferredAt: z.string(),
+  previousTagNo: z.string().optional(),
+  motherTagNo: z.string().nullable().optional(),
+  fatherTagNo: z.string().nullable().optional(),
+});
+export type AnimalProvenance = z.infer<typeof animalProvenanceSchema>;
+
 export const labels = {
   ...stockLabels,
   userRole: { owner: "Sahip", worker: "Bakıcı", vet: "Veteriner" },
@@ -381,3 +395,22 @@ export const DEFAULT_GROUP_NAME = "Ana sürü";
 
 /** Günlük tur kaydının etiketi: hayvansız, sürü düzeyinde bir gözlem satırı taşır. */
 export const DAILY_ROUND_TAG = "Günlük tur";
+
+export const transferStatusSchema = z.enum(["pending", "accepted", "rejected", "cancelled"]);
+export type TransferStatus = z.infer<typeof transferStatusSchema>;
+
+/** A tarafı: hedef çiftliğin kodu ve isteğe bağlı not. Hayvan A'da aktif olmalı. */
+export const requestTransferInputSchema = z.object({
+  animalId: uuid,
+  toFarmCode: z.string().trim().toUpperCase().min(4, "Çiftlik kodu girin").max(20),
+  note: z.string().trim().max(500).optional(),
+});
+export type RequestTransferInput = z.infer<typeof requestTransferInputSchema>;
+
+/** B tarafı: küpe çakışıyorsa yeni küpe zorunlu. */
+export const acceptTransferInputSchema = z.object({
+  transferId: uuid,
+  newTagNo: z.string().trim().max(60).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+export type AcceptTransferInput = z.infer<typeof acceptTransferInputSchema>;
