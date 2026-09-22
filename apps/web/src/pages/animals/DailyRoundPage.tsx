@@ -1,5 +1,5 @@
 import { labels, type GroupKind, type ObservationCategory, type Severity } from "@anka/shared";
-import { Check, CircleAlert, ClipboardCheck, Users } from "lucide-react";
+import { Check, CircleAlert, ClipboardCheck, Users, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { DateField } from "@/components/DateField";
 import { EntityPicker } from "@/components/EntityPicker";
 import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
+import { ConsumptionDialog } from "@/features/stock/ConsumptionDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +44,7 @@ export function DailyRoundPage() {
   const [date, setDate] = useState<string | null>(todayIso());
   const [marks, setMarks] = useState<Record<string, Mark>>({});
   const [busy, setBusy] = useState(false);
+  const [consumptionOpen, setConsumptionOpen] = useState(false);
   const animals = useAnimals({ status: "active", groupId: groupId ?? undefined });
   const groups = useGroups();
   const tags = useObservationTags();
@@ -93,9 +95,15 @@ export function DailyRoundPage() {
         title="Günlük tur"
         description="Sürüyü gözden geçir; varsayılan hepsi normal, sadece dikkat çekeni işaretle"
         actions={
-          <Button onClick={() => void save()} disabled={busy || rows.length === 0} data-testid="round-save">
-            <ClipboardCheck /> Turu kaydet
-          </Button>
+          <>
+            {/* Yem turda veriliyor; tüketimi girmek için Stok ekranına gitmek gerekmesin. */}
+            <Button variant="outline" onClick={() => setConsumptionOpen(true)} data-testid="round-consumption">
+              <Utensils /> Toplu tüketim
+            </Button>
+            <Button onClick={() => void save()} disabled={busy || rows.length === 0} data-testid="round-save">
+              <ClipboardCheck /> Turu kaydet
+            </Button>
+          </>
         }
       />
 
@@ -206,6 +214,7 @@ export function DailyRoundPage() {
           })}
         </div>
       )}
+      <ConsumptionDialog open={consumptionOpen} onOpenChange={setConsumptionOpen} />
     </>
   );
 }

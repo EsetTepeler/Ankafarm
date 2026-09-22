@@ -61,8 +61,10 @@ export function ConsumptionDialog({ open, onOpenChange }: { open: boolean; onOpe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Günlük tüketim</DialogTitle>
-          <DialogDescription>Bugün oluğa konan yem ve verilen su. Boş bıraktığın kalem kaydedilmez.</DialogDescription>
+          <DialogTitle>Toplu günlük tüketim</DialogTitle>
+          <DialogDescription>
+            Tüm sürüye birlikte verilen yem ve su; tek seferde girilir, hayvan hayvan değil. Boş bıraktığın kalem kaydedilmez.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <DateField id="consumption-date" label="Tarih" value={date} onChange={setDate} testID="consumption-date" required />

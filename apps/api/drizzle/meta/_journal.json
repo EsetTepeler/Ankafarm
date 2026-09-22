@@ -197,6 +197,13 @@
       "when": 1790003825631,
       "tag": "0027_animal_transfers",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790003885631,
+      "tag": "0028_saman_kg",
+      "breakpoints": true
     }
   ]
 }

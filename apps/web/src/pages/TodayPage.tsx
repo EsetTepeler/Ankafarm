@@ -16,12 +16,14 @@ import {
   Scale,
   Star,
   Syringe,
+  Utensils,
   TriangleAlert,
   Users,
   Venus,
   Wallet,
   Wheat,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 
 import { EmptyState, PageHeader, StatGrid, StatTile } from "@/components/PageHeader";
@@ -30,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard, useHerdPulse, useRecentEvents, type FeedItem } from "@/features/dashboard/repo";
 import { currentMonth, useMonthlySummary } from "@/features/finance/repo";
+import { ConsumptionDialog } from "@/features/stock/ConsumptionDialog";
 import { useStockLevels } from "@/features/stock/repo";
 import { useInsights } from "@/features/insights/repo";
 import { useRecentAbnormalObservations, useTodayRound } from "@/features/observations/repo";
@@ -82,6 +85,7 @@ function collapseBatches(items: FeedItem[]): (FeedItem & { count: number })[] {
 }
 
 export function TodayPage() {
+  const [consumptionOpen, setConsumptionOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const dash = useDashboard();
   const abnormal = useRecentAbnormalObservations();
@@ -112,6 +116,10 @@ export function TodayPage() {
               <Link to="/animals/round">
                 <ClipboardCheck /> Günlük tur
               </Link>
+            </Button>
+            {/* Yem tüm sürüye birlikte veriliyor; girişi Stok ekranına gömülü kalmasın. */}
+            <Button variant="outline" onClick={() => setConsumptionOpen(true)} data-testid="today-consumption">
+              <Utensils /> Toplu tüketim
             </Button>
             <Button asChild variant="outline">
               <Link to="/animals/bulk">
@@ -314,6 +322,7 @@ export function TodayPage() {
           </CardContent>
         </Card>
       </div>
+      <ConsumptionDialog open={consumptionOpen} onOpenChange={setConsumptionOpen} />
     </>
   );
 }

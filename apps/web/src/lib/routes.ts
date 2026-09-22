@@ -31,7 +31,7 @@ const staticRoutes: Record<string, RouteMeta> = {
   "/settings/groups": { label: "Gruplar ve bölmeler", parent: "/settings" },
   "/settings/sync": { label: "Senkron durumu", parent: "/settings" },
   "/settings/export": { label: "Dışa aktarma", parent: "/settings" },
-  "/settings/protocols": { label: "Aşı ve bakım programı", parent: "/settings" },
+  "/settings/protocols": { label: "Aşı ve bakım planlaması", parent: "/settings" },
   "/settings/system": { label: "Sistem durumu", parent: "/settings" },
   "/settings/thresholds": { label: "İçgörü eşikleri", parent: "/settings" },
   "/settings/users": { label: "Kullanıcılar", parent: "/settings" },

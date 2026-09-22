@@ -51,18 +51,19 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent className="grid gap-1">
             <LinkRow to="/settings/groups" title="Gruplar ve bölmeler" sub="Ana sürü, karantina, mera" testID="settings-groups" />
+            <LinkRow to="/settings/protocols" title="Aşı ve bakım planlaması" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
+            <LinkRow to="/transfers" title="Devirler" sub="Hayvanın başka çiftliğe geçişi; çiftlik kodu yukarıda" testID="settings-transfers" />
+            {user?.role === "owner" ? <LinkRow to="/settings/thresholds" title="İçgörü eşikleri" sub="Uyarılar ne zaman çıksın" testID="settings-thresholds" /> : null}
+            {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
+            <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
+            {user?.role === "owner" ? <LinkRow to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
+            {/* Senkron en altta: günlük işte açılmıyor, sorun çıkınca bakılıyor (çiftlik sahibi isteği). */}
             <LinkRow
               to="/settings/sync"
               title="Senkron durumu"
               sub={`${sync.pending} bekliyor · ${sync.failed} reddedildi${sync.lastSyncAt ? ` · son ${formatDateTime(sync.lastSyncAt)}` : ""}`}
               testID="settings-sync"
             />
-            {user?.role === "owner" ? <LinkRow to="/audit" title="Değişiklik geçmişi" sub="Kim, ne zaman, neyi değiştirdi" testID="settings-audit" /> : null}
-            <LinkRow to="/settings/protocols" title="Aşı ve bakım programı" sub="Yıllık takvim; hatırlatıcılar buradan türetilir" testID="settings-protocols" />
-            {user?.role === "owner" ? <LinkRow to="/settings/thresholds" title="İçgörü eşikleri" sub="Uyarılar ne zaman çıksın" testID="settings-thresholds" /> : null}
-            {user?.role === "owner" ? <LinkRow to="/settings/system" title="Sistem durumu" sub="Yedekler, depolama, sunucu" testID="settings-system" /> : null}
-            <LinkRow to="/transfers" title="Devirler" sub="Hayvanın başka çiftliğe geçişi; çiftlik kodu yukarıda" testID="settings-transfers" />
-              <LinkRow to="/settings/export" title="Dışa aktarma" sub="Kayıtları Excel için CSV olarak indir" testID="settings-export" />
           </CardContent>
         </Card>
 

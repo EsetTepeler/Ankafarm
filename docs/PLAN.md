@@ -527,7 +527,10 @@ Her özellik maddesi çevrimdışı çalışır: yerel SQLite'a yazar, outbox'a 
 ### Faz 3: Verimlilik
 
 - [x] 3.1 Toplu işlem ekranı üç sekme oldu (`/animals/bulk`): Sağlık (kırkım dahil, 1.8), Tartım (sırayla kilo, Enter bir alt satıra geçer, son kiloya göre fark, tek push) ve Grup taşıma (seçilenler tek harekette). (2026-09-21)
-- [x] 3.2 Aşı ve bakım programı (Ayarlar > Aşı ve bakım programı): `health_protocols` ve `protocol_items` tabloları (migration 0016/0017), üç tetikleyici (yaşa göre, aralıklı, sabit ay), tek tuşla örnek program (enterotoksemi, çiçek, parazit, tırnak, kuzu aşısı). Her madde her aktif hayvan için hatırlatıcı üretir; kayıt tutulmaz, sağlık kaydı girilince iş kendiliğinden ileri kayar. (2026-09-21)
+- [x] 3.2 Aşı ve bakım planlaması (Ayarlar > Aşı ve bakım planlaması): `health_protocols` ve `protocol_items` tabloları (migration 0016/0017), üç tetikleyici (yaşa göre, aralıklı, sabit ay), tek tuşla örnek program (enterotoksemi, çiçek, parazit, tırnak, kuzu aşısı). Her madde her aktif hayvan için hatırlatıcı üretir; kayıt tutulmaz, sağlık kaydı girilince iş kendiliğinden ileri kayar. (2026-09-21)
+  2026-09-22, çiftlik sahibi sözlüğü: kapsayan şey "planlama", içindeki her satır bir "program"
+  (enterotoksemi programı, tırnak bakımı programı...). Arayüzdeki "madde" ve "ürün adı" buna göre
+  değişti; "Madde ekle" düğmesi sadece "Ekle" oldu.
 - [x] 3.3 Hatırlatıcılar ekranı (`/reminders`): geciken, bugün, bu hafta, sonra ve tamamlananlar. Elle girilenler yeni `reminders` tablosunda (migration 0014/0015, her rol yazabilir); aşı dozu, arınma bitişi ve gebelik kontrolü kayıtlardan türetilir, tabloya yazılmaz (tek doğruluk kaynağı kaydın kendisi). Tamamla, geri al, sil. (2026-09-21)
 - [ ] 3.4 Push bildirim. Native yolda Expo Notifications ve Expo Push API. PWA yolunda web push: VAPID anahtarı, service worker, iOS 16.4 ve sonrası ana ekrana eklenmiş olma şartı. Sunucuda tek bildirim servisi, iki taşıyıcı. node-cron ile zamanlama.
 - [x] 3.5 QR etiket basımı: hayvan listesinde seçim → "Etiket yazdır"; üç boyutta A4 etiket sayfası (QR, küpe no, isim, çiftlik adı), yazdırma penceresinden PDF olarak kaydedilir. Dayanıklı malzeme önerisi dialogda. Profildeki tek etiket de aynı üreticiyi kullanır. (2026-09-21)

@@ -881,7 +881,7 @@ try {
     await page.waitForTimeout(4000);
     const pulled = await api("sync.pull", { cursors: {}, limit: 1000 });
     if (pulled.tables.health_protocols.length === 0) throw new Error("program sunucuda yok");
-    if (!pulled.tables.protocol_items.some((i) => i.productName === "Enterotoksemi")) throw new Error("program maddesi sunucuda yok");
+    if (!pulled.tables.protocol_items.some((i) => i.productName === "Enterotoksemi")) throw new Error("program sunucuda yok");
   });
 
   await step("fotoğraf: çevrimdışı eklenir, bağlantı gelince yüklenir ve sunucudan okunur", async () => {

@@ -27,7 +27,11 @@ function triggerText(trigger: ProtocolTrigger, value: number): string {
   return `her yıl ${value}. ay`;
 }
 
-/** Aşı protokolleri (madde 3.2): çiftliğin yıllık programı; hatırlatıcılar buradan türetilir. */
+/**
+ * Aşı planlaması (madde 3.2): çiftliğin yıllık planlaması; hatırlatıcılar buradan türetilir.
+ * Sözlük çiftlik sahibinin kullandığı gibi: kapsayan şey "planlama", içindeki her satır bir "program"
+ * (enterotoksemi programı, tırnak bakımı programı...).
+ */
 export function ProtocolsPage() {
   const role = useAuthStore((s) => s.user?.role);
   const protocols = useProtocols();
@@ -41,7 +45,7 @@ export function ProtocolsPage() {
     setBusy(true);
     try {
       await createSampleProtocol("sheep");
-      toast.success("Örnek program eklendi; kendi takvimine göre düzenle");
+      toast.success("Örnek planlama eklendi; kendi takvimine göre düzenle");
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -55,12 +59,12 @@ export function ProtocolsPage() {
   return (
     <>
       <PageHeader
-        title="Aşı ve bakım programı"
-        description="Programdaki her madde, her hayvan için hatırlatıcıya dönüşür"
+        title="Aşı ve bakım planlaması"
+        description="Planlamadaki her program, her hayvan için hatırlatıcıya dönüşür"
         actions={
           loaded && rows.length === 0 ? (
             <Button onClick={() => void sample()} disabled={busy} data-testid="protocol-sample">
-              <Sparkles /> Örnek programı ekle
+              <Sparkles /> Örnek planlamayı ekle
             </Button>
           ) : null
         }
@@ -69,7 +73,7 @@ export function ProtocolsPage() {
       {!loaded ? (
         <p className="text-sm text-muted-foreground">Yükleniyor</p>
       ) : rows.length === 0 ? (
-        <EmptyState title="Henüz program yok" description="Örnek programı ekleyip kendi takvimine göre düzenleyebilirsin: enterotoksemi, çiçek, parazit, tırnak bakımı." />
+        <EmptyState title="Henüz planlama yok" description="Örnek planlamayı ekleyip kendi takvimine göre düzenleyebilirsin: enterotoksemi, çiçek, parazit, tırnak bakımı." />
       ) : (
         <div className="grid gap-4">
           {rows.map((p) => (
@@ -83,21 +87,21 @@ export function ProtocolsPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => setItemFor(p.id)} data-testid={`protocol-add-item-${p.name}`}>
-                    <Plus /> Madde ekle
+                    <Plus /> Ekle
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="text-danger"
-                    onClick={() => void deleteProtocol(p.id).then(() => toast.success("Program silindi"))}
-                    aria-label="Programı sil"
+                    onClick={() => void deleteProtocol(p.id).then(() => toast.success("Planlama silindi"))}
+                    aria-label="Planlamayı sil"
                   >
                     <Trash2 />
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="grid gap-2">
-                {p.items.length === 0 ? <EmptyState title="Madde yok" description="Aşı, ilaç veya bakım maddesi ekle." /> : null}
+                {p.items.length === 0 ? <EmptyState title="Program yok" description="Aşı, ilaç veya bakım programı ekle." /> : null}
                 {p.items.map((i) => (
                   <div key={i.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors hover:bg-muted/40" data-testid={`protocol-item-${i.productName ?? i.type}`}>
                     <span className="grid">
@@ -110,7 +114,7 @@ export function ProtocolsPage() {
                         {i.notes ? ` · ${i.notes}` : ""}
                       </span>
                     </span>
-                    <Button variant="ghost" size="icon" aria-label="Maddeyi sil" onClick={() => void deleteProtocolItem(i.id)}>
+                    <Button variant="ghost" size="icon" aria-label="Programı sil" onClick={() => void deleteProtocolItem(i.id)}>
                       <Trash2 />
                     </Button>
                   </div>
@@ -125,7 +129,7 @@ export function ProtocolsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarClock className="size-4 text-muted-foreground" />
-            Programdan çıkan işler
+            Planlamadan çıkan işler
             <Badge variant="outline" data-testid="protocol-task-count">
               {tasks.data?.length ?? 0}
             </Badge>
@@ -162,7 +166,7 @@ function ItemDialog({ protocolId, onClose }: { protocolId: string | null; onClos
     setBusy(true);
     try {
       await addProtocolItem({ protocolId, type, productName: productName.trim() || null, trigger, value: Number(value) });
-      toast.success("Madde eklendi");
+      toast.success("Program eklendi");
       setProductName("");
       onClose();
     } catch (err) {
@@ -177,8 +181,8 @@ function ItemDialog({ protocolId, onClose }: { protocolId: string | null; onClos
       <DialogContent className="max-w-md">
         <form onSubmit={save} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>Program maddesi</DialogTitle>
-            <DialogDescription>Ne, ne zaman uygulanacak? Her madde her hayvan için ayrı hatırlatıcı üretir.</DialogDescription>
+            <DialogTitle>Program</DialogTitle>
+            <DialogDescription>Ne, ne zaman uygulanacak? Her program her hayvan için ayrı hatırlatıcı üretir.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-1.5">
             <Label htmlFor="pitem-type">Tür</Label>
@@ -196,7 +200,7 @@ function ItemDialog({ protocolId, onClose }: { protocolId: string | null; onClos
             </Select>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="pitem-product">Ürün adı</Label>
+            <Label htmlFor="pitem-product">Program adı</Label>
             <Input id="pitem-product" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Enterotoksemi" data-testid="pitem-product" />
           </div>
           <ToggleGroup type="single" variant="outline" value={trigger} onValueChange={(v) => v && setTrigger(v as ProtocolTrigger)} className="flex-wrap justify-start">

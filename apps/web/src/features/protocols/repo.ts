@@ -67,7 +67,7 @@ export async function deleteProtocolItem(id: string) {
 
 /** Hazır program: yaygın aşı ve bakım takvimi tek dokunuşla kurulur, sonra düzenlenir. */
 export async function createSampleProtocol(species: Species = "sheep"): Promise<string> {
-  const protocolId = await insertLocal("health_protocols", { name: `${labels.species[species]} yıllık program`, species, active: true, notes: "Örnek program; kendi takvimine göre düzenle" });
+  const protocolId = await insertLocal("health_protocols", { name: `${labels.species[species]} yıllık planlaması`, species, active: true, notes: "Örnek planlama; kendi takvimine göre düzenle" });
   await insertManyLocal(
     "protocol_items",
     sampleProtocolItems.map((i) => ({ protocolId, type: i.type, productName: i.productName, trigger: i.trigger, value: i.value, repeat: true, notes: i.notes })),
@@ -77,7 +77,7 @@ export async function createSampleProtocol(species: Species = "sheep"): Promise<
 
 export interface ProtocolTask {
   key: string;
-  /** Aynı madde ve aynı gün için tek satır; sürüye toplu yapılan aşı 80 satıra bölünmesin. */
+  /** Aynı program ve aynı gün için tek satır; sürüye toplu yapılan aşı 80 satıra bölünmesin. */
   animalIds: string[];
   /** Tek hayvanlık işte profil bağlantısı için. */
   animalId: string | null;
@@ -86,11 +86,11 @@ export interface ProtocolTask {
   note: string;
 }
 
-/** Bir program maddesinin bir hayvan için ne zaman geleceği; son uygulamaya ve tetikleyiciye bakar. */
+/** Bir programın bir hayvan için ne zaman geleceği; son uygulamaya ve tetikleyiciye bakar. */
 function nextDue(item: LocalProtocolItem, animal: { birthDate: string | null; acquiredAt: string | null }, lastApplied: string | null, today: string): string | null {
   if (item.trigger === "age_days") {
     if (!animal.birthDate) return null;
-    // Yaşa bağlı madde bir kez uygulanır; kayıt varsa iş biter.
+    // Yaşa bağlı program bir kez uygulanır; kayıt varsa iş biter.
     return lastApplied ? null : addDays(animal.birthDate, item.value);
   }
   if (item.trigger === "interval_days") {
@@ -108,7 +108,7 @@ function nextDue(item: LocalProtocolItem, animal: { birthDate: string | null; ac
 }
 
 /**
- * Programdan türeyen işler (madde 3.2): her aktif hayvan için her madde ayrı bir hatırlatıcı olur.
+ * Planlamadan türeyen işler (madde 3.2): her aktif hayvan için her program ayrı bir hatırlatıcı olur.
  * Kayıt üretmez; sağlık kaydı girilince iş kendiliğinden ileri kayar.
  */
 export function useProtocolTasks(horizonDays = 60) {
@@ -151,7 +151,7 @@ export function useProtocolTasks(horizonDays = 60) {
         return (product ? byAnimalTypeProduct.get(key) : byAnimalType.get(key)) ?? null;
       };
 
-      // (madde, tarih) ikilisine göre topla: "Çiçek · 23 hayvan · 01.03.2026".
+      // (program, tarih) ikilisine göre topla: "Çiçek · 23 hayvan · 01.03.2026".
       const grouped = new Map<string, { item: LocalProtocolItem; protocolName: string; dueAt: string; animals: { id: string; tagNo: string }[] }>();
       const herdBySpecies = new Map<string, typeof herd>();
       for (const a of herd) herdBySpecies.set(a.species, [...(herdBySpecies.get(a.species) ?? []), a]);

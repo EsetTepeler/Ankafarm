@@ -56,7 +56,7 @@ export function StockPage() {
         actions={
           <>
             <Button variant="outline" onClick={() => setConsumptionOpen(true)} data-testid="consumption-add">
-              <Utensils /> Tüketim gir
+              <Utensils /> Toplu tüketim
             </Button>
             {isOwner ? (
               <Button onClick={() => setPurchaseOpen(true)} data-testid="purchase-add">

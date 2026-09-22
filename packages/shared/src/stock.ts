@@ -142,7 +142,7 @@ export function daysOfStockLeft(balance: number | null, consumedInWindow: number
 /** Yeni çiftlikte açılan kalemler (bölüm 10: kovayla su, yağmur suyu, sayaç yok). */
 export const seedStockItems: ReadonlyArray<{ name: string; category: StockCategory; unit: StockUnit; trackStock: boolean }> = [
   { name: "Yonca", category: "feed", unit: "kg", trackStock: true },
-  { name: "Saman", category: "feed", unit: "bale", trackStock: true },
+  { name: "Saman", category: "feed", unit: "kg", trackStock: true },
   { name: "Arpa", category: "feed", unit: "kg", trackStock: true },
   { name: "Su", category: "water", unit: "bucket", trackStock: false },
 ];
